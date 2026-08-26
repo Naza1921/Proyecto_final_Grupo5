@@ -1,0 +1,7 @@
+{
+    "java.project.sourcePaths": [
+        "controlador",
+        "modelos"
+    ],
+    "java.project.referencedLibraries": []
+}

@@ -121,8 +121,8 @@ Preparación de materiales de lanzamiento (trailer, capturas, descripción).
 #### Este README es solo un punto de partida. A medida que el proyecto avance, se pueden agregar, modificar o eliminar secciones según las necesidades específicas del juego.
 
 //Esta la portada de el juego
-![alt text](<Portada rata.png>)
+![Portada del Juego](src/assets/Portada_rata.png)
 
 //Este es el Diagrama de la idea del juego (No es propiamente un DER)
-![alt text](DER_Proyecto_juego.drawio.png)
+![Diagrama del Juego](src/assets/DER_Proyecto_juego.drawio.png)
 //Usamos Draw.io para hacer el diagrama
