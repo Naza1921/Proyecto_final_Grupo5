@@ -1,5 +1,6 @@
 package modelos;
-
+// Clase que representa a la rata gris, un tipo específico de personaje que hereda de la clase Personaje.
+// Esta clase tiene un método especial para recargar estamina automáticamente, sin necesidad de esconderse.
 public class rata_gris extends Personaje {
 
     public rata_gris(String nombre) {

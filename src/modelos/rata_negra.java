@@ -1,4 +1,6 @@
 package modelos;
+// Clase que representa a la rata negra, un tipo específico de personaje que hereda de la clase Personaje.
+// Esta clase tiene un método especial para tirar un objeto que distrae a los enemigos y consume estamina.
 
 public class rata_negra extends Personaje {
 

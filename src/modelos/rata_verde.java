@@ -1,4 +1,6 @@
 package modelos;
+// Clase que representa a la rata verde, un tipo específico de personaje que hereda de la clase Personaje.
+// Esta clase tiene un método especial para tirar ácido que ralentiza a los enemigos y consume estamina.
 
 public class rata_verde extends Personaje {
 

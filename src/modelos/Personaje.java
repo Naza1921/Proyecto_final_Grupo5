@@ -1,7 +1,8 @@
 package modelos;
-
-public class Personaje {
-    
+// Clase que representa un personaje genérico en el juego. 
+// Esta clase sirve como base para los diferentes tipos de ratas (negra, verde, gris, blanca) que heredan de ella.  
+public  class Personaje {
+    //aqui determinamos los atributos del personaje 
     protected String nombre;
     protected int vida;
     protected final int vidaMaxima;
@@ -27,7 +28,7 @@ public class Personaje {
         this.estaminaMaxima = 100;
         this.estamina = estaminaMaxima;
     }
-
+    //aqui determinamos los metodos del personaje
     public void moverIzquierda() { x -= velocidad; }
     public void moverDerecha() { x += velocidad; }
 

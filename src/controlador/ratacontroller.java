@@ -1,14 +1,15 @@
 package controlador;
 
-import modelos.personajes;
+import modelos.Personaje;
+// Clase que representa el controlador de una rata, encargado de manejar la lógica de movimiento y acciones del personaje.
 
 public class ratacontroller {
 
     // Referencia al modelo Rata que este controlador se encarga de controlar
-    private final personajes rata;
+    private final Personaje rata;
 
     // Constructor encargado de recibir la Rata que será controlada
-    public ratacontroller(personajes rata) {
+    public ratacontroller(Personaje rata) {
         this.rata = rata;
     }
 
