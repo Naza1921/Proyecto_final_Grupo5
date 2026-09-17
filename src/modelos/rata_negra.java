@@ -11,10 +11,12 @@ public class rata_negra extends Personaje {
     }
 
     // Tira un objeto que distrae y dirige a los enemigos a un lugar
+    // el objeto recorre cierta distancia
+    // y luego desaparece, dejando a los enemigos distraídos por un tiempo
     public boolean tirarDistraccion(double xDestino, double yDestino) {
         if (estamina >= costoEstaminaDistraccion) {
             estamina -= costoEstaminaDistraccion;
-            // TODO: lógica de distracción hacia (xDestino, yDestino)
+            // lógica de distracción hacia (xDestino, yDestino)
             return true;
         }
         return false;

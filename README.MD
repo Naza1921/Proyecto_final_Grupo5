@@ -20,7 +20,9 @@ Desplazamiento: Las/las ratas se desplazan entre los pisos, esquivando las amena
 Comida: Por los niveles hay comida tirada en buen y mal estado, que pueden darle power ups o power downs temporales a las ratitas.
 
 Game Over: Puede ocurrir de 3 maneras posibles:Perdiste vida por un fantasma y ellos te llevaron para tenerte de mascota.
+
 Perdiste vida por comer comida en mal estado.
+
 Se hicieron las 6 am y llegaron los encargados de limpiar el edificio con vos incluido.
 
 Jefe final: Hay que derrotarlo haciéndolo chocar con algunas de las amenazas del último nivel, como hornallas encendidas o cubiertos punzantes.
