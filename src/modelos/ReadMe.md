@@ -13,4 +13,3 @@ ya que la recarga rápida de estamina forma parte de su habilidad característic
 De esta forma, cada tipo de rata puede modificar el comportamiento heredado de `Personaje`
 según sus propias características.
  
-Falta determinar mas cambios que se podrian 
