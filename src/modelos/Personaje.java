@@ -3,7 +3,7 @@ package modelos;
 // Esta clase sirve como base para los diferentes tipos de ratas (negra, verde, gris, blanca) que heredan de ella.  
 public  class Personaje {
     //aqui determinamos los atributos del personaje 
-    protected String nombre;
+    protected final String nombre;
     protected int vida;
     protected final int vidaMaxima;
     protected double x;
@@ -45,6 +45,7 @@ public  class Personaje {
     // La rata base recarga estamina automáticamente con el tiempo.
     // Las demás la recargan solo al esconderse (agachada) — por eso
     // este método vive en el padre pero cada hija puede sobreescribirlo.
+    //comprobar si falla se desfasa  y supere el maximo declaro
     public void recargarEstamina() {
         if (estamina < estaminaMaxima) {
             estamina += 1;
@@ -60,6 +61,18 @@ public  class Personaje {
         if (vida < 0) vida = 0;
     }
 
+    //definimos que el personaje al recibir daño 
+    //decrementa la estamina 
+    public void recibirDaniobajaestamina (int cantidad , double estamina){
+        vida -= cantidad;
+        if (vida < 0 ) vida = 0 ;
+            if (vida < vidaMaxima);{
+            estamina -= cantidad;
+        }
+            
+    }
+    //definimos los metodos get y set del personaje
+    // Métodos de acceso
     public boolean estaViva() { return vida > 0; }
     public int getVida() { return vida; }
     public int getVidaMaxima() { return vidaMaxima; }
@@ -69,7 +82,12 @@ public  class Personaje {
     public boolean estaEnElAire() { return enElAire; }
     public boolean estaAgachada() { return agachada; }
     public double getEstamina() { return estamina; }
-
+    public double getEstaminaMaxima() { return estaminaMaxima; }
+    // Métodos de movimiento y acción
+    public void setVelocidad(double velocidad) { this.velocidad = velocidad; }
+    public void setEstamina(double estamina) {
+        this.estamina = Math.max(0, Math.min(estamina, estaminaMaxima));
+    }
     public void detenerMovimiento() { velocidad = 0; }
     public void interactuar() {
         // lógica de interacción con objetos
