@@ -31,7 +31,7 @@ Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nu
 Movimiento y Controles
 Movimiento básico: izquierda / derecha, salto.
 Acciones especiales: agacharse, interactuar (comer, activar interruptores).
-Configuración de controles (teclado, gamepad, táctil) – tabla de asignaciones.
+Configuración de controles (teclado).
 Sistema de Daño y Vida
 Puntos de vida (HP) y visualización (corazones, iconos de queso, etc.).
 Fuentes de daño: fantasmas, baldes de lavandina, trampas eléctricas, pinchos, etc.
@@ -47,6 +47,7 @@ Fantasmas: patrullas estáticas o rutas predefinidas; contacto = daño.
 Baldes de lavandina: áreas de peligro que infligen daño al tocar.
 Trampas de piso: pinchos, láminas eléctricas, superficies resbaladizas.
 Objetos del último nivel (jefe): hornallas encendidas, cubiertos punzantes que el jugador puede usar contra el jefe.
+
 #### Sistema de Power‑Ups / Power‑Downs
 Duración: temporizador visible (icono + cuenta regresiva).
 Ejemplos de efectos:
@@ -112,11 +113,10 @@ Desarrollo de power‑ups/power‑downs.Programación del jefe final y su lógic
 Integración de HUD, cronómetro y puntuación.Implementación de pantalla de inicio, pausa y game over.
 #### Post‑producción
 Pulido de arte y animaciones.
-Balanceo de dificultad (tiempo, frecuencia de enemigos, valores de poder).
+Balanceo de dificultad (tiempo, frecuencia de enemigos).
 Pruebas de juego y ajuste de controles.
 Integración de audio y música.
 Build y pruebas en plataformas objetivo.
-Preparación de materiales de lanzamiento (trailer, capturas, descripción).
 
 #### Este README es solo un punto de partida. A medida que el proyecto avance, se pueden agregar, modificar o eliminar secciones según las necesidades específicas del juego.
 
