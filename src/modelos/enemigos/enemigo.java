@@ -1,11 +1,6 @@
+package modelos.enemigos;
 
-public enum TipoDanio {
-    ACIDO,
-    STUN,
-    NORMAL
-}
-
-public abstract class Enemigo {
+public abstract class enemigo {
     protected  String nombre;
     protected  double velocidadBase;
     protected  double velocidadActual;
@@ -16,7 +11,7 @@ public abstract class Enemigo {
     protected  double porcentajerelantizado; 
     protected double factorRalentizacion;
 
-    public Enemigo(String nombre, double velocidad, int puntaje) {
+    public enemigo(String nombre, double velocidad, int puntaje) {
         this.nombre = nombre;
         this.puntaje = puntaje;
         this.velocidadBase = velocidad; //despues revisar por que velocidad 
@@ -26,9 +21,15 @@ public abstract class Enemigo {
 
     }
     
+    public enum TipoDanio {
+    ACIDO,
+    STUN,
+    NORMAL
+    }
+
 
     public void recibirDanio(int danio, TipoDanio tipo) {
-        switch (tipo)
+        switch (tipo) {
         //en este public vamos a hace que cuando personaje le de con un stun o acido, este se relantize
         case ACIDO:
             aplicarRalentizacion(0.5); //reduce la velocidad al 50%
@@ -38,7 +39,8 @@ public abstract class Enemigo {
             break; 
         case NORMAL: 
             aplicarRalentizacion(0.7);
-
+            break; //reduce la velocidad al 70%
+        }
     }
 
     public void aplicarRalentizacion (double factor) {

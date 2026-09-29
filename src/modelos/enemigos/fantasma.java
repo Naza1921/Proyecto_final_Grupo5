@@ -1,7 +1,8 @@
-public class fantasma extend enemigo {
+package modelos.enemigos;
+public class fantasma extends enemigo {
 
-    public fantasma {
-
+    public fantasma(String nombre, double velocidad, int puntaje) {
+        super(nombre, velocidad, puntaje);
     }
     
 }
