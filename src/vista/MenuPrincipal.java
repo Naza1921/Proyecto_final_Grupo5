@@ -1,7 +1,7 @@
 package vista;
 
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 
 public class MenuPrincipal extends JPanel {
  //botones para el menu principal, jugar, instrucciones y salir
@@ -11,7 +11,7 @@ public class MenuPrincipal extends JPanel {
     private Image fondo;
  // Constructor del panel del menú principal
     public MenuPrincipal() {
-        setPreferredSize(new Dimension(500, 400));
+        setPreferredSize(new Dimension(800, 600));
         setLayout(new GridBagLayout());
 
         java.net.URL urlImagen = getClass().getResource("/assets/Portada_rata.png");
@@ -21,6 +21,8 @@ public class MenuPrincipal extends JPanel {
         } else {
             fondo = new ImageIcon(urlImagen).getImage();
         }
+
+        // Crear y configurar los botones y el título
         // Crear y configurar los botones y el título
         JLabel titulo = new JLabel("Ghosts and Rats");
         titulo.setFont(new Font("Serif", Font.BOLD, 34));

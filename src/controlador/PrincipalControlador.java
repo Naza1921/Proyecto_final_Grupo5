@@ -1,11 +1,12 @@
 package controlador;
 
-import java.awt.*;
 import javax.swing.*;
 import modelos.Personaje;
-import vista.MenuPrincipal;
 import vista.PanelJuego;
+import vista.MenuPrincipal;
 import vista.PantallaIntro;
+import java.awt.CardLayout;
+import java.awt.Dimension;
 
 public class PrincipalControlador {
 
@@ -24,17 +25,19 @@ public class PrincipalControlador {
     public PrincipalControlador() {
         iniciarVentana();
     }
-    // Inicia la ventana principal del juego, configurando el JFrame, el CardLayout y las vistas
-    // Se agregan la pantalla de introducción y el menú principal al contenedor
+
     private void iniciarVentana() {
         ventana = new JFrame("Ghosts and Rats");
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        ventana.setResizable(false);
+
+        // Antes estaba en false: eso es lo que impedía agrandar la ventana.
+        ventana.setResizable(true);
+        // Evita que el jugador la achique tanto que el HUD o los botones no entren.
+        ventana.setMinimumSize(new Dimension(640, 480));
 
         cardLayout = new CardLayout();
         contenedor = new JPanel(cardLayout);
 
-        // La intro avisa cuando el video termina para mostrar el menú principal.
         pantallaIntro = new PantallaIntro(this::mostrarMenu);
         menuPrincipal = new MenuPrincipal();
 
@@ -44,20 +47,21 @@ public class PrincipalControlador {
         configurarBotonesMenu();
 
         ventana.add(contenedor);
+
+        // pack() solo se llama UNA vez, para darle un tamaño inicial a la ventana
+        // a partir del preferredSize de sus paneles. Después de esto, el usuario
+        // maneja el tamaño arrastrando el borde de la ventana.
         ventana.pack();
         ventana.setLocationRelativeTo(null);
         ventana.setVisible(true);
 
         cardLayout.show(contenedor, VISTA_INTRO);
     }
-    // Cambia de la pantalla de introducción al menú principal.
-    // Se ejecuta cuando termina el video de la intro (ya no depende de un temporizador fijo).
+
     private void mostrarMenu() {
         cardLayout.show(contenedor, VISTA_MENU);
-    } 
-    // Configura los botones del menú principal para iniciar el juego, mostrar instrucciones 
-    // o salir
-    // Se agregan ActionListeners a los botones del menú principal
+    }
+
     private void configurarBotonesMenu() {
         menuPrincipal.getBtnJugar().addActionListener(e -> iniciarJuego());
 
@@ -69,17 +73,18 @@ public class PrincipalControlador {
 
         menuPrincipal.getBtnSalir().addActionListener(e -> System.exit(0));
     }
-    // Inicia el juego creando un nuevo personaje y un panel de juego,
-    // y cambia la vista a la del juego
+
     private void iniciarJuego() {
         jugador = new Personaje("Rata Gris");
+        // Posición inicial cerca del agujero verde del escenario (ajustar a ojo si hace falta).
+        jugador.setX(50);
+        jugador.setY(480);
+
         panelJuego = new PanelJuego(jugador);
 
         contenedor.add(panelJuego, VISTA_JUEGO);
         cardLayout.show(contenedor, VISTA_JUEGO);
 
-        ventana.pack();
-        ventana.setLocationRelativeTo(null);
         panelJuego.requestFocusInWindow();
     }
 }

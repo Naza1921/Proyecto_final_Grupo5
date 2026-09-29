@@ -33,7 +33,7 @@ public class PantallaIntro extends JPanel {
         this.alTerminar = alTerminar;
 
         // Configuración del panel de introducción.
-        setPreferredSize(new Dimension(680, 420));
+        setPreferredSize(new Dimension(680, 480));
         setLayout(new BorderLayout());
         setBackground(java.awt.Color.BLACK);
 
@@ -64,10 +64,10 @@ public class PantallaIntro extends JPanel {
                 return;
             }
 
-            // Crear el archivo multimedia usando la ruta del recurso.
-            Media media = new Media(urlVideo.toExternalForm());/// aqui naza y yo acomodamos esto como la url del video en vez de poner la direccion fisica del archivo 
+            // Crear el recurso multimedia a partir de la URL del video.
+            Media media = new Media(urlVideo.toExternalForm());
 
-            // Crear el reproductor con imagen y audio.
+            // Crear el reproductor (se guarda en el campo para poder liberarlo después).
             player = new MediaPlayer(media);
 
             // Crear la vista que mostrará el video.

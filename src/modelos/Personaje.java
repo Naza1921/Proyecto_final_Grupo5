@@ -92,4 +92,7 @@ public  class Personaje {
     public void interactuar() {
         // lógica de interacción con objetos
     }
+    // Ubica al personaje en una posición determinada (usado al cargar un nivel).
+    public void setX(double x) { this.x = x; }
+    public void setY(double y) { this.y = y; }
 }

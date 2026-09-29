@@ -12,8 +12,8 @@ public class SpriteSheet {
     private final BufferedImage[] frames;
     private final BufferedImage[] contornos;
     // Constantes para el grosor y color del contorno
-    private static final int GROSOR_CONTORNO = 3;
-    private static final Color COLOR_CONTORNO = Color.YELLOW;
+    private static final int GROSOR_CONTORNO = 2;
+    private static final Color COLOR_CONTORNO = Color.BLACK;
 
     public SpriteSheet(String path, int cantidadFrames) {
         // Inicializar los arreglos de frames y contornos
@@ -47,30 +47,83 @@ public class SpriteSheet {
             throw new RuntimeException("No se pudo cargar el sprite: " + path, e);
         }
     }
+
     // Método privado que elimina el fondo negro de una imagen
     // Se recorre cada pixel de la imagen y se verifica si es negro
     // Si es negro, se establece como transparente en la imagen de resultado
     // Se utiliza un valor de tolerancia para determinar qué tan negro 
     // debe ser un pixel para considerarlo fondo
+    //
+    // A diferencia de un recorrido pixel por pixel, acá solo se marca como fondo
+    // el negro que está conectado a los bordes de la imagen (flood fill). Así,
+    // el pelaje oscuro o las sombras del propio personaje no se vuelven transparentes,
+    // aunque tengan un color tan oscuro como el fondo.
     private BufferedImage quitarFondoNegro(BufferedImage origen, int tolerancia) {
-        BufferedImage resultado = new BufferedImage(
-                origen.getWidth(), origen.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        int w = origen.getWidth();
+        int h = origen.getHeight();
 
-        for (int py = 0; py < origen.getHeight(); py++) {
-            for (int px = 0; px < origen.getWidth(); px++) {
-                int rgb = origen.getRGB(px, py);
-                int r = (rgb >> 16) & 0xFF;
-                int g = (rgb >> 8) & 0xFF;
-                int b = rgb & 0xFF;
+        BufferedImage resultado = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        boolean[] esFondo = new boolean[w * h];
 
-                if (r <= tolerancia && g <= tolerancia && b <= tolerancia) {
+        java.util.Deque<Integer> pendientes = new java.util.ArrayDeque<>();
+
+        // Sembrar el flood fill con los píxeles del borde que sean negros.
+        for (int px = 0; px < w; px++) {
+            agregarSiEsNegro(origen, px, 0, tolerancia, esFondo, pendientes);
+            agregarSiEsNegro(origen, px, h - 1, tolerancia, esFondo, pendientes);
+        }
+        for (int py = 0; py < h; py++) {
+            agregarSiEsNegro(origen, 0, py, tolerancia, esFondo, pendientes);
+            agregarSiEsNegro(origen, w - 1, py, tolerancia, esFondo, pendientes);
+        }
+
+        // Propagar el fondo a los píxeles negros vecinos (arriba, abajo, izquierda, derecha).
+        while (!pendientes.isEmpty()) {
+            int idx = pendientes.poll();
+            int px = idx % w;
+            int py = idx / w;
+
+            agregarSiEsNegro(origen, px - 1, py, tolerancia, esFondo, pendientes);
+            agregarSiEsNegro(origen, px + 1, py, tolerancia, esFondo, pendientes);
+            agregarSiEsNegro(origen, px, py - 1, tolerancia, esFondo, pendientes);
+            agregarSiEsNegro(origen, px, py + 1, tolerancia, esFondo, pendientes);
+        }
+
+        // Construir la imagen final: transparente donde se detectó fondo, opaco en el resto.
+        for (int py = 0; py < h; py++) {
+            for (int px = 0; px < w; px++) {
+                if (esFondo[py * w + px]) {
                     resultado.setRGB(px, py, 0x00000000);
                 } else {
+                    int rgb = origen.getRGB(px, py);
                     resultado.setRGB(px, py, rgb | 0xFF000000);
                 }
             }
         }
+
         return resultado;
+    }
+
+    // Si el píxel (px, py) es negro (según la tolerancia) y todavía no fue marcado,
+    // lo agrega a la cola del flood fill y lo marca como fondo.
+    private void agregarSiEsNegro(BufferedImage origen, int px, int py, int tolerancia,
+                                    boolean[] esFondo, java.util.Deque<Integer> pendientes) {
+        int w = origen.getWidth();
+        int h = origen.getHeight();
+        if (px < 0 || py < 0 || px >= w || py >= h) return;
+
+        int idx = py * w + px;
+        if (esFondo[idx]) return;
+
+        int rgb = origen.getRGB(px, py);
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+
+        if (r <= tolerancia && g <= tolerancia && b <= tolerancia) {
+            esFondo[idx] = true;
+            pendientes.add(idx);
+        }
     }
 
     // Dilata la silueta no transparente de "origen" y pinta el borde con "color"
