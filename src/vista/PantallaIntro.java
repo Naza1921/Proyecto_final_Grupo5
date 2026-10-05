@@ -11,9 +11,10 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-// Clase que representa la pantalla de introducción del juego,
-// mostrando un video MP4 animado con música.
+// Mostramos el video de entrada con JavaFX dentro de la ventana Swing
+// y avisamos al controlador cuando termina o no se puede reproducir.
 public class PantallaIntro extends JPanel {
 
     // Reproductor del video para evitar que se cierre mientras está activo.
@@ -21,6 +22,9 @@ public class PantallaIntro extends JPanel {
 
     // Acción a ejecutar cuando termina el video (por ejemplo, pasar al menú). Puede ser null.
     private final Runnable alTerminar;
+    // Las señales pueden llegar desde Swing y JavaFX; estas banderas evitan repetir cambios de pantalla.
+    private final AtomicBoolean introTerminada = new AtomicBoolean(false);
+    private final AtomicBoolean alternativaMostrada = new AtomicBoolean(false);
 
     // Constructor sin acción final: se mantiene por compatibilidad con el código existente.
     public PantallaIntro() {
@@ -33,7 +37,7 @@ public class PantallaIntro extends JPanel {
         this.alTerminar = alTerminar;
 
         // Configuración del panel de introducción.
-        setPreferredSize(new Dimension(680, 480));
+        setPreferredSize(new Dimension(800, 600));
         setLayout(new BorderLayout());
         setBackground(java.awt.Color.BLACK);
 
@@ -46,63 +50,109 @@ public class PantallaIntro extends JPanel {
         // Agregar el panel de video al centro de la pantalla.
         add(panelVideo, BorderLayout.CENTER);
 
-        // JavaFX debe crear y reproducir el video en su propio hilo.
-        Platform.runLater(() -> {
+        // Esperamos a que Swing muestre la ventana para que JavaFX no arranque el video antes de tiempo.
+        SwingUtilities.invokeLater(() -> Platform.runLater(() -> {
 
             // Cargar el video MP4 desde los recursos del proyecto.
             java.net.URL urlVideo = getClass().getResource(
-                "/assets/concepto_inicio_juego_10s_con_musica.mp4"
+                "/assets/intro_concepto_final/concepto_inicio_juego_10s_con_musica.mp4"
             );
 
             // Verificar si se encontró el video y manejar el error.
             if (urlVideo == null) {
                 System.err.println(
-                    "No se encontró el MP4 en /assets/concepto_inicio_juego_10s_con_musica.mp4"
+                    "No se encontró el MP4 en "
+                        + "/assets/intro_concepto_final/concepto_inicio_juego_10s_con_musica.mp4"
                 );
                 // Si no hay video, continuar con el juego para no dejar la pantalla negra.
                 terminar();
                 return;
             }
 
-            // Crear el recurso multimedia a partir de la URL del video.
-            Media media = new Media(urlVideo.toExternalForm());
+            try {
+                // Crear el recurso multimedia a partir de la URL del video.
+                Media media = new Media(urlVideo.toExternalForm());
+                media.setOnError(() -> mostrarAlternativa(panelVideo,
+                    "No se pudo leer el video: " + media.getError()));
 
-            // Crear el reproductor (se guarda en el campo para poder liberarlo después).
-            player = new MediaPlayer(media);
+                // Crear el reproductor (se guarda en el campo para poder liberarlo después).
+                MediaPlayer nuevoPlayer = new MediaPlayer(media);
+                player = nuevoPlayer;
+                nuevoPlayer.setOnError(() -> mostrarAlternativa(panelVideo,
+                    "No se pudo reproducir el video: " + nuevoPlayer.getError()));
 
-            // Crear la vista que mostrará el video.
-            MediaView vistaVideo = new MediaView(player);
+                // Crear la vista que mostrará el video.
+                MediaView vistaVideo = new MediaView(nuevoPlayer);
 
-            // Contenedor con fondo negro que centra el video.
-            StackPane raiz = new StackPane(vistaVideo);
-            raiz.setStyle("-fx-background-color: black;");
+                // Contenedor con fondo negro que centra el video.
+                StackPane raiz = new StackPane(vistaVideo);
+                raiz.setStyle("-fx-background-color: black;");
 
-            // Ajustar el video al tamaño de la pantalla de introducción,
-            // acompañando los cambios de tamaño de la ventana.
-            vistaVideo.fitWidthProperty().bind(raiz.widthProperty());
-            vistaVideo.fitHeightProperty().bind(raiz.heightProperty());
-            vistaVideo.setPreserveRatio(true);
+                // Ajustar el video al tamaño de la pantalla de introducción,
+                // acompañando los cambios de tamaño de la ventana.
+                vistaVideo.fitWidthProperty().bind(raiz.widthProperty());
+                vistaVideo.fitHeightProperty().bind(raiz.heightProperty());
+                vistaVideo.setPreserveRatio(true);
 
-            // Crear la escena de JavaFX y asignarla al panel Swing.
-            panelVideo.setScene(new Scene(raiz, Color.BLACK));
+                // Crear la escena de JavaFX y asignarla al panel Swing.
+                panelVideo.setScene(new Scene(raiz, Color.BLACK));
 
-            // Si el reproductor falla (códec no soportado, etc.), mostrar el error y continuar.
-            player.setOnError(() -> {
-                System.err.println("Error del reproductor: " + player.getError());
+                // Al terminar el video, liberar recursos y continuar con el juego.
+                nuevoPlayer.setOnEndOfMedia(this::terminar);
+
+                // Empezar cuando JavaFX ya terminó de preparar el video.
+                nuevoPlayer.setOnReady(nuevoPlayer::play);
+            } catch (RuntimeException error) {
+                mostrarAlternativa(panelVideo,
+                    "No se pudo iniciar el reproductor: " + error.getMessage());
+            }
+        }));
+    }
+
+    // Si JavaFX no puede leer o reproducir el MP4, mostramos el GIF incluido y luego seguimos al menú.
+    private void mostrarAlternativa(JFXPanel panelVideo, String motivo) {
+        if (introTerminada.get() || !alternativaMostrada.compareAndSet(false, true)) {
+            return;
+        }
+
+        System.err.println("Error del reproductor: " + motivo);
+
+        if (player != null) {
+            player.dispose();
+            player = null;
+        }
+
+        java.net.URL urlGif = getClass().getResource(
+            "/assets/intro_concepto_final/concepto_inicio_juego_10s.gif"
+        );
+        SwingUtilities.invokeLater(() -> {
+            if (urlGif == null) {
+                System.err.println("No se encontró el GIF alternativo de la introducción.");
                 terminar();
-            });
+                return;
+            }
 
-            // Al terminar el video, liberar recursos y continuar con el juego.
-            player.setOnEndOfMedia(this::terminar);
+            remove(panelVideo);
+            JLabel imagen = new JLabel(new ImageIcon(urlGif));
+            imagen.setHorizontalAlignment(SwingConstants.CENTER);
+            imagen.setVerticalAlignment(SwingConstants.CENTER);
+            add(imagen, BorderLayout.CENTER);
+            revalidate();
+            repaint();
 
-            // Iniciar el video y la música.
-            player.play();
+            // La alternativa GIF es muda; tras diez segundos continúa al menú.
+            Timer temporizador = new Timer(10_000, evento -> terminar());
+            temporizador.setRepeats(false);
+            temporizador.start();
         });
     }
 
-    // Detiene el video, libera los recursos y ejecuta la acción final (en el hilo de Swing).
-    // También se puede llamar desde afuera para saltar la introducción.
+    // Detiene el video, libera los recursos y ejecuta la acción final en Swing.
+    // La bandera evita repetir la navegación si coinciden dos señales de finalización.
     public void terminar() {
+        if (!introTerminada.compareAndSet(false, true)) {
+            return;
+        }
 
         // Liberar el reproductor en el hilo de JavaFX.
         Platform.runLater(() -> {

@@ -6,177 +6,240 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
 
+// Leemos hojas de sprites y guardamos cada cuadro por fila para que la vista pida
+// una animación concreta sin mezclarla con los cuadros de otra acción.
 public class SpriteSheet {
-    // Arreglo de imágenes que representan los frames del sprite
-    // Arreglo de imágenes que representan los contornos de los frames del sprite
-    private final BufferedImage[] frames;
-    private final BufferedImage[] contornos;
-    // Constantes para el grosor y color del contorno
-    private static final int GROSOR_CONTORNO = 2;
-    private static final Color COLOR_CONTORNO = Color.BLACK;
+    private final BufferedImage[][] frames;
+    private final BufferedImage[][] contornos;
+    private static final int GROSOR_CONTORNO = 3;
+    private static final Color COLOR_CONTORNO = Color.YELLOW;
 
+    // Mantiene compatibilidad con hojas de una sola fila, como la barra de vida.
     public SpriteSheet(String path, int cantidadFrames) {
-        // Inicializar los arreglos de frames y contornos
-        // Se cargan los frames y se generan los contornos a partir de la hoja de sprites
-        frames = new BufferedImage[cantidadFrames];
-        contornos = new BufferedImage[cantidadFrames];
-        // Cargar la hoja de sprites desde el recurso especificado
-        // Se determina el tamaño de cada frame y se recortan los frames individuales
-        // Se eliminan los fondos negros y se generan los contornos para cada frame
-        // Se utiliza un bloque try-with-resources para asegurar 
-        // que el InputStream se cierre correctamente
-        // Se utiliza ImageIO para leer la imagen de la hoja de sprites
-        try (InputStream is = getClass().getResourceAsStream(path)) {
-            BufferedImage hoja = ImageIO.read(is);
-            // Determinar el ancho y alto de cada frame en la hoja de sprites
-            // Se calcula el ancho de cada frame dividiendo 
-            // el ancho total de la hoja por la cantidad de frames
-            int anchoFrame = hoja.getWidth() / cantidadFrames; //ancho del frame
-            int altoFrame = hoja.getHeight(); //alto del frame
-           // Se recortan los frames individuales de la hoja de sprites
-           // Se eliminan los fondos negros y se generan los contornos para cada frame 
-            for (int i = 0; i < cantidadFrames; i++) {
-                BufferedImage recorte = hoja.getSubimage(i * anchoFrame, 0, anchoFrame, altoFrame);
-                BufferedImage sinFondo = quitarFondoNegro(recorte, 40);
-                frames[i] = sinFondo;
-                contornos[i] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+        this(path, new int[] {0, -1}, new int[] {cantidadFrames},
+            new int[] {cantidadFrames}, new int[] {0});
+    }
+
+    // Estas opciones sencillas sirven cuando todas las filas parten de la primera columna.
+    public SpriteSheet(String path, int[] limitesFilas, int[] cantidadesPorFila,
+                       int[] columnasPorFila) {
+        this(path, limitesFilas, cantidadesPorFila, columnasPorFila,
+            new int[cantidadesPorFila == null ? 0 : cantidadesPorFila.length]);
+    }
+
+    // Acá recibimos la configuración completa: límites verticales, cuadros,
+    // columnas fuente y desplazamiento horizontal por fila.
+    public SpriteSheet(String path, int[] limitesFilas, int[] cantidadesPorFila,
+                       int[] columnasPorFila, int[] inicioColumna) {
+        if (limitesFilas == null || cantidadesPorFila == null
+                || limitesFilas.length != cantidadesPorFila.length + 1
+                || columnasPorFila == null || columnasPorFila.length != cantidadesPorFila.length
+                || inicioColumna == null || inicioColumna.length != cantidadesPorFila.length) {
+            throw new IllegalArgumentException("La configuración de filas y columnas no es válida");
+        }
+
+        int[] cantidadCuadros = cantidadesPorFila.clone();
+        int[] cantidadColumnas = columnasPorFila.clone();
+        int[] columnaInicial = inicioColumna.clone();
+        frames = new BufferedImage[cantidadCuadros.length][];
+        contornos = new BufferedImage[cantidadCuadros.length][];
+
+        try (InputStream entrada = getClass().getResourceAsStream(path)) {
+            if (entrada == null) {
+                throw new IOException("No se encontró el recurso");
             }
-            // Se maneja la excepción en caso de que no se pueda cargar la hoja de sprites
-            // Se lanza una RuntimeException con un mensaje descriptivo
+            BufferedImage hoja = ImageIO.read(entrada);
+            if (hoja == null) {
+                throw new IOException("El recurso no contiene una imagen válida");
+            }
+
+            int[] limites = limitesFilas.clone();
+            if (limites[limites.length - 1] == -1) {
+                limites[limites.length - 1] = hoja.getHeight();
+            }
+            validarConfiguracion(hoja, limites, cantidadCuadros, cantidadColumnas, columnaInicial);
+
+            for (int fila = 0; fila < cantidadCuadros.length; fila++) {
+                frames[fila] = new BufferedImage[cantidadCuadros[fila]];
+                contornos[fila] = new BufferedImage[cantidadCuadros[fila]];
+                for (int columna = 0; columna < cantidadCuadros[fila]; columna++) {
+                    int indiceColumna = columnaInicial[fila] + columna;
+                    int xInicio = indiceColumna * hoja.getWidth() / cantidadColumnas[fila];
+                    int xFin = (indiceColumna + 1) * hoja.getWidth() / cantidadColumnas[fila];
+                    BufferedImage recorte = hoja.getSubimage(
+                        xInicio, limites[fila], xFin - xInicio, limites[fila + 1] - limites[fila]
+                    );
+                    int[] fondos = {
+                        recorte.getRGB(0, 0),
+                        recorte.getRGB(recorte.getWidth() - 1, 0),
+                        recorte.getRGB(0, recorte.getHeight() - 1),
+                        recorte.getRGB(recorte.getWidth() - 1, recorte.getHeight() - 1)
+                    };
+                    frames[fila][columna] = quitarFondo(recorte, fondos, 24);
+                    contornos[fila][columna] =
+                        generarContorno(frames[fila][columna], GROSOR_CONTORNO, COLOR_CONTORNO);
+                }
+            }
         } catch (IOException | IllegalArgumentException e) {
-            throw new RuntimeException("No se pudo cargar el sprite: " + path, e);
+            throw new IllegalArgumentException("No se pudo cargar la hoja de sprites: " + path, e);
         }
     }
 
-    // Método privado que elimina el fondo negro de una imagen
-    // Se recorre cada pixel de la imagen y se verifica si es negro
-    // Si es negro, se establece como transparente en la imagen de resultado
-    // Se utiliza un valor de tolerancia para determinar qué tan negro 
-    // debe ser un pixel para considerarlo fondo
-    //
-    // A diferencia de un recorrido pixel por pixel, acá solo se marca como fondo
-    // el negro que está conectado a los bordes de la imagen (flood fill). Así,
-    // el pelaje oscuro o las sombras del propio personaje no se vuelven transparentes,
-    // aunque tengan un color tan oscuro como el fondo.
-    private BufferedImage quitarFondoNegro(BufferedImage origen, int tolerancia) {
-        int w = origen.getWidth();
-        int h = origen.getHeight();
-
-        BufferedImage resultado = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-        boolean[] esFondo = new boolean[w * h];
-
-        java.util.Deque<Integer> pendientes = new java.util.ArrayDeque<>();
-
-        // Sembrar el flood fill con los píxeles del borde que sean negros.
-        for (int px = 0; px < w; px++) {
-            agregarSiEsNegro(origen, px, 0, tolerancia, esFondo, pendientes);
-            agregarSiEsNegro(origen, px, h - 1, tolerancia, esFondo, pendientes);
-        }
-        for (int py = 0; py < h; py++) {
-            agregarSiEsNegro(origen, 0, py, tolerancia, esFondo, pendientes);
-            agregarSiEsNegro(origen, w - 1, py, tolerancia, esFondo, pendientes);
-        }
-
-        // Propagar el fondo a los píxeles negros vecinos (arriba, abajo, izquierda, derecha).
-        while (!pendientes.isEmpty()) {
-            int idx = pendientes.poll();
-            int px = idx % w;
-            int py = idx / w;
-
-            agregarSiEsNegro(origen, px - 1, py, tolerancia, esFondo, pendientes);
-            agregarSiEsNegro(origen, px + 1, py, tolerancia, esFondo, pendientes);
-            agregarSiEsNegro(origen, px, py - 1, tolerancia, esFondo, pendientes);
-            agregarSiEsNegro(origen, px, py + 1, tolerancia, esFondo, pendientes);
-        }
-
-        // Construir la imagen final: transparente donde se detectó fondo, opaco en el resto.
-        for (int py = 0; py < h; py++) {
-            for (int px = 0; px < w; px++) {
-                if (esFondo[py * w + px]) {
-                    resultado.setRGB(px, py, 0x00000000);
-                } else {
-                    int rgb = origen.getRGB(px, py);
-                    resultado.setRGB(px, py, rgb | 0xFF000000);
-                }
+    private void validarConfiguracion(BufferedImage hoja, int[] limites,
+                                      int[] cantidadesPorFila, int[] columnasPorFila,
+                                      int[] inicioColumna) {
+        // Permitimos cargar una sola franja de una hoja completa sin procesar las animaciones
+        // que el panel todavía no usa; cada límite debe quedar dentro de la imagen.
+        for (int fila = 0; fila < cantidadesPorFila.length; fila++) {
+            if (limites[fila] < 0 || limites[fila + 1] > hoja.getHeight()
+                    || limites[fila] >= limites[fila + 1]
+                    || cantidadesPorFila[fila] <= 0
+                    || columnasPorFila[fila] <= 0
+                    || inicioColumna[fila] < 0
+                    || inicioColumna[fila] + cantidadesPorFila[fila] > columnasPorFila[fila]) {
+                throw new IllegalArgumentException("La fila " + fila + " tiene límites o cuadros inválidos");
             }
         }
+    }
 
+    public BufferedImage getFrame(int indice) {
+        return getFrame(0, Math.max(0, Math.min(indice, frames[0].length - 1)));
+    }
+
+    // El acceso por fila es estricto: un índice inválido no se convierte en otro frame.
+    public BufferedImage getFrame(int fila, int indice) {
+        if (fila < 0 || fila >= frames.length || indice < 0 || indice >= frames[fila].length) {
+            throw new IndexOutOfBoundsException("El frame solicitado no existe en esa fila");
+        }
+        return frames[fila][indice];
+    }
+
+    public BufferedImage getContorno(int indice) {
+        return contornos[0][Math.max(0, Math.min(indice, contornos[0].length - 1))];
+    }
+
+    public BufferedImage[] getFrames() {
+        return frames[0].clone();
+    }
+
+    public int getCantidadFrames() {
+        return frames[0].length;
+    }
+
+    public int getCantidadFrames(int fila) {
+        validarFila(fila);
+        return frames[fila].length;
+    }
+
+    public int getCantidadFilas() {
+        return frames.length;
+    }
+
+    private void validarFila(int fila) {
+        if (fila < 0 || fila >= frames.length) {
+            throw new IndexOutOfBoundsException("La fila solicitada no existe en la hoja");
+        }
+    }
+
+    // Quitamos solo el fondo que toca los bordes; así no borramos los colores parecidos
+    // que forman parte del dibujo cuando están encerrados dentro del sprite.
+    private BufferedImage quitarFondo(BufferedImage origen, int[] coloresFondo, int tolerancia) {
+        int ancho = origen.getWidth();
+        int alto = origen.getHeight();
+        BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+        boolean[] esFondo = new boolean[ancho * alto];
+        java.util.Deque<Integer> pendientes = new java.util.ArrayDeque<>();
+        for (int x = 0; x < ancho; x++) {
+            agregarSiEsFondo(origen, x, 0, coloresFondo, tolerancia, esFondo, pendientes);
+            agregarSiEsFondo(origen, x, alto - 1, coloresFondo, tolerancia, esFondo, pendientes);
+        }
+        for (int y = 0; y < alto; y++) {
+            agregarSiEsFondo(origen, 0, y, coloresFondo, tolerancia, esFondo, pendientes);
+            agregarSiEsFondo(origen, ancho - 1, y, coloresFondo, tolerancia, esFondo, pendientes);
+        }
+
+        while (!pendientes.isEmpty()) {
+            int indice = pendientes.remove();
+            int x = indice % ancho;
+            int y = indice / ancho;
+            agregarSiEsFondo(origen, x - 1, y, coloresFondo, tolerancia, esFondo, pendientes);
+            agregarSiEsFondo(origen, x + 1, y, coloresFondo, tolerancia, esFondo, pendientes);
+            agregarSiEsFondo(origen, x, y - 1, coloresFondo, tolerancia, esFondo, pendientes);
+            agregarSiEsFondo(origen, x, y + 1, coloresFondo, tolerancia, esFondo, pendientes);
+        }
+
+        for (int y = 0; y < alto; y++) {
+            for (int x = 0; x < ancho; x++) {
+                int color = origen.getRGB(x, y);
+                resultado.setRGB(x, y, esFondo[y * ancho + x] ? 0x00000000 : color);
+            }
+        }
         return resultado;
     }
 
-    // Si el píxel (px, py) es negro (según la tolerancia) y todavía no fue marcado,
-    // lo agrega a la cola del flood fill y lo marca como fondo.
-    private void agregarSiEsNegro(BufferedImage origen, int px, int py, int tolerancia,
-                                    boolean[] esFondo, java.util.Deque<Integer> pendientes) {
-        int w = origen.getWidth();
-        int h = origen.getHeight();
-        if (px < 0 || py < 0 || px >= w || py >= h) return;
+    private void agregarSiEsFondo(BufferedImage origen, int x, int y, int[] coloresFondo,
+                                  int tolerancia,
+                                  boolean[] esFondo, java.util.Deque<Integer> pendientes) {
+        int ancho = origen.getWidth();
+        int alto = origen.getHeight();
+        if (x < 0 || y < 0 || x >= ancho || y >= alto) {
+            return;
+        }
+        int indice = y * ancho + x;
+        if (esFondo[indice]) {
+            return;
+        }
 
-        int idx = py * w + px;
-        if (esFondo[idx]) return;
-
-        int rgb = origen.getRGB(px, py);
-        int r = (rgb >> 16) & 0xFF;
-        int g = (rgb >> 8) & 0xFF;
-        int b = rgb & 0xFF;
-
-        if (r <= tolerancia && g <= tolerancia && b <= tolerancia) {
-            esFondo[idx] = true;
-            pendientes.add(idx);
+        // Guardamos el píxel para revisarlo una sola vez y expandir el fondo desde sus bordes.
+        int color = origen.getRGB(x, y);
+        if (esColorDeFondo(color, coloresFondo, tolerancia)) {
+            esFondo[indice] = true;
+            pendientes.add(indice);
         }
     }
 
-    // Dilata la silueta no transparente de "origen" y pinta el borde con "color"
-    private BufferedImage generarContorno(BufferedImage origen, int grosor, Color color) {
-        int w = origen.getWidth();
-        int h = origen.getHeight();
-        //
-        BufferedImage contorno = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-        int colorRGB = color.getRGB() & 0x00FFFFFF;
-        // Recorremos cada pixel de la imagen original
-       // Si el pixel es transparente, verificamos si hay un pixel no transparente
-       // en su vecindad (dentro del grosor especificado). Si es así
-       // pintamos ese pixel con el color del contorno.
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int alpha = (origen.getRGB(x, y) >> 24) & 0xFF;
-                if (alpha > 0) continue; // ya es parte de la cola, no es contorno
+    private boolean esColorDeFondo(int color, int[] coloresFondo, int tolerancia) {
+        // Las esquinas pueden tener tonos distintos; aceptamos una pequeña variación por canal.
+        for (int fondo : coloresFondo) {
+            int diferenciaRojo = Math.abs(((color >> 16) & 0xFF) - ((fondo >> 16) & 0xFF));
+            int diferenciaVerde = Math.abs(((color >> 8) & 0xFF) - ((fondo >> 8) & 0xFF));
+            int diferenciaAzul = Math.abs((color & 0xFF) - (fondo & 0xFF));
+            if (diferenciaRojo <= tolerancia && diferenciaVerde <= tolerancia
+                    && diferenciaAzul <= tolerancia) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    private BufferedImage generarContorno(BufferedImage origen, int grosor, Color color) {
+        // Construimos el contorno aparte para poder dibujarlo sin modificar el frame original.
+        int ancho = origen.getWidth();
+        int alto = origen.getHeight();
+        BufferedImage contorno = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+        int colorRGB = color.getRGB() & 0x00FFFFFF;
+
+        for (int y = 0; y < alto; y++) {
+            for (int x = 0; x < ancho; x++) {
+                if (((origen.getRGB(x, y) >> 24) & 0xFF) != 0) {
+                    continue;
+                }
                 boolean esBorde = false;
                 for (int dy = -grosor; dy <= grosor && !esBorde; dy++) {
                     for (int dx = -grosor; dx <= grosor && !esBorde; dx++) {
-                        int nx = x + dx, ny = y + dy;
-                        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-                        int nAlpha = (origen.getRGB(nx, ny) >> 24) & 0xFF;
-                        if (nAlpha > 0) esBorde = true;
+                        int vecinoX = x + dx;
+                        int vecinoY = y + dy;
+                        if (vecinoX >= 0 && vecinoY >= 0 && vecinoX < ancho && vecinoY < alto
+                                && ((origen.getRGB(vecinoX, vecinoY) >> 24) & 0xFF) > 0) {
+                            esBorde = true;
+                        }
                     }
                 }
-
                 if (esBorde) {
                     contorno.setRGB(x, y, (0xFF << 24) | colorRGB);
                 }
             }
         }
         return contorno;
-    }
-    // Getters para acceder a los frames y contornos
-    public BufferedImage[] getFrames() {
-        return frames;
-    }
-
-    public BufferedImage getFrame(int index) {
-        return frames[clamp(index)];
-    }
-
-    public BufferedImage getContorno(int index) {
-        return contornos[clamp(index)];
-    }
-
-    private int clamp(int index) {
-        return Math.max(0, Math.min(frames.length - 1, index));
-    }
-
-    public int getCantidadFrames() {
-        return frames.length;
     }
 }

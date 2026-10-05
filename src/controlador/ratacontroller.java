@@ -1,7 +1,6 @@
 package controlador;
 
-import modelos.Personaje;
-// Clase que representa el controlador de una rata, encargado de manejar la lógica de movimiento y acciones del personaje.
+import modelos.personajes.Personaje;
 
 public class ratacontroller {
 
@@ -21,6 +20,16 @@ public class ratacontroller {
     // Se mueve hacia la derecha la rata
     public void moverDerecha() {
         rata.moverDerecha();
+    }
+
+    // Delegamos el salto al modelo, que impide iniciarlo si la rata ya está en el aire.
+    public void saltar() {
+        rata.saltar();
+    }
+
+    // El panel proporciona el ancho disponible y el modelo mantiene la rata dentro del escenario.
+    public void limitarPosicionHorizontal(double xMinimo, double xMaximo) {
+        rata.limitarPosicionHorizontal(xMinimo, xMaximo);
     }
 
     // Se agacha la rata
