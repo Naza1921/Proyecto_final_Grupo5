@@ -6,7 +6,7 @@
             "name": "Ghosts and Rats",
             "request": "launch",
             "mainClass": "app",
-            "vmArgs": "--module-path \"C:\\Program Files\\Java\\javafx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\" --add-modules javafx.media,javafx.swing --enable-native-access=javafx.graphics,javafx.media"
-        }
+            "vmArgs": "--module-path C:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib --add-modules javafx.media,javafx.swing --enable-native-access=javafx.graphics,javafx.media"
+        }                             // C:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\  MI DIRECCION DE CARPETA 
     ]
-}
+}                                     // C:\\Program Files\\Java\\javafx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib LA DIRECCION DE NAZA 

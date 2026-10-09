@@ -1,14 +1,11 @@
 package vista;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javax.swing.*;
 import modelos.personajes.Personaje;
-import modelos.personajes.rata_blanca;
-import modelos.personajes.rata_gris;
-import modelos.personajes.rata_negra;
-import modelos.personajes.rata_verde;
+import modelos.personajes.PersonajeFactory;
 
 // Presenta cada rata en una tarjeta y comunica la elección al controlador.
 public class PanelSeleccionPersonaje extends JPanel {
@@ -51,6 +48,7 @@ public class PanelSeleccionPersonaje extends JPanel {
         // El panel de tarjetas tiene un GridLayout de 2 filas y 2 columnas, con espacio entre ellas.
         JPanel tarjetas = new JPanel(new GridLayout(2, 2, 18, 16));
         tarjetas.setOpaque(false);
+        /* 
         tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
             () -> new rata_gris("Rata Gris")));
         tarjetas.add(crearBoton("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA,
@@ -59,7 +57,17 @@ public class PanelSeleccionPersonaje extends JPanel {
             () -> new rata_negra("Rata Negra")));
         tarjetas.add(crearBoton("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE,
             () -> new rata_verde("Rata Verde")));
-        add(tarjetas, BorderLayout.CENTER);
+        */
+            tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
+            () -> PersonajeFactory.crearPersonaje("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS)));
+            tarjetas.add(crearBoton("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA,
+            () -> PersonajeFactory.crearPersonaje("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA)));
+            tarjetas.add(crearBoton("Rata Negra", modelos.personajes.Personaje.TipoRata.NEGRA,
+            () -> PersonajeFactory.crearPersonaje("Rata Negra", modelos.personajes.Personaje.TipoRata.NEGRA)));
+            tarjetas.add(crearBoton("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE,
+            () -> PersonajeFactory.crearPersonaje("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE)));
+
+            add(tarjetas, BorderLayout.CENTER);
     }
 
     // Dibuja el fondo del selector sin cubrir las tarjetas ni su contenido.
@@ -79,7 +87,7 @@ public class PanelSeleccionPersonaje extends JPanel {
 
     // Muestra el nombre y el sprite; al hacer clic crea la instancia elegida.
     private JButton crearBoton(String nombre, Personaje.TipoRata tipo,
-                               Supplier<Personaje> fabrica) {
+                    Supplier<Personaje> fabrica) {
         JButton boton = new JButton(
             "<html><center>" + nombre + "</center></html>",
             new ImageIcon(SpritesRatas.crearVistaIdle(tipo, 170, 112))
