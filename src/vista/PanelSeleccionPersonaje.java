@@ -51,6 +51,7 @@ public class PanelSeleccionPersonaje extends JPanel {
         // El panel de tarjetas tiene un GridLayout de 2 filas y 2 columnas, con espacio entre ellas.
         JPanel tarjetas = new JPanel(new GridLayout(2, 2, 18, 16));
         tarjetas.setOpaque(false);
+        /* 
         tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
             () -> new rata_gris("Rata Gris")));
         tarjetas.add(crearBoton("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA,
@@ -59,7 +60,17 @@ public class PanelSeleccionPersonaje extends JPanel {
             () -> new rata_negra("Rata Negra")));
         tarjetas.add(crearBoton("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE,
             () -> new rata_verde("Rata Verde")));
-        add(tarjetas, BorderLayout.CENTER);
+        */
+            tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
+            () -> PersonajeFactory.crearPersonaje("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS)));
+            tarjetas.add(crearBoton("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA,
+            () -> PersonajeFactory.crearPersonaje("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA)));
+            tarjetas.add(crearBoton("Rata Negra", modelos.personajes.Personaje.TipoRata.NEGRA,
+            () -> PersonajeFactory.crearPersonaje("Rata Negra", modelos.personajes.Personaje.TipoRata.NEGRA)));
+            tarjetas.add(crearBoton("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE,
+            () -> PersonajeFactory.crearPersonaje("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE)));
+
+            add(tarjetas, BorderLayout.CENTER);
     }
 
     // Dibuja el fondo del selector sin cubrir las tarjetas ni su contenido.

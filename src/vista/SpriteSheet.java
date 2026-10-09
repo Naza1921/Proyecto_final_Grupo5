@@ -22,7 +22,7 @@ public class SpriteSheet {
 
     // Estas opciones sencillas sirven cuando todas las filas parten de la primera columna.
     public SpriteSheet(String path, int[] limitesFilas, int[] cantidadesPorFila,
-                       int[] columnasPorFila) {
+                    int[] columnasPorFila) {
         this(path, limitesFilas, cantidadesPorFila, columnasPorFila,
             new int[cantidadesPorFila == null ? 0 : cantidadesPorFila.length]);
     }

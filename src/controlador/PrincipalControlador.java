@@ -1,14 +1,13 @@
 package controlador;
 
-import javax.swing.*;
-
-import modelos.personajes.Personaje;
-import vista.PanelJuego;
-import vista.PanelSeleccionPersonaje;
-import vista.MenuPrincipal;
-import vista.PantallaIntro;
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import javax.swing.*;
+import modelos.personajes.Personaje;
+import vista.MenuPrincipal;
+import vista.PanelJuego;
+import vista.PanelSeleccionPersonaje;
+import vista.PantallaIntro;
 
 public class PrincipalControlador {
 
@@ -46,7 +45,7 @@ public class PrincipalControlador {
         menuPrincipal = new MenuPrincipal();
 
         //El panel de seleccion llama a iniciarJuego pasandole el personaje elegido
-       panelSeleccion = new PanelSeleccionPersonaje (this::iniciarJuego);
+    panelSeleccion = new PanelSeleccionPersonaje (this::iniciarJuego);
 
         contenedor.add(pantallaIntro, VISTA_INTRO);
         contenedor.add(menuPrincipal, VISTA_MENU);
