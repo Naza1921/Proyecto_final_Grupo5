@@ -1,14 +1,11 @@
 package vista;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javax.swing.*;
 import modelos.personajes.Personaje;
-import modelos.personajes.rata_blanca;
-import modelos.personajes.rata_gris;
-import modelos.personajes.rata_negra;
-import modelos.personajes.rata_verde;
+import modelos.personajes.PersonajeFactory;
 
 // Presenta cada rata en una tarjeta y comunica la elección al controlador.
 public class PanelSeleccionPersonaje extends JPanel {
@@ -90,7 +87,7 @@ public class PanelSeleccionPersonaje extends JPanel {
 
     // Muestra el nombre y el sprite; al hacer clic crea la instancia elegida.
     private JButton crearBoton(String nombre, Personaje.TipoRata tipo,
-                               Supplier<Personaje> fabrica) {
+                    Supplier<Personaje> fabrica) {
         JButton boton = new JButton(
             "<html><center>" + nombre + "</center></html>",
             new ImageIcon(SpritesRatas.crearVistaIdle(tipo, 170, 112))
