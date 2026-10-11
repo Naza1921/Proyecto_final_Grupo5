@@ -48,16 +48,6 @@ public class PanelSeleccionPersonaje extends JPanel {
         // El panel de tarjetas tiene un GridLayout de 2 filas y 2 columnas, con espacio entre ellas.
         JPanel tarjetas = new JPanel(new GridLayout(2, 2, 18, 16));
         tarjetas.setOpaque(false);
-        /* 
-        tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
-            () -> new rata_gris("Rata Gris")));
-        tarjetas.add(crearBoton("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA,
-            () -> new rata_blanca("Rata Blanca")));
-        tarjetas.add(crearBoton("Rata Negra", modelos.personajes.Personaje.TipoRata.NEGRA,
-            () -> new rata_negra("Rata Negra")));
-        tarjetas.add(crearBoton("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE,
-            () -> new rata_verde("Rata Verde")));
-        */
             tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
             () -> PersonajeFactory.crearPersonaje("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS)));
             tarjetas.add(crearBoton("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA,
