@@ -9,6 +9,9 @@ import vista.MenuPrincipal;
 import vista.PantallaIntro;
 import java.awt.CardLayout;
 import java.awt.Dimension;
+//import modelos.escenario.levels.Level1;
+
+
 
 public class PrincipalControlador {
 
@@ -25,6 +28,7 @@ public class PrincipalControlador {
     private PantallaIntro pantallaIntro;
     private CardLayout cardLayout;
     private JPanel contenedor;
+    private levelmanager manejadornivel;
 
     public PrincipalControlador() {
         iniciarVentana();

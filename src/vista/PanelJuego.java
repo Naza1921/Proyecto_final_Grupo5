@@ -11,6 +11,7 @@ import javax.swing.*;
 import controlador.GestorAnimacionSprite;
 import controlador.ratacontroller;
 import modelos.personajes.Personaje;
+import controlador.levelmanager;
 
 //aqui nosotros estamos definimos el panel visual del juego
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
@@ -24,7 +25,7 @@ public class PanelJuego extends JPanel {
     private boolean izquierdaPresionada;
     private boolean derechaPresionada;
     private boolean saltoPresionado;
-
+    private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
     private Image fondoImagen;
 
@@ -50,7 +51,7 @@ public class PanelJuego extends JPanel {
         setFocusable(true);
 
         configurarControles();
-        cargarFondo("/assets/escenarios/Escenario_nivel3.jpeg");
+ //       cargarFondo("/assets/escenarios/Escenario_nivel3.jpeg");
 
         // Loop del juego: ~60 fps
         // determinamos el timer del juego
@@ -148,11 +149,13 @@ public class PanelJuego extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-
+        manejadornivel.draw(g2); 
+        
+        // Dibujar el nivel antes de dibujar al jugador y el HUD
         // Fondo del escenario, escalado al tamaño del panel.
-        if (fondoImagen != null) {
-            g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
-        }
+//        if (fondoImagen != null) {
+//            g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
+//        }
 
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
         BufferedImage cuadroRata = animacionRata.getFrameActual();
