@@ -6,4 +6,5 @@ public interface ControladorRata {
     void saltar();
     void limitarPosicionHorizontal(double xMinimo, double xMaximo);
     void actualizar(double yPiso);
+    void recargarEstamina();
 }

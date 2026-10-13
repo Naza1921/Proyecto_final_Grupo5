@@ -13,7 +13,7 @@ public class ControladorPartida {
     private final Timer temporizador;
 
     public ControladorPartida(ControladorRata controladorRata,
-                              GestorControlesRatas gestorControles,
+                            GestorControlesRatas gestorControles,
                               PanelJuego panelJuego) {
         if (controladorRata == null || gestorControles == null || panelJuego == null) {
             throw new IllegalArgumentException(
@@ -35,10 +35,11 @@ public class ControladorPartida {
     }
 
     private void actualizar() {
-        double xMaximo = Math.max(
-            0, panelJuego.getAnchoAreaVisual() - panelJuego.getAnchoSprite()
+        double xMinimo = 0;
+        double xMaximo = Math.max(0,
+            panelJuego.getAnchoAreaVisual() - panelJuego.getAnchoSprite()
         );
-        gestorControles.actualizarMovimiento(xMaximo);
+        gestorControles.actualizarMovimiento(xMinimo, xMaximo);
 
         double yPiso = Math.max(
             0, panelJuego.getAltoAreaVisual() - panelJuego.getAltoSprite()

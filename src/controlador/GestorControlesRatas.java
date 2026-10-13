@@ -1,8 +1,8 @@
 package controlador;
 
-// Interpreta las entradas mantenidas y delega las acciones al controlador del personaje.
 public class GestorControlesRatas {
     private final ControladorRata controladorRata;
+
     private boolean izquierdaPresionada;
     private boolean derechaPresionada;
     private boolean saltoPresionado;
@@ -47,9 +47,9 @@ public class GestorControlesRatas {
         saltoPresionado = false;
     }
 
-    public void actualizarMovimiento(double xMaximo) {
-        if (!Double.isFinite(xMaximo) || xMaximo < 0) {
-            throw new IllegalArgumentException("El límite horizontal debe ser finito y no negativo");
+    public void actualizarMovimiento(double xMinimo, double xMaximo) {
+        if (!Double.isFinite(xMinimo) || !Double.isFinite(xMaximo) || xMinimo > xMaximo) {
+            throw new IllegalArgumentException("Los límites horizontales deben ser finitos y válidos");
         }
 
         if (izquierdaPresionada != derechaPresionada) {
@@ -59,6 +59,7 @@ public class GestorControlesRatas {
                 controladorRata.moverDerecha();
             }
         }
-        controladorRata.limitarPosicionHorizontal(0, xMaximo);
+
+        controladorRata.limitarPosicionHorizontal(xMinimo, xMaximo);
     }
 }
