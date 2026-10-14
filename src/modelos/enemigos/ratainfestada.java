@@ -1,6 +1,6 @@
 package modelos.enemigos;
 
-import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import modelos.Personaje;
 
 //la rata infestada tenga la habilidad de escupirte (ataque a distancia), salta para perseguirte, 
@@ -14,7 +14,7 @@ public class ratainfestada  extends enemigo{
     private static final double GRAVEDAD = 0.8;
     private static final int DANIO_ESCUPITAJO = 5;
     private static final int DANIO_FISICO_SALTO = 5;
-    private static final Duration ENFRIAMIENTO_ESCUPITAJO = Duration.ofSeconds(8);
+    private static final int ENFRIAMIENTO_ESCUPITAJO = 8;
     private boolean enelAire;
     private double velocidadVertical;
     private double alturaDespegue;
@@ -80,7 +80,8 @@ public class ratainfestada  extends enemigo{
 
     private void escupir(Personaje objetivo) {
         long ahora = System.nanoTime();
-        if (yaEscupio && ahora - ultimoEscupitajoNanos < ENFRIAMIENTO_ESCUPITAJO.toNanos()) {
+        if (yaEscupio && ahora - ultimoEscupitajoNanos
+                < TimeUnit.SECONDS.toNanos(ENFRIAMIENTO_ESCUPITAJO)) {
             return;
         }
 

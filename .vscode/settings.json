@@ -18,5 +18,6 @@
         "/home/ivo-leal/Escritorio/javafx-sdk-27/lib/javafx.controls.jar",
         "/home/ivo-leal/Escritorio/javafx-sdk-27/lib/javafx-swt.jar",
         "/home/ivo-leal/Escritorio/javafx-sdk-27/lib/javafx.fxml.jar"
-    ]
+    ],
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx8G -Xms100m -Xlog:disable"
 }

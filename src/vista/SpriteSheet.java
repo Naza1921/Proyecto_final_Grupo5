@@ -16,33 +16,46 @@ public class SpriteSheet {
     private static final Color COLOR_CONTORNO = Color.BLACK;
 
     public SpriteSheet(String path, int cantidadFrames) {
-        // Inicializar los arreglos de frames y contornos
-        // Se cargan los frames y se generan los contornos a partir de la hoja de sprites
+        this(cargarHoja(path), cantidadFrames);
+    }
+
+    public SpriteSheet(BufferedImage hoja, int cantidadFrames) {
+        this(hoja, cantidadFrames, 0, 0,
+                hoja == null ? 0 : hoja.getWidth(),
+                hoja == null ? 0 : hoja.getHeight());
+    }
+
+    public SpriteSheet(BufferedImage hoja, int cantidadFrames, int x, int y,
+                       int anchoRegion, int altoRegion) {
+        if (hoja == null || cantidadFrames <= 0 || x < 0 || y < 0
+                || anchoRegion < cantidadFrames || altoRegion <= 0
+                || x > hoja.getWidth() - anchoRegion
+                || y > hoja.getHeight() - altoRegion) {
+            throw new IllegalArgumentException("Región inválida para la hoja de sprites.");
+        }
+
         frames = new BufferedImage[cantidadFrames];
         contornos = new BufferedImage[cantidadFrames];
-        // Cargar la hoja de sprites desde el recurso especificado
-        // Se determina el tamaño de cada frame y se recortan los frames individuales
-        // Se eliminan los fondos negros y se generan los contornos para cada frame
-        // Se utiliza un bloque try-with-resources para asegurar 
-        // que el InputStream se cierre correctamente
-        // Se utiliza ImageIO para leer la imagen de la hoja de sprites
-        try (InputStream is = getClass().getResourceAsStream(path)) {
-            BufferedImage hoja = ImageIO.read(is);
-            // Determinar el ancho y alto de cada frame en la hoja de sprites
-            // Se calcula el ancho de cada frame dividiendo 
-            // el ancho total de la hoja por la cantidad de frames
-            int anchoFrame = hoja.getWidth() / cantidadFrames; //ancho del frame
-            int altoFrame = hoja.getHeight(); //alto del frame
-           // Se recortan los frames individuales de la hoja de sprites
-           // Se eliminan los fondos negros y se generan los contornos para cada frame 
-            for (int i = 0; i < cantidadFrames; i++) {
-                BufferedImage recorte = hoja.getSubimage(i * anchoFrame, 0, anchoFrame, altoFrame);
-                BufferedImage sinFondo = quitarFondoNegro(recorte, 40);
-                frames[i] = sinFondo;
-                contornos[i] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+        for (int i = 0; i < cantidadFrames; i++) {
+            int inicioX = x + (int) ((long) i * anchoRegion / cantidadFrames);
+            int finX = x + (int) ((long) (i + 1) * anchoRegion / cantidadFrames);
+            BufferedImage recorte = hoja.getSubimage(inicioX, y, finX - inicioX, altoRegion);
+            BufferedImage sinFondo = quitarFondoNegro(recorte, 40);
+            frames[i] = sinFondo;
+            contornos[i] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+        }
+    }
+
+    private static BufferedImage cargarHoja(String path) {
+        try (InputStream is = SpriteSheet.class.getResourceAsStream(path)) {
+            if (is == null) {
+                throw new IllegalArgumentException("No se encontró el recurso: " + path);
             }
-            // Se maneja la excepción en caso de que no se pueda cargar la hoja de sprites
-            // Se lanza una RuntimeException con un mensaje descriptivo
+            BufferedImage hoja = ImageIO.read(is);
+            if (hoja == null) {
+                throw new IllegalArgumentException("El recurso no es una imagen válida: " + path);
+            }
+            return hoja;
         } catch (IOException | IllegalArgumentException e) {
             throw new RuntimeException("No se pudo cargar el sprite: " + path, e);
         }
