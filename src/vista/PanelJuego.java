@@ -8,8 +8,8 @@ import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
 
+import controlador.GestorControlesRatas;
 import controlador.GestorAnimacionSprite;
-import controlador.ratacontroller;
 import modelos.personajes.Personaje;
 
 //aqui nosotros estamos definimos el panel visual del juego
@@ -18,11 +18,8 @@ public class PanelJuego extends JPanel {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
 
     private final Personaje jugador;
-    private final ratacontroller controladorRata;
+    private final GestorControlesRatas gestorControles;
     private final PanelHUD hud;
-    private Timer timer;
-    private boolean izquierdaPresionada;
-    private boolean derechaPresionada;
     private boolean saltoPresionado;
 
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
@@ -33,12 +30,12 @@ public class PanelJuego extends JPanel {
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-    public PanelJuego(Personaje jugador) {
-        if (jugador == null) {
-            throw new IllegalArgumentException("Se requiere un personaje para iniciar el juego");
+    public PanelJuego(Personaje jugador, GestorControlesRatas gestorControles) {
+        if (jugador == null || gestorControles == null) {
+            throw new IllegalArgumentException("Se requieren un personaje y el gestor de controles");
         }
         this.jugador = jugador;
-        this.controladorRata = new ratacontroller(jugador);
+        this.gestorControles = gestorControles;
         this.hud = new PanelHUD();
         SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
         this.animacionRata = new GestorAnimacionSprite(
@@ -51,47 +48,57 @@ public class PanelJuego extends JPanel {
 
         configurarControles();
         cargarFondo("/assets/escenarios/Escenario_nivel3.jpeg");
-
-        // Loop del juego: ~60 fps
-        // determinamos el timer del juego
-        timer = new Timer(16, e -> {
-            actualizarMovimientoHorizontal();
-            controladorRata.actualizar();
-            verificarAterrizaje();
-            jugador.recargarEstamina();
-            animacionRata.actualizar();
-            repaint(); // dispara paintComponent
-        });
-        timer.start();
     }
 
-    // Las flechas mantienen el movimiento mientras están pulsadas; Espacio inicia un salto.
+    public double getAnchoAreaVisual() {
+        return getWidth();
+    }
+
+    public double getAltoAreaVisual() {
+        return getHeight();
+    }
+
+    public double getAnchoSprite() {
+        return animacionRata.getAncho();
+    }
+
+    public double getAltoSprite() {
+        return animacionRata.getAlto();
+    }
+
+    public void actualizarPresentacion() {
+        animacionRata.actualizar();
+        repaint();
+    }
+
     private void configurarControles() {
         vincularTecla("pressed LEFT", "izquierdaPresionada",
-            () -> izquierdaPresionada = true);
+            gestorControles::presionarIzquierda);
         vincularTecla("released LEFT", "izquierdaLiberada",
-            () -> izquierdaPresionada = false);
+            gestorControles::soltarIzquierda);
         vincularTecla("pressed RIGHT", "derechaPresionada",
-            () -> derechaPresionada = true);
+            gestorControles::presionarDerecha);
         vincularTecla("released RIGHT", "derechaLiberada",
-            () -> derechaPresionada = false);
+            gestorControles::soltarDerecha);
         vincularTecla("pressed SPACE", "saltar",
             () -> {
                 if (!saltoPresionado) {
                     saltoPresionado = true;
-                    controladorRata.saltar();
+                    gestorControles.presionarSalto();
                 }
             });
         vincularTecla("released SPACE", "saltarLiberado",
-            () -> saltoPresionado = false);
+            () -> {
+                saltoPresionado = false;
+                gestorControles.soltarSalto();
+            });
 
         // Limpiamos las teclas activas si la ventana pierde el foco antes de liberarlas.
         addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent evento) {
-                izquierdaPresionada = false;
-                derechaPresionada = false;
                 saltoPresionado = false;
+                gestorControles.limpiarEntradas();
             }
         });
     }
@@ -107,32 +114,6 @@ public class PanelJuego extends JPanel {
             }
         });
     }
-
-    // Aplicamos el desplazamiento una vez por actualización y cancelamos direcciones opuestas.
-    private void actualizarMovimientoHorizontal() {
-        if (izquierdaPresionada != derechaPresionada) {
-            if (izquierdaPresionada) {
-                controladorRata.moverIzquierda();
-            } else {
-                controladorRata.moverDerecha();
-            }
-        }
-
-        controladorRata.limitarPosicionHorizontal(
-            0, Math.max(0, getWidth() - animacionRata.getAncho())
-        );
-    }
-
-    // El nivel actual no tiene plataformas conectadas; usamos el borde inferior como piso.
-    private void verificarAterrizaje() {
-        if (jugador.estaEnElAire() && jugador.getVelocidadY() >= 0) {
-            double yPiso = Math.max(0, getHeight() - animacionRata.getAlto());
-            if (jugador.getY() >= yPiso) {
-                jugador.aterrizar(yPiso);
-            }
-        }
-    }
-
     // Carga la imagen de fondo del escenario desde los recursos.
     private void cargarFondo(String ruta) {
         java.net.URL urlFondo = getClass().getResource(ruta);
