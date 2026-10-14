@@ -1,5 +1,7 @@
 package modelos.enemigos;
 
+import modelos.Personaje;
+
 public abstract class enemigo {
     protected  String nombre;
     protected int vida;
@@ -75,7 +77,7 @@ public abstract class enemigo {
         return vida > 0 ;
     }
     // Abstraccion del tipo de danio que genera el enemigo 
-     public abstract void atacar(double objetivoX, double objetivoY);
+     public abstract void atacar(Personaje objetivo);
 
     
     //getter y Setters 

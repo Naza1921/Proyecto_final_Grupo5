@@ -1,4 +1,7 @@
 package modelos.enemigos;
+
+import modelos.Personaje;
+
 public class fantasma extends enemigo {
     private static final int VIDA_FANTASMA = 1; 
     private static final int VIDA_FANTASMA_MAXIMA = 1;
@@ -7,7 +10,7 @@ public class fantasma extends enemigo {
     }
     @Override
 
-    public void atacar(double objetivoX, double objetivoY) {
+    public void atacar(Personaje objetivo) {
         //Aca ira el danio que hara el fantasma al personaje (danio cuerpo a cuerpo)
     }
     

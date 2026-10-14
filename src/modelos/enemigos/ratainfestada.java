@@ -1,33 +1,50 @@
 package modelos.enemigos;
+
+import modelos.Personaje;
+
 //la rata infestada tenga la habilidad de escupirte (ataque a distancia), salta para perseguirte, 
 public class ratainfestada  extends enemigo{
     private static final int VIDA_RATA = 2;
     private static final int VIDA_RATA_MAXIMA = 2;
     private static final double RANGO_ESCUPITAJO = 200.0;
-    private static final double fuerzaSalto = 5;
-    private final boolean enElAire = false;
+    private static final double FUERZA_SALTO = 5.0;
+    private static final int DANIO_ESCUPITAJO = 5;
+    private static final long ENFRIAMIENTO_ESCUPITAJO_NANOS = 8_000_000_000L;
+    private final boolean enElAire = false ;
+    private long ultimoEscupitajoNanos;
+    private boolean yaEscupio;
 
-    super(nombre, VIDA_RATA, VIDA_RATA_MAXIMA, velocidad, puntaje);
+    public ratainfestada(String nombre, double velocidad, int puntaje) {
+        super(nombre, VIDA_RATA, VIDA_RATA_MAXIMA, velocidad, puntaje);
+    }
 
     @Override 
-    public void atacar(double objetivoX, double objetivoY) {
-        double distancia = Math.hypot(objetivoX - x, objetivoY - y);
+    public void atacar(Personaje objetivo) {
+        if (!objetivo.estaViva()) {
+            return;
+        }
 
-        if (distancia <= fuerzaSalto) {
-            //si la distancia es suficiente para saltar hacia otra plataforma, la rata infestada lo hara
-            saltar(objetivoX, objetivoY);
+        double distancia = Math.hypot(objetivo.getX() - x, objetivo.getY() - y);
 
-        } else if (distancia <= rango_escupitajo) {
-            //si la rata infestada esta a rango de la rata, esta le escupira
-            escupir(objetivoX, objetivoY);
+        if (distancia <= FUERZA_SALTO) {
+            saltar(objetivo.getX(), objetivo.getY());
+        } else if (distancia <= RANGO_ESCUPITAJO) {
+            escupir(objetivo);
         }
     }
+
+    private void escupir(Personaje objetivo) {
+        long ahora = System.nanoTime();
+        if (yaEscupio && ahora - ultimoEscupitajoNanos < ENFRIAMIENTO_ESCUPITAJO_NANOS) {
+            return;
+        }
+
+        objetivo.recibirDanio(DANIO_ESCUPITAJO);
+        ultimoEscupitajoNanos = ahora;
+        yaEscupio = true;
     }
 
-    public void escupir (double objetivoX, double objetivoY){
-        //aca va el ataque de distancia
-    }
     public void saltar(double objetivoX, double objetivoY) {
-        //aca va el salto de la rata infestada
+        // Pendiente: implementar el salto hacia el objetivo.
     }
 }
