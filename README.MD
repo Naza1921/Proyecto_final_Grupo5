@@ -185,4 +185,4 @@ La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de
 
 **Estado actual:** están implementadas las estrategias de Velocidad++, Lento e Invulnerabilidad y el gestor que las activa y vence. El juego todavía debe conectar los power-ups que se colocan en cada nivel con `ControladorPartida.recogerPowerUp(...)` para que el personaje los pueda recoger durante una partida.
 
-El diagrama UML de las clases y relaciones del patrón Strategy está en [docs/uml-strategy-powerups.md](docs/uml-strategy-powerups.md).
+El diagrama UML de las clases y relaciones del patrón Strategy está en [Diagrama UML de Strategy para power-ups](docs/uml-strategy-powerups.svg).
