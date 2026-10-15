@@ -126,3 +126,63 @@ Build y pruebas en plataformas objetivo.
 //Este es el Diagrama de la idea del juego (No es propiamente un DER)
 ![Diagrama del Juego](src/assets/DER_Proyecto_juego.drawio.png)
 //Usamos Draw.io para hacer el diagrama
+## Patrones de diseño aplicados
+
+El proyecto utiliza **Factory** para crear personajes y **Strategy** para encapsular efectos temporales de power-ups. Ambos patrones ayudan a mantener separada la creación de objetos de su comportamiento y facilitan agregar variantes sin concentrar toda la lógica en una sola clase.
+
+### Factory: creación de personajes
+ El problema que se me presento cuando me toco trabajar en el codigo fue ver que en varias parte del codigo como por ejemplo ; panelDeSeleccion  y proncipal controlador se encontraba el codigo para instanciar a la rata seleccionada por esta razon decidi aplicar el patron factory que permite centralizar la creacion de objetos tipo personaje ( cada rata )
+
+`PersonajeFactory` centraliza la creación de las distintas subclases de `Personaje`. Recibe un nombre y un valor de `Personaje.TipoRata`, y devuelve la instancia concreta correspondiente:
+
+```java
+Personaje jugador = PersonajeFactory.crearPersonaje(
+    "Rata Gris",
+    Personaje.TipoRata.GRIS
+);
+```
+
+La pantalla de selección utiliza esta fábrica para crear la rata elegida. El resto del juego puede trabajar con el tipo común `Personaje`, sin tener que construir directamente `rata_gris`, `rata_blanca`, `rata_negra` o `rata_verde`.
+
+**Por qué es útil para el juego:**
+
+- Mantiene en un único lugar la correspondencia entre tipo de rata y clase concreta.
+- Evita repetir condicionales de creación en las vistas y controladores.
+- Facilita añadir o ajustar tipos de rata sin propagar la lógica de construcción por todo el proyecto.
+
+**IMPORTATNE:**
+La aplicación   de este patron nos permite respetar los principios SOLID debido a que:
+- Evitas un acoplamiento fuerte entre el creador y los productos concretos.
+- Principio de responsabilidad única.Existe PersonajeFactory que es el unico responsable de instanciar el personje.
+
+### Strategy: efectos temporales de power-ups
+
+`EfectoTemporal` define el contrato de una estrategia: cada efecto declara su categoría y cómo aplicarse y revertirse sobre un `Personaje`. Las clases `EfectoVelocidad`, `EfectoLento` y `EfectoInvulnerabilidad` implementan ese contrato.
+
+Cada objeto `PowerUp` contiene una estrategia y una duración en milisegundos. Por ejemplo, `PowerUpVelocidad` se construye con un `EfectoVelocidad`:
+
+```java
+PowerUp powerUp = new PowerUpVelocidad(
+    5000, // duración en milisegundos
+    120,  // posición X
+    300   // posición Y
+);
+```
+
+`GestorEfectosTemporales` activa la estrategia, guarda cuándo comenzó y la revierte cuando termina su duración. También puede comprobar una colisión con el personaje:
+
+```java
+boolean recogido = gestorEfectos.recogerSiColisiona(powerUp);
+```
+
+La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de juego. Los efectos de velocidad comparten categoría: si se activa `EfectoLento` mientras está activo `EfectoVelocidad`, el primero se revierte y el nuevo lo reemplaza. Si se vuelve a activar el mismo efecto, se renueva su duración. La invulnerabilidad pertenece a otra categoría, por lo que puede coexistir con cualquiera de los efectos de velocidad.
+
+**Por qué es útil para el juego:**
+
+- Cada efecto tiene su propia implementación y puede cambiarse sin añadir una cadena de condiciones a `Personaje` o al controlador de partida.
+- Permite incorporar efectos nuevos implementando `EfectoTemporal`, por ejemplo salto triple o controles invertidos, cuando se implementen esas mecánicas.
+- Centraliza la activación, renovación, reemplazo y vencimiento de los efectos temporales.
+
+**Estado actual:** están implementadas las estrategias de Velocidad++, Lento e Invulnerabilidad y el gestor que las activa y vence. El juego todavía debe conectar los power-ups que se colocan en cada nivel con `ControladorPartida.recogerPowerUp(...)` para que el personaje los pueda recoger durante una partida.
+
+El diagrama UML de las clases y relaciones del patrón Strategy está en [docs/uml-strategy-powerups.md](docs/uml-strategy-powerups.md).
