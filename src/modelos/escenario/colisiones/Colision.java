@@ -1,4 +1,4 @@
-package colisiones;
+package modelos.escenario.colisiones;
 
 public class Colision {
 

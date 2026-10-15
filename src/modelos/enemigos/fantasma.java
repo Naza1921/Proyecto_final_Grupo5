@@ -1,6 +1,6 @@
 package modelos.enemigos;
 
-import modelos.Personaje;
+import modelos.personajes.Personaje;
 
 public class fantasma extends enemigo {
     private static final int VIDA_FANTASMA = 1; 

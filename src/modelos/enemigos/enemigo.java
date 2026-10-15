@@ -1,8 +1,11 @@
 package modelos.enemigos;
 
-import modelos.Personaje;
+import modelos.personajes.Personaje;
+import java.util.concurrent.TimeUnit;
 
 public abstract class enemigo {
+    private static final long DURACION_RALENTIZACION_MS = 5000;
+    private static final long DURACION_ATURDIMIENTO_MS = 2000;
     protected  String nombre;
     protected int vida;
     protected int vidaMaxima; 
@@ -14,6 +17,11 @@ public abstract class enemigo {
     protected  boolean ralentizado; 
     protected  double porcentajerelantizado; 
     protected double factorRalentizacion;
+    private long ralentizacionHastaNanos;
+    private long aturdimientoHastaNanos;
+    private long distraccionHastaNanos;
+    private double distraccionX;
+    private double distraccionY;
 
     public enemigo(String nombre, int vida, int vidaMaxima,double velocidad, int puntaje) {
         this.nombre = nombre;
@@ -24,6 +32,7 @@ public abstract class enemigo {
         this.velocidadActual = velocidad; //despues revisar por que velocidad
         this.ralentizado = false;
         this.porcentajerelantizado = 1.0;
+        this.factorRalentizacion = 1.0;
 
     }
     
@@ -36,45 +45,107 @@ public abstract class enemigo {
 
 
     public void recibirDanio(int danio, TipoDanio tipo) {
+        if (danio < 0 || tipo == null) {
+            throw new IllegalArgumentException("El daño y su tipo deben ser válidos");
+        }
         if (!estavivo()) return;
-        this.vida -= danio;
-        
-        if (this.vida < 0 ) {
-            this.vida = 0;
-        }
-        if (estavivo()) { 
+        vida = Math.max(0, vida - danio);
+        if (!estavivo()) return;
+
         switch (tipo) {
-        //en este public vamos a hace que cuando personaje le de con un stun o acido, este se relantize
-        case ACIDO:
-            aplicarRelantizacion(0.5); //reduce la velocidad al 50%
-            break; //Detiene el código aquí y sale del switch.
-        case STUN: 
-            aplicarRelantizacion(0.0); // Lo reduce la velocidad al 100% 
-            break; 
-        case NORMAL: 
-            aplicarRelantizacion(0.7);
-            break; //reduce la velocidad al 70%
-        case SAL:
-
-            break; 
-        }
+            case ACIDO -> aplicarRelantizacion(0.5, DURACION_RALENTIZACION_MS);
+            case STUN -> aturdir(DURACION_ATURDIMIENTO_MS);
+            case NORMAL -> aplicarRelantizacion(0.7, 1500);
+            case SAL -> { }
         }
     }
 
-    public void aplicarRelantizacion (double factor) {
-        this.ralentizado = true; //aplica la ralentizacion 
-        this.factorRalentizacion = factor;
-        this.velocidadActual = this.velocidadBase * factor;
-
+    public void aplicarRelantizacion(double factor) {
+        aplicarRelantizacion(factor, DURACION_RALENTIZACION_MS);
     }
+
+    public void aplicarRelantizacion(double factor, long duracionMs) {
+        if (!Double.isFinite(factor) || factor < 0 || factor > 1 || duracionMs <= 0) {
+            throw new IllegalArgumentException("La ralentización requiere un factor y duración válidos");
+        }
+        actualizarEstados();
+        ralentizado = true;
+        factorRalentizacion = Math.min(factorRalentizacion, factor);
+        ralentizacionHastaNanos = Math.max(
+            ralentizacionHastaNanos, System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(duracionMs)
+        );
+        actualizarVelocidad();
+    }
+
+    public void aturdir(long duracionMs) {
+        if (duracionMs <= 0) {
+            throw new IllegalArgumentException("La duración del aturdimiento debe ser positiva");
+        }
+        aturdimientoHastaNanos = Math.max(
+            aturdimientoHastaNanos, System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(duracionMs)
+        );
+        actualizarVelocidad();
+    }
+
+    public void distraer(double x, double y, long duracionMs) {
+        if (!Double.isFinite(x) || !Double.isFinite(y) || duracionMs <= 0) {
+            throw new IllegalArgumentException("La distracción requiere una posición y duración válidas");
+        }
+        distraccionX = x;
+        distraccionY = y;
+        distraccionHastaNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(duracionMs);
+    }
+
     public void restaurarVelocidad() {
-        this.ralentizado = false;
-        this.factorRalentizacion = 1.0;
-        this.velocidadActual = this.velocidadBase;
+        ralentizado = false;
+        factorRalentizacion = 1.0;
+        ralentizacionHastaNanos = 0;
+        actualizarVelocidad();
+    }
+
+    private void actualizarEstados() {
+        long ahora = System.nanoTime();
+        if (ralentizacionHastaNanos != 0 && ahora >= ralentizacionHastaNanos) {
+            ralentizado = false;
+            factorRalentizacion = 1.0;
+            ralentizacionHastaNanos = 0;
+        }
+        if (aturdimientoHastaNanos != 0 && ahora >= aturdimientoHastaNanos) {
+            aturdimientoHastaNanos = 0;
+        }
+        if (distraccionHastaNanos != 0 && ahora >= distraccionHastaNanos) {
+            distraccionHastaNanos = 0;
+        }
+        actualizarVelocidad();
+    }
+
+    private void actualizarVelocidad() {
+        velocidadActual = aturdimientoHastaNanos > System.nanoTime()
+            ? 0 : velocidadBase * factorRalentizacion;
     }
 
     public boolean estavivo() {
         return vida > 0 ;
+    }
+
+    public boolean estaAturdido() {
+        actualizarEstados();
+        return aturdimientoHastaNanos != 0;
+    }
+
+    public boolean estaDistraido() {
+        actualizarEstados();
+        return distraccionHastaNanos != 0;
+    }
+
+    public double getDistraccionX() {
+        actualizarEstados();
+        return distraccionX;
+    }
+
+    public double getDistraccionY() {
+        actualizarEstados();
+        return distraccionY;
     }
     // Abstraccion del tipo de danio que genera el enemigo 
      public abstract void atacar(Personaje objetivo);
@@ -87,12 +158,16 @@ public abstract class enemigo {
     }
     public int getVidaMaxima(){return vidaMaxima;}
     public double getVelocidadActual () {
+        actualizarEstados();
         return velocidadActual;
     }
     public double getX () { return x;}
     public double getY() {return y;}
     public int getPuntaje() {return puntaje;}
-    public boolean isRalentizado () {return ralentizado;}
+    public boolean isRalentizado () {
+        actualizarEstados();
+        return ralentizado;
+    }
 
     //setter
 

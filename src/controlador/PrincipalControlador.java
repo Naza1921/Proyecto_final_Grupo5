@@ -20,6 +20,7 @@ public class PrincipalControlador {
     private JFrame ventana;
     private PanelJuego panelJuego;
     private ControladorPartida controladorPartida;
+    private GestorEfectosTemporales gestorEfectos;
     private MenuPrincipal menuPrincipal;
     private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
     private PantallaIntro pantallaIntro;
@@ -65,7 +66,7 @@ public class PrincipalControlador {
         cardLayout.show(contenedor, VISTA_INTRO);
     }
 
-    
+
 
     private void mostrarMenu() {
         cardLayout.show(contenedor, VISTA_MENU);
@@ -90,6 +91,9 @@ public class PrincipalControlador {
         if (controladorPartida != null) {
             controladorPartida.detener();
         }
+        if (gestorEfectos != null) {
+            gestorEfectos.limpiar();
+        }
         if (panelJuego != null) {
             contenedor.remove(panelJuego);
         }
@@ -101,9 +105,10 @@ public class PrincipalControlador {
 
         ControladorRata controladorRata = new ratacontroller(jugador);
         GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);
+        gestorEfectos = new GestorEfectosTemporales(jugador);
         panelJuego = new PanelJuego(jugador, gestorControles);
         controladorPartida = new ControladorPartida(
-            controladorRata, gestorControles, panelJuego
+            controladorRata, gestorControles, gestorEfectos, panelJuego
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);

@@ -1,5 +1,7 @@
 package modelos.personajes;
 
+import modelos.enemigos.enemigo;
+
 // Acá concentramos lo que todas las ratas tienen en común: estadísticas, posición
 // y acciones básicas. Cada tipo concreto hereda de esta clase y aporta sus diferencias.
 public abstract class Personaje {
@@ -17,9 +19,11 @@ public abstract class Personaje {
     private double y;
     private double velocidad;
     private final double velocidadBase;
+    private double multiplicadorVelocidadTemporal = 1.0;
     private final double fuerzaSalto;
     private boolean enElAire;
     private boolean agachada;
+    private boolean invulnerable;
     private double estamina;
     private final double estaminaMaxima;
     private double velocidadY = 0;
@@ -56,8 +60,8 @@ public abstract class Personaje {
     }
 
     // El movimiento horizontal usa la velocidad actual del personaje.
-    public void moverIzquierda() { x -= velocidad; }
-    public void moverDerecha() { x += velocidad; }
+    public void moverIzquierda() { x -= getVelocidad(); }
+    public void moverDerecha() { x += getVelocidad(); }
 
     // Mantiene la posición horizontal dentro del área que el nivel permite recorrer.
     public void limitarPosicionHorizontal(double xMinimo, double xMaximo) {
@@ -99,6 +103,9 @@ public abstract class Personaje {
         if (cantidad < 0) {
             throw new IllegalArgumentException("El daño no puede ser negativo");
         }
+        if (invulnerable) {
+            return;
+        }
         // La vida nunca puede quedar por debajo de cero.
         vida = Math.max(0, vida - cantidad);
     }
@@ -128,11 +135,16 @@ public abstract class Personaje {
         velocidadY = 0;
         enElAire = false;
         agachada = false;
+        invulnerable = false;
+        multiplicadorVelocidadTemporal = 1.0;
     }
 
     public void recibirDanioYReducirEstamina(int danioVida, double danioEstamina) {
         if (danioVida < 0 || !Double.isFinite(danioEstamina) || danioEstamina < 0) {
             throw new IllegalArgumentException("El daño y la reducción de estamina no pueden ser negativos");
+        }
+        if (invulnerable) {
+            return;
         }
         vida = Math.max(0, vida - danioVida);
         // Reutiliza la validación y los límites definidos para la estamina.
@@ -151,11 +163,21 @@ public abstract class Personaje {
     public boolean estaAgachada() { return agachada; }
     public double getEstamina() { return estamina; }
     public double getEstaminaMaxima() { return estaminaMaxima; }
-    public double getVelocidad() { return velocidad; }
+    public double getVelocidad() { return velocidad * multiplicadorVelocidadTemporal; }
     public double getFuerzaSalto() { return fuerzaSalto; }
     public double getVelocidadY(){return velocidadY;}
+    public boolean esInvulnerable() { return invulnerable; }
 
     public void setVelocidad(double velocidad) { this.velocidad = velocidad; }
+    public void setMultiplicadorVelocidadTemporal(double multiplicador) {
+        if (!Double.isFinite(multiplicador) || multiplicador <= 0) {
+            throw new IllegalArgumentException("El multiplicador de velocidad debe ser finito y positivo");
+        }
+        this.multiplicadorVelocidadTemporal = multiplicador;
+    }
+    public void setInvulnerable(boolean invulnerable) {
+        this.invulnerable = invulnerable;
+    }
     public void setEstamina(double estamina) {
         if (!Double.isFinite(estamina)) {
             throw new IllegalArgumentException("La estamina debe ser un número finito");
@@ -168,6 +190,15 @@ public abstract class Personaje {
 
     public void interactuar() {
         // La interacción concreta depende del objeto cercano.
+    }
+
+    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+        return false;
+    }
+
+    protected final boolean objetivoEnRango(enemigo objetivo, double rango) {
+        return objetivo != null && objetivo.estavivo()
+            && Math.hypot(objetivo.getX() - x, objetivo.getY() - y) <= rango;
     }
 
     // Estas posiciones se actualizan al iniciar un nivel o cuando se mueve al personaje.

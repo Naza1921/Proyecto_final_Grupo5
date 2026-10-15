@@ -1,5 +1,6 @@
 package controlador;
 
+import modelos.enemigos.enemigo;
 import modelos.personajes.Personaje;
 
 public class ratacontroller implements ControladorRata {
@@ -40,11 +41,13 @@ public class ratacontroller implements ControladorRata {
     }
 
     // Se agacha la rata
+    @Override
     public void agacharse() {
         rata.agacharse();
     }
 
     // La rata vuelve a levantarse
+    @Override
     public void levantarse() {
         rata.levantarse();
     }
@@ -71,5 +74,10 @@ public class ratacontroller implements ControladorRata {
     @Override
     public void recargarEstamina() {
         rata.recargarEstamina();
+    }
+
+    @Override
+    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+        return rata.usarHabilidad(objetivo, xDestino, yDestino);
     }
 }

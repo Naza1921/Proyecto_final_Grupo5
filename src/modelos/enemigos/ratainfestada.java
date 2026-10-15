@@ -1,7 +1,7 @@
 package modelos.enemigos;
 
 import java.util.concurrent.TimeUnit;
-import modelos.Personaje;
+import modelos.personajes.Personaje;
 
 //la rata infestada tenga la habilidad de escupirte (ataque a distancia), salta para perseguirte, 
 public class ratainfestada  extends enemigo{
@@ -28,11 +28,21 @@ public class ratainfestada  extends enemigo{
 
     @Override 
     public void atacar(Personaje objetivo) {
-        if (!objetivo.estaViva()) {
+        if (objetivo == null || !objetivo.estaViva() || estaAturdido()) {
             return;
         }
 
         if (enelAire) {
+            return;
+        }
+
+        if (estaDistraido()) {
+            double distanciaDistraccion = Math.hypot(
+                getDistraccionX() - x, getDistraccionY() - y
+            );
+            if (distanciaDistraccion >= DISTANCIA_MINIMA_SALTO_X) {
+                saltar();
+            }
             return;
         }
 
@@ -47,24 +57,25 @@ public class ratainfestada  extends enemigo{
     }
 
     public void actualizar(Personaje objetivo) {
-        if (!enelAire) {
+        if (!enelAire || estaAturdido() || objetivo == null) {
             return;
         }
+
+        boolean distraido = estaDistraido();
+        double destinoX = distraido ? getDistraccionX() : objetivo.getX();
 
         // Avanza un paso de la trayectoria por cada actualización del ciclo de juego.
         y += velocidadVertical;
         velocidadVertical += GRAVEDAD;
 
-        if (objetivo.estaViva()) {
-            double diferenciaX = objetivo.getX() - x;
-            double distanciaHorizontal = Math.abs(diferenciaX);
-            double avanceHorizontal = Math.min(Math.max(0.0, velocidadActual), distanciaHorizontal);
-            if (distanciaHorizontal > 0.0) {
-                x += Math.copySign(avanceHorizontal, diferenciaX);
-            }
+        double diferenciaX = destinoX - x;
+        double distanciaHorizontal = Math.abs(diferenciaX);
+        double avanceHorizontal = Math.min(Math.max(0.0, getVelocidadActual()), distanciaHorizontal);
+        if (distanciaHorizontal > 0.0) {
+            x += Math.copySign(avanceHorizontal, diferenciaX);
         }
 
-        if (!yaDanoFisicoEnEsteSalto && objetivo.estaViva()
+        if (!distraido && !yaDanoFisicoEnEsteSalto && objetivo.estaViva()
                 && Math.hypot(objetivo.getX() - x, objetivo.getY() - y) <= RANGO_CONTACTO_FISICO) {
             objetivo.recibirDanio(DANIO_FISICO_SALTO);
             yaDanoFisicoEnEsteSalto = true;

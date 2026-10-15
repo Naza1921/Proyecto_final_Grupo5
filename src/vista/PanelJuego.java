@@ -92,6 +92,10 @@ public class PanelJuego extends JPanel {
                 saltoPresionado = false;
                 gestorControles.soltarSalto();
             });
+        vincularTecla("pressed DOWN", "agacharse",
+            gestorControles::presionarAgacharse);
+        vincularTecla("released DOWN", "levantarse",
+            gestorControles::soltarAgacharse);
 
         // Limpiamos las teclas activas si la ventana pierde el foco antes de liberarlas.
         addFocusListener(new FocusAdapter() {

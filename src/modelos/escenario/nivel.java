@@ -1,4 +1,6 @@
-import colisiones.Colision;
+package modelos.escenario;
+
+import modelos.escenario.colisiones.Colision;
 import java.util.ArrayList;
 
 public class nivel {
