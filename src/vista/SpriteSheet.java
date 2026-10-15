@@ -16,6 +16,48 @@ public class SpriteSheet {
 
     // Mantiene compatibilidad con hojas de una sola fila, como la barra de vida.
     public SpriteSheet(String path, int cantidadFrames) {
+<<<<<<< HEAD
+        this(cargarHoja(path), cantidadFrames);
+    }
+
+    public SpriteSheet(BufferedImage hoja, int cantidadFrames) {
+        this(hoja, cantidadFrames, 0, 0,
+                hoja == null ? 0 : hoja.getWidth(),
+                hoja == null ? 0 : hoja.getHeight());
+    }
+
+    public SpriteSheet(BufferedImage hoja, int cantidadFrames, int x, int y,
+                       int anchoRegion, int altoRegion) {
+        if (hoja == null || cantidadFrames <= 0 || x < 0 || y < 0
+                || anchoRegion < cantidadFrames || altoRegion <= 0
+                || x > hoja.getWidth() - anchoRegion
+                || y > hoja.getHeight() - altoRegion) {
+            throw new IllegalArgumentException("Región inválida para la hoja de sprites.");
+        }
+
+        frames = new BufferedImage[cantidadFrames];
+        contornos = new BufferedImage[cantidadFrames];
+        for (int i = 0; i < cantidadFrames; i++) {
+            int inicioX = x + (int) ((long) i * anchoRegion / cantidadFrames);
+            int finX = x + (int) ((long) (i + 1) * anchoRegion / cantidadFrames);
+            BufferedImage recorte = hoja.getSubimage(inicioX, y, finX - inicioX, altoRegion);
+            BufferedImage sinFondo = quitarFondoNegro(recorte, 40);
+            frames[i] = sinFondo;
+            contornos[i] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+        }
+    }
+
+    private static BufferedImage cargarHoja(String path) {
+        try (InputStream is = SpriteSheet.class.getResourceAsStream(path)) {
+            if (is == null) {
+                throw new IllegalArgumentException("No se encontró el recurso: " + path);
+            }
+            BufferedImage hoja = ImageIO.read(is);
+            if (hoja == null) {
+                throw new IllegalArgumentException("El recurso no es una imagen válida: " + path);
+            }
+            return hoja;
+=======
         this(path, new int[] {0, -1}, new int[] {cantidadFrames},
             new int[] {cantidadFrames}, new int[] {0});
     }
@@ -80,6 +122,7 @@ public class SpriteSheet {
                         generarContorno(frames[fila][columna], GROSOR_CONTORNO, COLOR_CONTORNO);
                 }
             }
+>>>>>>> origin/main
         } catch (IOException | IllegalArgumentException e) {
             throw new IllegalArgumentException("No se pudo cargar la hoja de sprites: " + path, e);
         }
