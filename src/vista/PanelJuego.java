@@ -2,49 +2,118 @@ package vista;
 //java fx para que se cargue lo que
 //mostrar en pantalla
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
-import modelos.Personaje;
+
+import controlador.GestorControlesRatas;
+import controlador.GestorAnimacionSprite;
+import modelos.personajes.Personaje;
 
 //aqui nosotros estamos definimos el panel visual del juego
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
 public class PanelJuego extends JPanel {
+    private static final long DURACION_FRAME_NANOS = 160_000_000L;
+
     private final Personaje jugador;
+    private final GestorControlesRatas gestorControles;
     private final PanelHUD hud;
-    private Timer timer;
+    private boolean saltoPresionado;
 
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
     private Image fondoImagen;
 
-    // Sprite animado del personaje: 4 cuadros de caminata en fila.
-    private final SpriteSheet spriteRata = new SpriteSheet("/assets/rata_idle_quieto.png", 4);
-    // Cuadro actual de la animación y contador para controlar la velocidad del cambio de cuadro.
-    private int frameActual = 0;
-    private int contadorFrames = 0;
+    // El gestor mantiene el ritmo de la animación y entrega frames con un anclaje común.
+    private final GestorAnimacionSprite animacionRata;
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-    public PanelJuego(Personaje jugador) {
+    public PanelJuego(Personaje jugador, GestorControlesRatas gestorControles) {
+        if (jugador == null || gestorControles == null) {
+            throw new IllegalArgumentException("Se requieren un personaje y el gestor de controles");
+        }
         this.jugador = jugador;
+        this.gestorControles = gestorControles;
         this.hud = new PanelHUD();
+        SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
+        this.animacionRata = new GestorAnimacionSprite(
+            SpritesRatas.crearFramesAlineados(spriteRata, 0), DURACION_FRAME_NANOS
+        );
         //determinamos el alto y ancho de la ventana
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.DARK_GRAY);
         setFocusable(true);
 
-        cargarFondo("/assets/Escenario_nivel1.jpeg");
-
-        // Loop del juego: ~60 fps
-        // determinamos el timer del juego
-        timer = new Timer(16, e -> {
-            jugador.actualizar();
-            jugador.recargarEstamina();
-            actualizarAnimacion();
-            repaint(); // dispara paintComponent
-        });
-        timer.start();
+        configurarControles();
+        cargarFondo("/assets/escenarios/Escenario_nivel3.jpeg");
     }
 
+    public double getAnchoAreaVisual() {
+        return getWidth();
+    }
+
+    public double getAltoAreaVisual() {
+        return getHeight();
+    }
+
+    public double getAnchoSprite() {
+        return animacionRata.getAncho();
+    }
+
+    public double getAltoSprite() {
+        return animacionRata.getAlto();
+    }
+
+    public void actualizarPresentacion() {
+        animacionRata.actualizar();
+        repaint();
+    }
+
+    private void configurarControles() {
+        vincularTecla("pressed LEFT", "izquierdaPresionada",
+            gestorControles::presionarIzquierda);
+        vincularTecla("released LEFT", "izquierdaLiberada",
+            gestorControles::soltarIzquierda);
+        vincularTecla("pressed RIGHT", "derechaPresionada",
+            gestorControles::presionarDerecha);
+        vincularTecla("released RIGHT", "derechaLiberada",
+            gestorControles::soltarDerecha);
+        vincularTecla("pressed SPACE", "saltar",
+            () -> {
+                if (!saltoPresionado) {
+                    saltoPresionado = true;
+                    gestorControles.presionarSalto();
+                }
+            });
+        vincularTecla("released SPACE", "saltarLiberado",
+            () -> {
+                saltoPresionado = false;
+                gestorControles.soltarSalto();
+            });
+
+        // Limpiamos las teclas activas si la ventana pierde el foco antes de liberarlas.
+        addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent evento) {
+                saltoPresionado = false;
+                gestorControles.limpiarEntradas();
+            }
+        });
+    }
+
+    // Swing asocia cada pulsación y liberación con una acción independiente del teclado físico.
+    private void vincularTecla(String secuencia, String nombreAccion, Runnable accion) {
+        getInputMap(WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(secuencia), nombreAccion);
+        getActionMap().put(nombreAccion, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent evento) {
+                accion.run();
+            }
+        });
+    }
     // Carga la imagen de fondo del escenario desde los recursos.
     private void cargarFondo(String ruta) {
         java.net.URL urlFondo = getClass().getResource(ruta);
@@ -53,16 +122,6 @@ public class PanelJuego extends JPanel {
         } else {
             fondoImagen = null;
             System.err.println("No se encontró el fondo: " + ruta);
-        }
-    }
-
-    // Avanza el cuadro de la animación de caminata cada cierta cantidad de ticks del timer.
-    // El timer corre a ~60 fps (16 ms); cada 10 ticks (~160 ms) se pasa al siguiente cuadro.
-    private void actualizarAnimacion() {
-        contadorFrames++;
-        if (contadorFrames >= 10) {
-            contadorFrames = 0;
-            frameActual = (frameActual + 1) % spriteRata.getCantidadFrames();
         }
     }
 
@@ -76,15 +135,9 @@ public class PanelJuego extends JPanel {
             g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
         }
 
-        // Dibujar primero el contorno negro (un poco más grande, detrás del sprite)
-        // y encima el cuerpo del personaje, en la posición actual.
-        BufferedImage contornoRata = spriteRata.getContorno(frameActual);
-        BufferedImage cuadroRata = spriteRata.getFrame(frameActual);
+        // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
+        BufferedImage cuadroRata = animacionRata.getFrameActual();
 
-        if (contornoRata != null) {
-            g2.drawImage(contornoRata, (int) jugador.getX(), (int) jugador.getY(),
-                contornoRata.getWidth(), contornoRata.getHeight(), this);
-        }
         if (cuadroRata != null) {
             g2.drawImage(cuadroRata, (int) jugador.getX(), (int) jugador.getY(),
                 cuadroRata.getWidth(), cuadroRata.getHeight(), this);

@@ -1,23 +1,27 @@
 package controlador;
 
-import javax.swing.*;
-import modelos.Personaje;
-import vista.PanelJuego;
-import vista.MenuPrincipal;
-import vista.PantallaIntro;
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import javax.swing.*;
+import modelos.personajes.Personaje;
+import vista.MenuPrincipal;
+import vista.PanelJuego;
+import vista.PanelSeleccionPersonaje;
+import vista.PantallaIntro;
 
 public class PrincipalControlador {
 
     private static final String VISTA_INTRO = "intro";
     private static final String VISTA_MENU = "menu";
+    private static final String VISTA_SELECCION = "seleccion";
     private static final String VISTA_JUEGO = "juego";
 
     private Personaje jugador;
     private JFrame ventana;
     private PanelJuego panelJuego;
+    private ControladorPartida controladorPartida;
     private MenuPrincipal menuPrincipal;
+    private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
     private PantallaIntro pantallaIntro;
     private CardLayout cardLayout;
     private JPanel contenedor;
@@ -41,9 +45,12 @@ public class PrincipalControlador {
         pantallaIntro = new PantallaIntro(this::mostrarMenu);
         menuPrincipal = new MenuPrincipal();
 
+        //El panel de seleccion llama a iniciarJuego pasandole el personaje elegido
+    panelSeleccion = new PanelSeleccionPersonaje (this::iniciarJuego);
+
         contenedor.add(pantallaIntro, VISTA_INTRO);
         contenedor.add(menuPrincipal, VISTA_MENU);
-
+        contenedor.add(panelSeleccion, VISTA_SELECCION);
         configurarBotonesMenu();
 
         ventana.add(contenedor);
@@ -58,12 +65,17 @@ public class PrincipalControlador {
         cardLayout.show(contenedor, VISTA_INTRO);
     }
 
+    
+
     private void mostrarMenu() {
         cardLayout.show(contenedor, VISTA_MENU);
     }
 
+    private void mostrarSeleccion() {
+        cardLayout.show(contenedor, VISTA_SELECCION);
+    }
     private void configurarBotonesMenu() {
-        menuPrincipal.getBtnJugar().addActionListener(e -> iniciarJuego());
+        menuPrincipal.getBtnJugar().addActionListener(e -> mostrarSeleccion());
 
         menuPrincipal.getBtnOpciones().addActionListener(e ->
             JOptionPane.showMessageDialog(ventana,
@@ -74,17 +86,30 @@ public class PrincipalControlador {
         menuPrincipal.getBtnSalir().addActionListener(e -> System.exit(0));
     }
 
-    private void iniciarJuego() {
-        jugador = new Personaje("Rata Gris");
+    private void iniciarJuego(Personaje personajeElegido) {
+        if (controladorPartida != null) {
+            controladorPartida.detener();
+        }
+        if (panelJuego != null) {
+            contenedor.remove(panelJuego);
+        }
+
+        this.jugador = personajeElegido;
         // Posición inicial cerca del agujero verde del escenario (ajustar a ojo si hace falta).
         jugador.setX(50);
         jugador.setY(480);
 
-        panelJuego = new PanelJuego(jugador);
+        ControladorRata controladorRata = new ratacontroller(jugador);
+        GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);
+        panelJuego = new PanelJuego(jugador, gestorControles);
+        controladorPartida = new ControladorPartida(
+            controladorRata, gestorControles, panelJuego
+        );
 
         contenedor.add(panelJuego, VISTA_JUEGO);
         cardLayout.show(contenedor, VISTA_JUEGO);
 
         panelJuego.requestFocusInWindow();
+        controladorPartida.iniciar();
     }
 }
