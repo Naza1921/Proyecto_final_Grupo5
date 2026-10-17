@@ -29,6 +29,10 @@ public class ControladorTecladoRata {
             gestorControles::presionarSalto);
         vincularTecla(componente, "released SPACE", "saltarLiberado",
             gestorControles::soltarSalto);
+        vincularTecla(componente, "pressed DOWN", "agacharse",
+            gestorControles::presionarAgacharse);
+        vincularTecla(componente, "released DOWN", "levantarse",
+            gestorControles::soltarAgacharse);
 
         componente.addFocusListener(new FocusAdapter() {
             @Override

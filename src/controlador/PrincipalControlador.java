@@ -20,6 +20,7 @@ public class PrincipalControlador {
     private JFrame ventana;
     private PanelJuego panelJuego;
     private ControladorPartida controladorPartida;
+    private ControladorTecladoRata controladorTecladoRata;
     private GestorEfectosTemporales gestorEfectos;
     private MenuPrincipal menuPrincipal;
     private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
@@ -106,7 +107,8 @@ public class PrincipalControlador {
         ControladorRata controladorRata = new ratacontroller(jugador);
         GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);
         gestorEfectos = new GestorEfectosTemporales(jugador);
-        panelJuego = new PanelJuego(jugador, gestorControles);
+        panelJuego = new PanelJuego(jugador);
+        controladorTecladoRata = new ControladorTecladoRata(panelJuego, gestorControles);
         controladorPartida = new ControladorPartida(
             controladorRata, gestorControles, gestorEfectos, panelJuego
         );

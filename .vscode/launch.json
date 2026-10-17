@@ -3,26 +3,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "PruebaJavaFX",
-            "request": "launch",
-            "mainClass": "PruebaJavaFX",
-            "projectName": "Proyecto_final_Grupo5_506ea6e8",
-            "vmArgs": "--module-path \"C:/javafx/javafx-sdk-21.0.12/lib\" --add-modules javafx.controls"        
-        },
-        {
-            "type": "java",
-            "name": "HolaJavaFX",
-            "request": "launch",
-            "mainClass": "HolaJavaFX",
-            "projectName": "Proyecto_final_Grupo5",
-            "vmArgs": "--module-path \"C:/javafx/javafx-sdk-21.0.12/lib\" --add-modules javafx.controls"        
-        },
-        {
-            "type": "java",
             "name": "Ghosts and Rats",
             "request": "launch",
             "mainClass": "app",
-            "vmArgs": "--module-path \"C:/javafx/javafx-sdk-21.0.12/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --add-exports javafx.base/com.sun.javafx.logging=ALL-UNNAMED"
+            "vmArgs": "--module-path \"C:/Program Files/Java/javafx-27_windows-x64_bin-sdk/javafx-sdk-27/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --enable-native-access=javafx.graphics,javafx.media"
         }
     ]
 }

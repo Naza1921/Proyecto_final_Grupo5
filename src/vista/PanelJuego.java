@@ -2,15 +2,12 @@ package vista;
 //java fx para que se cargue lo que
 //mostrar en pantalla
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
 
-import controlador.GestorControlesRatas;
 import controlador.levelmanager;
 import controlador.GestorAnimacionSprite;
+import controlador.utilz.loadsave;
 import modelos.personajes.Personaje;
 import modelos.personajes.Hitbox;
 import controlador.ColisionNivel;
@@ -22,9 +19,7 @@ public class PanelJuego extends JPanel {
 
     private final Personaje jugador;
     private final Hitbox hitboxJugador;
-    private final GestorControlesRatas gestorControles;
     private final PanelHUD hud;
-    private boolean saltoPresionado;
     private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros
     private static final int ANCHO_RATA = 25;
     private static final int ALTO_RATA = 20;
@@ -41,12 +36,11 @@ public class PanelJuego extends JPanel {
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-    public PanelJuego(Personaje jugador, GestorControlesRatas gestorControles) {
-        if (jugador == null || gestorControles == null) {
-            throw new IllegalArgumentException("Se requieren un personaje y el gestor de controles");
+    public PanelJuego(Personaje jugador) {
+        if (jugador == null) {
+            throw new IllegalArgumentException("Se requiere un personaje");
         }
         this.jugador = jugador;
-        this.gestorControles = gestorControles;
         this.hitboxJugador = new Hitbox(
         (float) jugador.getX(),
         (float) jugador.getY(),
@@ -63,7 +57,6 @@ public class PanelJuego extends JPanel {
         setBackground(Color.DARK_GRAY);
         setFocusable(true);
 
-        configurarControles();
         cargarFondo("/assets/escenarios/Nivel_1_Top_Floor X.png");
         this.colision = new ColisionNivel(manejadornivel.getNivel(), TAM_TILE, ANCHO_RATA, ALTO_RATA);
     }
@@ -92,61 +85,14 @@ public class PanelJuego extends JPanel {
         return ANCHO_RATA; 
     }
 
-    private void configurarControles() {
-        vincularTecla("pressed LEFT", "izquierdaPresionada",
-            gestorControles::presionarIzquierda);
-        vincularTecla("released LEFT", "izquierdaLiberada",
-            gestorControles::soltarIzquierda);
-        vincularTecla("pressed RIGHT", "derechaPresionada",
-            gestorControles::presionarDerecha);
-        vincularTecla("released RIGHT", "derechaLiberada",
-            gestorControles::soltarDerecha);
-        vincularTecla("pressed SPACE", "saltar",
-            () -> {
-                if (!saltoPresionado) {
-                    saltoPresionado = true;
-                    gestorControles.presionarSalto();
-                }
-            });
-        vincularTecla("released SPACE", "saltarLiberado",
-            () -> {
-                saltoPresionado = false;
-                gestorControles.soltarSalto();
-            });
-        vincularTecla("pressed DOWN", "agacharse",
-            gestorControles::presionarAgacharse);
-        vincularTecla("released DOWN", "levantarse",
-            gestorControles::soltarAgacharse);
-
-        // Limpiamos las teclas activas si la ventana pierde el foco antes de liberarlas.
-        addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent evento) {
-                saltoPresionado = false;
-                gestorControles.limpiarEntradas();
-            }
-        });
-    }
-
-    // Swing asocia cada pulsación y liberación con una acción independiente del teclado físico.
-    private void vincularTecla(String secuencia, String nombreAccion, Runnable accion) {
-        getInputMap(WHEN_IN_FOCUSED_WINDOW)
-            .put(KeyStroke.getKeyStroke(secuencia), nombreAccion);
-        getActionMap().put(nombreAccion, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent evento) {
-                accion.run();
-            }
-        });
-    }
     //Carga la imagen de fondo del escenario desde los recursos.
     private void cargarFondo(String ruta) {
-        java.net.URL urlFondo = getClass().getResource(ruta);
-        if (urlFondo != null) {
-            fondoImagen = new ImageIcon(urlFondo).getImage();
-        } else {
+        try {
+            String nombreRecurso = ruta.startsWith("/") ? ruta.substring(1) : ruta;
+            fondoImagen = loadsave.GetSpriteatlas(nombreRecurso);
+        } catch (IllegalArgumentException error) {
             fondoImagen = null;
-            System.err.println("No se encontró el fondo: " + ruta);
+            System.err.println("No se pudo cargar el fondo " + ruta + ": " + error.getMessage());
         }
     }
     public void resolverColisiones() {

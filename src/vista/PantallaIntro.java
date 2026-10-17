@@ -12,6 +12,7 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import java.util.concurrent.atomic.AtomicBoolean;
+import controlador.utilz.loadsave;
 
 // Mostramos el video de entrada con JavaFX dentro de la ventana Swing
 // y avisamos al controlador cuando termina o no se puede reproducir.
@@ -63,18 +64,13 @@ public class PantallaIntro extends JPanel {
         SwingUtilities.invokeLater(() -> Platform.runLater(() -> {
 
             // Cargar el video MP4 desde los recursos del proyecto.
-            java.net.URL urlVideo = getClass().getResource(
-                "/assets/intro_concepto_final/Intro.mp4"
-            );
-
-            // Verificar si se encontró el video y manejar el error.
-            if (urlVideo == null) {
-                System.err.println(
-                    "No se encontró el MP4 en "
-                        + "/assets/intro_concepto_final/Intro.mp4"
+            java.net.URL urlVideo;
+            try {
+                urlVideo = loadsave.obtenerURLRecurso(
+                    "assets/intro_concepto_final/Intro_Final.mp4"
                 );
-                // Si no hay video, continuar con el juego para no dejar la pantalla negra.
-                terminar();
+            } catch (IllegalArgumentException error) {
+                mostrarAlternativa(panelVideo, error.getMessage());
                 return;
             }
 
@@ -131,16 +127,17 @@ public class PantallaIntro extends JPanel {
             player = null;
         }
 
-        java.net.URL urlGif = getClass().getResource(
-            "/assets/intro_concepto_final/concepto_inicio_juego_10s.gif"
-        );
+        java.net.URL urlGif;
+        try {
+            urlGif = loadsave.obtenerURLRecurso(
+                "assets/intro_concepto_final/concepto_inicio_juego_10s.gif"
+            );
+        } catch (IllegalArgumentException error) {
+            System.err.println("No se encontró el GIF alternativo: " + error.getMessage());
+            terminar();
+            return;
+        }
         SwingUtilities.invokeLater(() -> {
-            if (urlGif == null) {
-                System.err.println("No se encontró el GIF alternativo de la introducción.");
-                terminar();
-                return;
-            }
-
             remove(panelVideo);
             JLabel imagen = new JLabel(new ImageIcon(urlGif));
             imagen.setHorizontalAlignment(SwingConstants.CENTER);
