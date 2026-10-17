@@ -64,14 +64,14 @@ public class PantallaIntro extends JPanel {
 
             // Cargar el video MP4 desde los recursos del proyecto.
             java.net.URL urlVideo = getClass().getResource(
-                "/assets/intro_concepto_final/Intro_Final.mp4"
+                "/assets/intro_concepto_final/Intro.mp4"
             );
 
             // Verificar si se encontró el video y manejar el error.
             if (urlVideo == null) {
                 System.err.println(
                     "No se encontró el MP4 en "
-                        + "/assets/intro_concepto_final/Intro_Final.mp4"
+                        + "/assets/intro_concepto_final/Intro.mp4"
                 );
                 // Si no hay video, continuar con el juego para no dejar la pantalla negra.
                 terminar();

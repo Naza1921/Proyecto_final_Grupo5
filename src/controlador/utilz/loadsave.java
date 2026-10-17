@@ -11,7 +11,7 @@ public class loadsave {
     
     public static final String PLAYER_ATLAS = "Rata_Sprite.png";
     public static final String NIVEL_ATLAS = "assets/Nivel_Sprite_para_usar_fondos.png";
-    public static final String NIVEL_UNO_DATO = "assets/Nivel_Uno_Sprite (4).png";
+    public static final String NIVEL_UNO_DATO = "assets/Nivel_Uno_Sprite (3).png";
 
 
     public static BufferedImage GetSpriteatlas(String filename) {

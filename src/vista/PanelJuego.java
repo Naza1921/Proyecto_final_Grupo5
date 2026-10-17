@@ -27,7 +27,7 @@ public class PanelJuego extends JPanel {
     private boolean saltoPresionado;
     private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros
     private static final int ANCHO_RATA = 25;
-    private static final int ALTO_RATA = 40;
+    private static final int ALTO_RATA = 20;
     private static final int TAM_TILE = 30;          // 960x540 / 32x18 tiles = 30 px exactos
     private final ColisionNivel colision;       // ver nota abajo
 
