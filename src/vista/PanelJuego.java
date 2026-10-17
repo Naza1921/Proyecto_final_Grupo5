@@ -30,6 +30,7 @@ public class PanelJuego extends JPanel {
     private static final int ALTO_RATA = 20;
     private static final int TAM_TILE = 30;          // 960x540 / 32x18 tiles = 30 px exactos
     private final ColisionNivel colision;       // ver nota abajo
+    
 
 
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
@@ -63,7 +64,7 @@ public class PanelJuego extends JPanel {
         setFocusable(true);
 
         configurarControles();
-       // cargarFondo("/assets/escenarios/Escenario_nivel3.jpeg");
+        cargarFondo("/assets/escenarios/Nivel_1_Top_Floor X.png");
         this.colision = new ColisionNivel(manejadornivel.getNivel(), TAM_TILE, ANCHO_RATA, ALTO_RATA);
     }
 
@@ -86,6 +87,9 @@ public class PanelJuego extends JPanel {
     public void actualizarPresentacion() {
         animacionRata.actualizar();
         repaint();
+    }
+    public int getAnchoHitbox() { 
+        return ANCHO_RATA; 
     }
 
     private void configurarControles() {
@@ -135,33 +139,36 @@ public class PanelJuego extends JPanel {
             }
         });
     }
-    // Carga la imagen de fondo del escenario desde los recursos.
-    // private void cargarFondo(String ruta) {
-    //     java.net.URL urlFondo = getClass().getResource(ruta);
-    //     if (urlFondo != null) {
-    //         fondoImagen = new ImageIcon(urlFondo).getImage();
-    //     } else {
-    //         fondoImagen = null;
-    //         System.err.println("No se encontró el fondo: " + ruta);
-    //     }
-    // }
+    //Carga la imagen de fondo del escenario desde los recursos.
+    private void cargarFondo(String ruta) {
+        java.net.URL urlFondo = getClass().getResource(ruta);
+        if (urlFondo != null) {
+            fondoImagen = new ImageIcon(urlFondo).getImage();
+        } else {
+            fondoImagen = null;
+            System.err.println("No se encontró el fondo: " + ruta);
+        }
+    }
     public void resolverColisiones() {
     colision.resolver(jugador);
     hitboxJugador.actualizar((float) jugador.getX(), (float) jugador.getY());
 }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+@Override
+protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
     Graphics2D g2 = (Graphics2D) g;
-    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-    if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
-    manejadornivel.draw(g2, TAM_TILE);        // // Fondo del escenario, escalado al tamaño del panel.
 
-        
-        
-        
+    // 1. Fondo, estirado al tamaño del panel
+    if (fondoImagen != null) {
+        g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
+    }
+
+    // 2. Nivel encima (los tiles de aire no se dibujan, así el fondo se ve a través)
+    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+    manejadornivel.draw(g2, TAM_TILE);
+
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
 
 BufferedImage cuadroRata = animacionRata.getFrameActual();

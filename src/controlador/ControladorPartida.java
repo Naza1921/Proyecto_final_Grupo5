@@ -59,7 +59,7 @@ public class ControladorPartida {
 
     double xMinimo = 0;
     double xMaximo = Math.max(0,
-        panelJuego.getAnchoAreaVisual() - panelJuego.getAnchoSprite()
+    panelJuego.getAnchoAreaVisual() - panelJuego.getAnchoHitbox()
     );
     gestorControles.actualizarMovimiento(xMinimo, xMaximo);
 
@@ -72,5 +72,5 @@ public class ControladorPartida {
     panelJuego.resolverColisiones();
 
     panelJuego.actualizarPresentacion();
-}
+    }
 }
