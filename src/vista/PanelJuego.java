@@ -9,8 +9,11 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 import controlador.GestorControlesRatas;
+import controlador.levelmanager;
 import controlador.GestorAnimacionSprite;
 import modelos.personajes.Personaje;
+import modelos.personajes.Hitbox;
+import controlador.ColisionNivel;
 
 //aqui nosotros estamos definimos el panel visual del juego
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
@@ -18,9 +21,16 @@ public class PanelJuego extends JPanel {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
 
     private final Personaje jugador;
+    private final Hitbox hitboxJugador;
     private final GestorControlesRatas gestorControles;
     private final PanelHUD hud;
     private boolean saltoPresionado;
+    private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros
+    private static final int ANCHO_RATA = 25;
+    private static final int ALTO_RATA = 40;
+    private static final int TAM_TILE = 30;          // 960x540 / 32x18 tiles = 30 px exactos
+    private final ColisionNivel colision;       // ver nota abajo
+
 
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
     private Image fondoImagen;
@@ -36,18 +46,25 @@ public class PanelJuego extends JPanel {
         }
         this.jugador = jugador;
         this.gestorControles = gestorControles;
+        this.hitboxJugador = new Hitbox(
+        (float) jugador.getX(),
+        (float) jugador.getY(),
+        ANCHO_RATA,
+        ALTO_RATA
+);
         this.hud = new PanelHUD();
         SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
         this.animacionRata = new GestorAnimacionSprite(
             SpritesRatas.crearFramesAlineados(spriteRata, 0), DURACION_FRAME_NANOS
         );
         //determinamos el alto y ancho de la ventana
-        setPreferredSize(new Dimension(800, 600));
+        setPreferredSize(new Dimension(960, 540));
         setBackground(Color.DARK_GRAY);
         setFocusable(true);
 
         configurarControles();
-        cargarFondo("/assets/escenarios/Escenario_nivel3.jpeg");
+       // cargarFondo("/assets/escenarios/Escenario_nivel3.jpeg");
+        this.colision = new ColisionNivel(manejadornivel.getNivel(), TAM_TILE, ANCHO_RATA, ALTO_RATA);
     }
 
     public double getAnchoAreaVisual() {
@@ -119,33 +136,68 @@ public class PanelJuego extends JPanel {
         });
     }
     // Carga la imagen de fondo del escenario desde los recursos.
-    private void cargarFondo(String ruta) {
-        java.net.URL urlFondo = getClass().getResource(ruta);
-        if (urlFondo != null) {
-            fondoImagen = new ImageIcon(urlFondo).getImage();
-        } else {
-            fondoImagen = null;
-            System.err.println("No se encontró el fondo: " + ruta);
-        }
-    }
+    // private void cargarFondo(String ruta) {
+    //     java.net.URL urlFondo = getClass().getResource(ruta);
+    //     if (urlFondo != null) {
+    //         fondoImagen = new ImageIcon(urlFondo).getImage();
+    //     } else {
+    //         fondoImagen = null;
+    //         System.err.println("No se encontró el fondo: " + ruta);
+    //     }
+    // }
+    public void resolverColisiones() {
+    colision.resolver(jugador);
+    hitboxJugador.actualizar((float) jugador.getX(), (float) jugador.getY());
+}
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
+    Graphics2D g2 = (Graphics2D) g;
+    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+    if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
+    manejadornivel.draw(g2, TAM_TILE);        // // Fondo del escenario, escalado al tamaño del panel.
 
-        // Fondo del escenario, escalado al tamaño del panel.
-        if (fondoImagen != null) {
-            g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
-        }
-
+        
+        
+        
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
-        BufferedImage cuadroRata = animacionRata.getFrameActual();
 
-        if (cuadroRata != null) {
-            g2.drawImage(cuadroRata, (int) jugador.getX(), (int) jugador.getY(),
-                cuadroRata.getWidth(), cuadroRata.getHeight(), this);
-        }
+BufferedImage cuadroRata = animacionRata.getFrameActual();
+
+if (cuadroRata != null) {
+    g2.setRenderingHint(
+        RenderingHints.KEY_INTERPOLATION,
+        RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR
+    );
+
+    double escala = Math.min(
+        (double) ANCHO_RATA / cuadroRata.getWidth(),
+        (double) ALTO_RATA / cuadroRata.getHeight()
+    );
+
+    int anchoDibujo = (int) Math.round(cuadroRata.getWidth() * escala);
+    int altoDibujo = (int) Math.round(cuadroRata.getHeight() * escala);
+
+    g2.drawImage(
+        cuadroRata,
+        (int) jugador.getX(),
+        (int) jugador.getY() + (ALTO_RATA - altoDibujo),
+        anchoDibujo,
+        altoDibujo,
+        this
+    );
+    // Actualizamos la posición de la hitbox con la del personaje.
+    hitboxJugador.actualizar(
+    (float) jugador.getX(),
+    (float) jugador.getY()
+    );
+    // Dibujamos el rectángulo rosa encima del escenario y la rata.
+    hitboxJugador.dibujar(g2);
+    }
+
+
 
         // dibujar el HUD encima de todo
         //en la esquina izquierda

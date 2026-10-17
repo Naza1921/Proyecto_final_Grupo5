@@ -50,24 +50,27 @@ public class ControladorPartida {
         temporizador.stop();
     }
 
-    private void actualizar() {
-        long ahora = System.nanoTime();
-        if (ahora - ultimaRecargaEstaminaNanos >= INTERVALO_RECARGA_ESTAMINA_NANOS) {
-            controladorRata.recargarEstamina();
-            ultimaRecargaEstaminaNanos = ahora;
-        }
-
-        double xMinimo = 0;
-        double xMaximo = Math.max(0,
-            panelJuego.getAnchoAreaVisual() - panelJuego.getAnchoSprite()
-        );
-        gestorControles.actualizarMovimiento(xMinimo, xMaximo);
-
-        gestorEfectos.actualizar();
-        double yPiso = Math.max(
-            0, panelJuego.getAltoAreaVisual() - panelJuego.getAltoSprite()
-        );
-        controladorRata.actualizar(yPiso);
-        panelJuego.actualizarPresentacion();
+ private void actualizar() {
+    long ahora = System.nanoTime();
+    if (ahora - ultimaRecargaEstaminaNanos >= INTERVALO_RECARGA_ESTAMINA_NANOS) {
+        controladorRata.recargarEstamina();
+        ultimaRecargaEstaminaNanos = ahora;
     }
+
+    double xMinimo = 0;
+    double xMaximo = Math.max(0,
+        panelJuego.getAnchoAreaVisual() - panelJuego.getAnchoSprite()
+    );
+    gestorControles.actualizarMovimiento(xMinimo, xMaximo);
+
+    gestorEfectos.actualizar();
+
+    // Sin piso fijo: el suelo ahora son los tiles sólidos.
+    controladorRata.actualizar(Double.POSITIVE_INFINITY);
+
+    // Choque contra los tiles, después de mover y aplicar la gravedad.
+    panelJuego.resolverColisiones();
+
+    panelJuego.actualizarPresentacion();
+}
 }

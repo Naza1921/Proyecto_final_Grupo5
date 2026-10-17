@@ -101,7 +101,7 @@ public class PrincipalControlador {
         this.jugador = personajeElegido;
         // Posición inicial cerca del agujero verde del escenario (ajustar a ojo si hace falta).
         jugador.setX(50);
-        jugador.setY(480);
+        jugador.setY(40);
 
         ControladorRata controladorRata = new ratacontroller(jugador);
         GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);

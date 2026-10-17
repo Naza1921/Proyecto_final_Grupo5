@@ -1,22 +1,26 @@
-{
+
     //TODO(1) JavaFX: ajustar esta ruta al SDK de JavaFX 27 instalado en tu PC,
     //y despues correr "Java: Clean Java Language Server Workspace" (Restart and delete).
     //TODO(2) JavaFX: si tu proyecto tiene subcarpetas dentro de src, agregarlas a la lista de sourcePaths.
+{
     "java.project.sourcePaths": [
         "src"
     ],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jfx.incubator.richtext.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.base.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.swing.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.media.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.controls.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx-swt.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.graphics.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.web.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jdk.jsobject.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jfx.incubator.input.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.fxml.jar"
+        "C:/javafx/javafx-sdk-21.0.12/lib/javafx.base.jar",
+        "C:/javafx/javafx-sdk-21.0.12/lib/javafx.controls.jar",
+        "C:/javafx/javafx-sdk-21.0.12/lib/javafx.fxml.jar",
+        "C:/javafx/javafx-sdk-21.0.12/lib/javafx.media.jar",
+        "C:/javafx/javafx-sdk-21.0.12/lib/javafx.swing.jar",
+        "C:/javafx/javafx-sdk-21.0.12/lib/javafx.web.jar",
+        "c:\\javafx\\javafx-sdk-21.0.12\\lib\\javafx.graphics.jar"
+    ],
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "C:/Program Files/Java/jdk-21.0.12.1",
+            "default": true
+        }
     ]
 }

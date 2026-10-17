@@ -222,4 +222,13 @@ public abstract class Personaje {
         estamina -= cantidad;
         return true;
     }
+    public void setEnElAire(boolean enElAire) { 
+        this.enElAire = enElAire; 
+    }
+    public void setVelocidadY(double velocidadY) { 
+        this.velocidadY = velocidadY; 
+    }
+    public void corregirPosicion(double x, double y) { 
+        this.x = x; this.y = y; 
+    }
 }

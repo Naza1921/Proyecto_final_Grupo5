@@ -35,7 +35,16 @@ public class PantallaIntro extends JPanel {
     public PantallaIntro(Runnable alTerminar) {
 
         this.alTerminar = alTerminar;
+    // Permitir saltar la cinemática pulsando Enter.
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke("ENTER"), "saltarIntro");
 
+        getActionMap().put("saltarIntro", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                terminar();
+            }
+        });
         // Configuración del panel de introducción.
         setPreferredSize(new Dimension(800, 600));
         setLayout(new BorderLayout());
@@ -55,14 +64,14 @@ public class PantallaIntro extends JPanel {
 
             // Cargar el video MP4 desde los recursos del proyecto.
             java.net.URL urlVideo = getClass().getResource(
-                "/assets/intro_concepto_final/concepto_inicio_juego_10s_con_musica.mp4"
+                "/assets/intro_concepto_final/Intro_Final.mp4"
             );
 
             // Verificar si se encontró el video y manejar el error.
             if (urlVideo == null) {
                 System.err.println(
                     "No se encontró el MP4 en "
-                        + "/assets/intro_concepto_final/concepto_inicio_juego_10s_con_musica.mp4"
+                        + "/assets/intro_concepto_final/Intro_Final.mp4"
                 );
                 // Si no hay video, continuar con el juego para no dejar la pantalla negra.
                 terminar();
