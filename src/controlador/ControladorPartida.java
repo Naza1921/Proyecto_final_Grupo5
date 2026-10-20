@@ -13,6 +13,7 @@ public class ControladorPartida {
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
     private final GestorEfectosTemporales gestorEfectos;
+    private final ControladorPuntaje controladorPuntaje;
     private final PanelJuego panelJuego;
     private final Timer temporizador;
     private long ultimaRecargaEstaminaNanos = System.nanoTime();
@@ -20,16 +21,18 @@ public class ControladorPartida {
     public ControladorPartida(ControladorRata controladorRata,
                             GestorControlesRatas gestorControles,
                               GestorEfectosTemporales gestorEfectos,
+                              ControladorPuntaje controladorPuntaje,
                               PanelJuego panelJuego) {
         if (controladorRata == null || gestorControles == null
-                || gestorEfectos == null || panelJuego == null) {
+                || gestorEfectos == null || controladorPuntaje == null || panelJuego == null) {
             throw new IllegalArgumentException(
-                "Se requieren controladores, gestor de efectos y vista de juego"
+                "Se requieren los controladores, el modelo de puntaje y la vista de juego"
             );
         }
         this.controladorRata = controladorRata;
         this.gestorControles = gestorControles;
         this.gestorEfectos = gestorEfectos;
+        this.controladorPuntaje = controladorPuntaje;
         this.panelJuego = panelJuego;
         this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, evento -> actualizar());
     }
@@ -40,6 +43,11 @@ public class ControladorPartida {
 
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
         return gestorControles.usarHabilidad(objetivo, xDestino, yDestino);
+    }
+
+    public void agregarPuntos(int puntos) {
+        controladorPuntaje.agregarPuntos(puntos);
+        panelJuego.actualizarPresentacion();
     }
 
     public void iniciar() {

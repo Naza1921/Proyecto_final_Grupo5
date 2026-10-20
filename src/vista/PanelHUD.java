@@ -3,11 +3,16 @@ package vista;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+import controlador.utilz.loadsave;
 import modelos.personajes.Personaje;
 
 public class PanelHUD {
     private final SpriteSheet barraVidaSprite;
+    private final BufferedImage spritePuntaje;
     private static final double ESCALA_BARRA_VIDA = 0.5;
+    private static final int ANCHO_PUNTAJE = 330;
+    private static final int ALTO_PUNTAJE = 110;
+    private static final int TAMANO_FUENTE_PUNTAJE = 25;
 
     //posicion donde se dibuja el hud, en este caso en la esquina superior izquierda
     private static final int HUD_X = 20;
@@ -24,13 +29,17 @@ public class PanelHUD {
     //se definio que la cantidad que tiene que leer los frames10
     public PanelHUD() {
         barraVidaSprite = new SpriteSheet("/assets/Hud/sprite_barra_vida.jpeg", 10);
+        spritePuntaje = loadsave.GetSpriteatlas("assets/Hud/puntaje_proyecto.png");
     }
 
     //la estamina puede ser cuadrado donde tendriamos 3 frames 
     // pero apartir de 100(esta bien la rata) , 50(medio cansada) , 0 (esta cansada la rata)
-    public void dibujar(Graphics2D g, Personaje jugador) {
+    public void dibujar(Graphics2D g, Personaje jugador, int puntaje, int anchoPanel) {
         // Si todavía no se eligió personaje no hay nada que dibujar
         if (jugador == null) return;
+        if (puntaje < 0 || anchoPanel < 0) {
+            throw new IllegalArgumentException("El puntaje y el ancho del panel deben ser válidos");
+        }
 
         // Se trabaja sobre una copia del Graphics2D: los cambios de color, fuente,
         // transparencia e interpolación no se filtran al resto del juego
@@ -38,6 +47,7 @@ public class PanelHUD {
         try {
             dibujarNombre(g2, jugador);
             dibujarBarraVida(g2, jugador);
+            dibujarPuntaje(g2, puntaje, anchoPanel);
         } finally {
             g2.dispose();
         }
@@ -72,6 +82,27 @@ public class PanelHUD {
 
         // Cola (vida), dibujada encima del halo
         g.drawImage(frame, HUD_X, yBarra, anchoDeseado, altoDeseado, null);
+    }
+
+    private void dibujarPuntaje(Graphics2D g, int puntaje, int anchoPanel) {
+        int x = Math.max(0, anchoPanel - HUD_X - ANCHO_PUNTAJE);
+        int y = HUD_Y;
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.drawImage(spritePuntaje, x, y, ANCHO_PUNTAJE, ALTO_PUNTAJE, null);
+
+        Font fuenteAnterior = g.getFont();
+        Color colorAnterior = g.getColor();
+        g.setFont(new Font("Arial", Font.BOLD, TAMANO_FUENTE_PUNTAJE));
+        g.setColor(Color.WHITE);
+        FontMetrics metricas = g.getFontMetrics();
+        String texto = Integer.toString(puntaje);
+        int textoX = x + (int) (ANCHO_PUNTAJE * 0.66)
+                - metricas.stringWidth(texto) / 2;
+        int textoY = y + (int) (ALTO_PUNTAJE * 0.62);
+        g.drawString(texto, textoX, textoY);
+        g.setFont(fuenteAnterior);
+        g.setColor(colorAnterior);
     }
 
     // Elige el frame de la barra según el porcentaje de vida

@@ -8,6 +8,7 @@ import javax.swing.*;
 import controlador.levelmanager;
 import controlador.GestorAnimacionSprite;
 import controlador.utilz.loadsave;
+import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import modelos.personajes.Hitbox;
 import controlador.ColisionNivel;
@@ -18,6 +19,7 @@ public class PanelJuego extends JPanel {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
 
     private final Personaje jugador;
+    private final Puntaje modeloPuntaje;
     private final Hitbox hitboxJugador;
     private final PanelHUD hud;
     private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros
@@ -36,11 +38,12 @@ public class PanelJuego extends JPanel {
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-    public PanelJuego(Personaje jugador) {
-        if (jugador == null) {
-            throw new IllegalArgumentException("Se requiere un personaje");
+    public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
+        if (jugador == null || modeloPuntaje == null) {
+            throw new IllegalArgumentException("Se requieren un personaje y el modelo de puntaje");
         }
         this.jugador = jugador;
+        this.modeloPuntaje = modeloPuntaje;
         this.hitboxJugador = new Hitbox(
         (float) jugador.getX(),
         (float) jugador.getY(),
@@ -81,6 +84,7 @@ public class PanelJuego extends JPanel {
         animacionRata.actualizar();
         repaint();
     }
+
     public int getAnchoHitbox() { 
         return ANCHO_RATA; 
     }
@@ -152,8 +156,7 @@ if (cuadroRata != null) {
 
 
 
-        // dibujar el HUD encima de todo
-        //en la esquina izquierda
-        hud.dibujar(g2, jugador);
+        // Dibujar el HUD en las esquinas superiores de la pantalla.
+        hud.dibujar(g2, jugador, modeloPuntaje.getTotal(), getWidth());
     }
 }

@@ -3,6 +3,7 @@ package controlador;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import javax.swing.*;
+import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import vista.MenuPrincipal;
 import vista.PanelJuego;
@@ -107,10 +108,12 @@ public class PrincipalControlador {
         ControladorRata controladorRata = new ratacontroller(jugador);
         GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);
         gestorEfectos = new GestorEfectosTemporales(jugador);
-        panelJuego = new PanelJuego(jugador);
+        Puntaje puntaje = new Puntaje();
+        ControladorPuntaje controladorPuntaje = new ControladorPuntaje(puntaje);
+        panelJuego = new PanelJuego(jugador, puntaje);
         controladorTecladoRata = new ControladorTecladoRata(panelJuego, gestorControles);
         controladorPartida = new ControladorPartida(
-            controladorRata, gestorControles, gestorEfectos, panelJuego
+            controladorRata, gestorControles, gestorEfectos, controladorPuntaje, panelJuego
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);
