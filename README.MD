@@ -1,13 +1,13 @@
 # Nombre del juego : Ghost and Ratas - The Queso CONQUEST!!!
 ## 1. Integrantes del Equipo 
  
-- [@Santana Lautaro Agustín](https://github.com/lautarosantana0912)
+- [Santana Lautaro Agustín](https://github.com/lautarosantana0912)
 
-- [@Leal Montenegro Ivo Ezequiel](https://github.com/ivoleal-cmd)
+- [Leal Montenegro Ivo Ezequiel](https://github.com/ivoleal-cmd)
 
-- [@Huichaquelen Enzo Joaquín](https://github.com/Enzo-TRS71)
+- [Huichaquelen Enzo Joaquín](https://github.com/Enzo-TRS71)
 
-- [@H Escobar Nazareno Jesus](https://github.com/Naza1921)
+- [Escobar Nazareno Jesus](https://github.com/Naza1921)
   
 ## 2. Dominio y Alcance del Sistema 
 
