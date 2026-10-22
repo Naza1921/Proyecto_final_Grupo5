@@ -23,11 +23,10 @@ Game Over: Puede ocurrir de 3 maneras posibles:Perdiste vida por un fantasma y e
 Perdiste vida por comer comida en mal estado.
 Se hicieron las 6 am y llegaron los encargados de limpiar el edificio con vos incluido.
 
-Jefe final: Hay que derrotarlo haciéndolo chocar con algunas de las amenazas del último nivel, como hornallas encendidas o cubiertos punzantes.
-
 Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nuestro tiempo de juego y nuestro puntaje, que se calcula según: tiempo que se tardó en terminar el juego, puntaje por comer comida o se nos resta por comer comida en mal estado o haber recibido daño en el nivel.
 
 #### Mecánicas de Juego
+
 Movimiento y Controles
 Movimiento básico: izquierda / derecha, salto.
 Acciones especiales: agacharse, interactuar (comer, activar interruptores).
@@ -46,7 +45,6 @@ Otros objetos: llaves, interruptores, plataformas móviles, trampas activables.
 Fantasmas: patrullas estáticas o rutas predefinidas; contacto = daño.
 Baldes de lavandina: áreas de peligro que infligen daño al tocar.
 Trampas de piso: pinchos, láminas eléctricas, superficies resbaladizas.
-Objetos del último nivel (jefe): hornallas encendidas, cubiertos punzantes que el jugador puede usar contra el jefe.
 
 #### Sistema de Power‑Ups / Power‑Downs
 Duración: temporizador visible (icono + cuenta regresiva).
@@ -60,12 +58,6 @@ Comer comida en mal estado → Intoxicación: animación de enfermedad y pérdid
 Llegar las 6 am: los encargados de limpieza aparecen y atrapan a la rata (incluida en la limpieza).
 Pantalla de Game Over: mensaje correspondiente, opción de reiniciar o volver al menú.
 
-### Ubicación: 
-#### Jefe Final
-cocina (piso -2) después de obtener el queso o como guardia del queso.
-Patrón de ataque: utiliza peligros del entorno (hornallas, cubiertos) que el jugador debe hacer que el jefe golpee.
-Mecánica de derrota: llevar al jefe a chocar con peligros activados por el jugador (interruptores, trampas).
-Recompensa: acceso al queso y final del juego.
 #### Sistema de Puntos y Tiempo
 Tiempo de juego: cronómetro que comienza al iniciar y se detiene al terminar.
 Puntos por comida buena: +X puntos por cada pieza consumida.
@@ -96,7 +88,7 @@ Efectos: partículas de polvo, chispas de lavandina, brillos al obtener power‑
 UI: barra de vida, contador de tiempo, íconos de activos power‑up, mini‑mapa opcional.
 
 #### Audio y Musica
-Música de fondo: tema loopable por piso (cambia ligeramente al ascender/descender).
+Música de fondo: Un tema en bucle que queda a lección del jugador desde menu de  ajustes
 Efectos de sonido: salto, golpe, comer (bueno/malo), daño, aparición de fantasma, activación de trampa, voz del jefe, jingle de game over, fanfara de victoria.
 Voces/Opcionales: gruñidos de rata, risas fantasmas, anunciador de “¡6 am!”.
 
