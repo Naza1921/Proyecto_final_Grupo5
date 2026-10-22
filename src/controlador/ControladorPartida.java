@@ -6,7 +6,7 @@ import modelos.items.PowerUp;
 import vista.PanelJuego;
 
 // Coordina el ciclo temporal de la partida y solicita el repintado de la vista.
-public class ControladorPartida {
+public class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
 
@@ -35,6 +35,7 @@ public class ControladorPartida {
         this.controladorPuntaje = controladorPuntaje;
         this.panelJuego = panelJuego;
         this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, evento -> actualizar());
+        panelJuego.getGestorSecciones().setListener(this);
     }
 
     public boolean recogerPowerUp(PowerUp powerUp) {
@@ -58,7 +59,7 @@ public class ControladorPartida {
         temporizador.stop();
     }
 
- private void actualizar() {
+private void actualizar() {
     long ahora = System.nanoTime();
     if (ahora - ultimaRecargaEstaminaNanos >= INTERVALO_RECARGA_ESTAMINA_NANOS) {
         controladorRata.recargarEstamina();
@@ -66,19 +67,21 @@ public class ControladorPartida {
     }
 
     double xMinimo = 0;
-    double xMaximo = Math.max(0,
-    panelJuego.getAnchoAreaVisual() - panelJuego.getAnchoHitbox()
-    );
+    double xMaximo = Math.max(0, panelJuego.getAnchoNivelPx() - panelJuego.getAnchoHitbox());
     gestorControles.actualizarMovimiento(xMinimo, xMaximo);
 
     gestorEfectos.actualizar();
-
-    // Sin piso fijo: el suelo ahora son los tiles sólidos.
     controladorRata.actualizar(Double.POSITIVE_INFINITY);
-
-    // Choque contra los tiles, después de mover y aplicar la gravedad.
     panelJuego.resolverColisiones();
-
     panelJuego.actualizarPresentacion();
-    }
+    
+}
+@Override
+public void alCambiarSeccion(int seccion) { }
+
+@Override
+public void alTerminarNivel() {
+    detener();
+    panelJuego.mostrarNivelCompletado();
+}
 }

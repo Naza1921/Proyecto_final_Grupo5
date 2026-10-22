@@ -7,15 +7,16 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.imageio.ImageIO;
-import java.awt.Color;
+//import java.awt.Color;
 
 
 
 public class loadsave {
     
     public static final String PLAYER_ATLAS = "Rata_Sprite.png";
-    public static final String NIVEL_ATLAS = "assets/Nivel_Sprite_para_usar_fondos.png";
-    public static final String NIVEL_UNO_DATO = "assets/Nivel_Uno_Sprite (3).png";
+    public static final String NIVEL_ATLAS = "assets/Nivel_Sprite_para_usar_fondos_madera.png";
+    //public static final String NIVEL_UNO_DATO = "assets/Nivel_Uno_Sprite (3).png";
+    public static final String AGUJERO_ATLAS = "assets/Agujero_Sprite.png";
 
     public static URL obtenerURLRecurso(String filename) {
         String rutaRecurso = filename.startsWith("/") ? filename : "/" + filename;
@@ -65,15 +66,12 @@ public class loadsave {
             throw new IllegalStateException("Failed to load image: " + filename, e);
         }
     }
-        public static int[][] obtenerdatonivel() {
-        BufferedImage img = GetSpriteatlas(NIVEL_UNO_DATO);
-        int[][] nivdato = new int[img.getWidth()][img.getHeight()];
-        for (int j = 0; j < img.getHeight(); j++) {
-            for (int i = 0; i < img.getWidth(); i++) {
-                Color colorval = new Color(img.getRGB(i, j));
-                nivdato[i][j] = colorval.getRed(); // Asignar el valor del canal rojo a la matriz
-            }
-        }
-        return nivdato;
-    } 
+public static int[][] obtenerdatonivel(String ruta) {
+    BufferedImage img = GetSpriteatlas(ruta);
+    int[][] nivdato = new int[img.getWidth()][img.getHeight()];
+    for (int j = 0; j < img.getHeight(); j++)
+        for (int i = 0; i < img.getWidth(); i++)
+            nivdato[i][j] = (img.getRGB(i, j) >> 16) & 0xFF;   // si exportás con ×8: / 8
+    return nivdato;
+}
 }

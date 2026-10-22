@@ -12,6 +12,8 @@ import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import modelos.personajes.Hitbox;
 import controlador.ColisionNivel;
+import controlador.ColisionNivel;
+import controlador.GestorSecciones;
 
 //aqui nosotros estamos definimos el panel visual del juego
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
@@ -22,13 +24,15 @@ public class PanelJuego extends JPanel {
     private final Puntaje modeloPuntaje;
     private final Hitbox hitboxJugador;
     private final PanelHUD hud;
-    private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros
+    private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros   
+    private static final int TAM_TILE = 30;
+    private static final int COLS_NIVEL = 42;
+    private static final int FILAS_NIVEL = 23;
     private static final int ANCHO_RATA = 25;
     private static final int ALTO_RATA = 20;
-    private static final int TAM_TILE = 30;          // 960x540 / 32x18 tiles = 30 px exactos
-    private final ColisionNivel colision;       // ver nota abajo
-    
-
+    private ColisionNivel colision;
+    private final GestorSecciones secciones;
+    private boolean nivelCompletado;
 
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
     private Image fondoImagen;
@@ -38,32 +42,37 @@ public class PanelJuego extends JPanel {
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-    public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
-        if (jugador == null || modeloPuntaje == null) {
-            throw new IllegalArgumentException("Se requieren un personaje y el modelo de puntaje");
-        }
-        this.jugador = jugador;
-        this.modeloPuntaje = modeloPuntaje;
-        this.hitboxJugador = new Hitbox(
-        (float) jugador.getX(),
-        (float) jugador.getY(),
-        ANCHO_RATA,
-        ALTO_RATA
-);
-        this.hud = new PanelHUD();
-        SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
-        this.animacionRata = new GestorAnimacionSprite(
-            SpritesRatas.crearFramesAlineados(spriteRata, 0), DURACION_FRAME_NANOS
-        );
-        //determinamos el alto y ancho de la ventana
-        setPreferredSize(new Dimension(960, 540));
-        setBackground(Color.DARK_GRAY);
-        setFocusable(true);
-
-        cargarFondo("/assets/escenarios/Nivel_1_Top_Floor X.png");
-        this.colision = new ColisionNivel(manejadornivel.getNivel(), TAM_TILE, ANCHO_RATA, ALTO_RATA);
+public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
+    if (jugador == null || modeloPuntaje == null) {
+        throw new IllegalArgumentException("Se requieren un personaje y el modelo de puntaje");
     }
+    this.jugador = jugador;
+    this.modeloPuntaje = modeloPuntaje;
 
+    // Posición inicial primero (esa celda debe ser aire en el PNG de la sección 1)
+    jugador.setX(2 * TAM_TILE);
+    jugador.setY(1 * TAM_TILE);
+
+    this.hitboxJugador = new Hitbox(
+        (float) jugador.getX(), (float) jugador.getY(), ANCHO_RATA, ALTO_RATA);
+
+    this.hud = new PanelHUD();
+    SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
+    this.animacionRata = new GestorAnimacionSprite(
+        SpritesRatas.crearFramesAlineados(spriteRata, 0), DURACION_FRAME_NANOS
+    );
+
+    this.colision = new ColisionNivel(
+        manejadornivel.getNivel(), TAM_TILE, ANCHO_RATA, ALTO_RATA);
+    this.secciones = new GestorSecciones(
+        manejadornivel, colision, TAM_TILE, ANCHO_RATA, ALTO_RATA);
+
+    setPreferredSize(new Dimension(COLS_NIVEL * TAM_TILE, FILAS_NIVEL * TAM_TILE));
+    setBackground(Color.DARK_GRAY);
+    setFocusable(true);
+
+    cargarFondo("/assets/escenarios/Nivel_1_Top_Floor X.png");
+}
     public double getAnchoAreaVisual() {
         return getWidth();
     }
@@ -85,9 +94,6 @@ public class PanelJuego extends JPanel {
         repaint();
     }
 
-    public int getAnchoHitbox() { 
-        return ANCHO_RATA; 
-    }
 
     //Carga la imagen de fondo del escenario desde los recursos.
     private void cargarFondo(String ruta) {
@@ -99,26 +105,16 @@ public class PanelJuego extends JPanel {
             System.err.println("No se pudo cargar el fondo " + ruta + ": " + error.getMessage());
         }
     }
-    public void resolverColisiones() {
-    colision.resolver(jugador);
-    hitboxJugador.actualizar((float) jugador.getX(), (float) jugador.getY());
-}
+
 
 @Override
 protected void paintComponent(Graphics g) {
-    super.paintComponent(g);
-    Graphics2D g2 = (Graphics2D) g;
-
-    // 1. Fondo, estirado al tamaño del panel
-    if (fondoImagen != null) {
-        g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
-    }
-
-    // 2. Nivel encima (los tiles de aire no se dibujan, así el fondo se ve a través)
-    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                        RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-    manejadornivel.draw(g2, TAM_TILE);
-
+super.paintComponent(g);
+Graphics2D g2 = (Graphics2D) g;
+g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
+manejadornivel.draw(g2, TAM_TILE);
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
 
 BufferedImage cuadroRata = animacionRata.getFrameActual();
@@ -158,5 +154,30 @@ if (cuadroRata != null) {
 
         // Dibujar el HUD en las esquinas superiores de la pantalla.
         hud.dibujar(g2, jugador, modeloPuntaje.getTotal(), getWidth());
+    if (nivelCompletado) {
+    g2.setColor(new Color(0, 0, 0, 170));
+    g2.fillRect(0, 0, getWidth(), getHeight());
+    g2.setColor(Color.WHITE);
+    g2.setFont(g2.getFont().deriveFont(Font.BOLD, 40f));
+    String texto = "¡Nivel completado!";
+    FontMetrics fm = g2.getFontMetrics();
+    g2.drawString(texto, (getWidth() - fm.stringWidth(texto)) / 2, getHeight() / 2);
+}
+    }
+    public GestorSecciones getGestorSecciones() { return secciones; }
+    public int getAnchoHitbox() { return ANCHO_RATA; }
+    public double getAnchoNivelPx() {
+    return manejadornivel.getNivel().getAncho() * TAM_TILE;
+    }
+
+    public void mostrarNivelCompletado() {
+    nivelCompletado = true;
+    repaint();
+    }  
+
+    public void resolverColisiones() {
+    colision.resolver(jugador);
+    secciones.actualizar(jugador);
+    hitboxJugador.actualizar((float) jugador.getX(), (float) jugador.getY());
     }
 }
