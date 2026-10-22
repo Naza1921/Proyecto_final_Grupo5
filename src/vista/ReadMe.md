@@ -16,6 +16,8 @@ se implemento para la 4ta entrega que es un prototipo visual
   pasa automaticamente al menu principal.
 - Menu principal (MenuPrincipal): pantalla con fondo (Portada_rata.png) y los
   botones Jugar, Opciones y Salir.
+- Panel de ajustes (MenuAjustesVista): controles de música y volumen, tema claro
+  u oscuro, pantalla completa, guardar/restaurar preferencias y volver al menú.
 - Panel de juego (PanelJuego): muestra el fondo del nivel
   (escenarios/Escenario_nivel3.jpeg)
   y dibuja al personaje con un sprite animado en lugar de una figura sin forma.

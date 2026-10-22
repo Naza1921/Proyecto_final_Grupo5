@@ -99,6 +99,14 @@ UI: barra de vida, contador de tiempo, íconos de activos power‑up, mini‑map
 Música de fondo: tema loopable por piso (cambia ligeramente al ascender/descender).
 Efectos de sonido: salto, golpe, comer (bueno/malo), daño, aparición de fantasma, activación de trampa, voz del jefe, jingle de game over, fanfara de victoria.
 Voces/Opcionales: gruñidos de rata, risas fantasmas, anunciador de “¡6 am!”.
+
+#### Panel de ajustes
+El menu principal incluye una pantalla de opciones con controles para activar la
+musica, elegir entre las dos canciones incluidas, ajustar el volumen, cambiar el
+tema de la pantalla de ajustes y alternar pantalla completa. Las preferencias
+pueden guardarse o restaurarse a sus valores estandar; la musica se reproduce
+en bucle mediante JavaFX Media. Los audios estan en `src/assets/audio/`.
+
 ### Plan de Desarrollo
 Roadmap sugerido por fases
 

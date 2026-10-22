@@ -13,3 +13,10 @@ usando CardLayout, ademas de conectar los botones del menu con sus acciones.
   tamaño minimo para que no se rompa el HUD ni los botones.
 - El boton "Jugar" crea al personaje, ubica su posicion inicial en el escenario
   y muestra el panel de juego (PanelJuego).
+- El boton "Opciones" abre el panel de ajustes integrado como otra tarjeta del
+  `CardLayout`; el boton de retorno vuelve al menu principal.
+- `ControladorMenuAjustes` coordina el volumen, la música, el tema, la pantalla
+  completa, el guardado y la restauracion de preferencias.
+- `RepositorioPreferenciasAjustes` persiste las opciones con
+  `java.util.prefs.Preferences`; los archivos de música se cargan desde
+  `src/assets/audio/`.

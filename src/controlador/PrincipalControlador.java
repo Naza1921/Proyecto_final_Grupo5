@@ -6,6 +6,7 @@ import javax.swing.*;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import vista.MenuPrincipal;
+import vista.MenuAjustesVista;
 import vista.PanelJuego;
 import vista.PanelSeleccionPersonaje;
 import vista.PantallaIntro;
@@ -14,6 +15,7 @@ public class PrincipalControlador {
 
     private static final String VISTA_INTRO = "intro";
     private static final String VISTA_MENU = "menu";
+    private static final String VISTA_AJUSTES = "ajustes";
     private static final String VISTA_SELECCION = "seleccion";
     private static final String VISTA_JUEGO = "juego";
 
@@ -26,6 +28,8 @@ public class PrincipalControlador {
     private MenuPrincipal menuPrincipal;
     private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
     private PantallaIntro pantallaIntro;
+    private MenuAjustesVista panelAjustes;
+    private ControladorMenuAjustes controladorMenuAjustes;
     private CardLayout cardLayout;
     private JPanel contenedor;
 
@@ -47,13 +51,24 @@ public class PrincipalControlador {
 
         pantallaIntro = new PantallaIntro(this::mostrarMenu);
         menuPrincipal = new MenuPrincipal();
+        panelAjustes = new MenuAjustesVista();
 
         //El panel de seleccion llama a iniciarJuego pasandole el personaje elegido
-    panelSeleccion = new PanelSeleccionPersonaje (this::iniciarJuego);
+        panelSeleccion = new PanelSeleccionPersonaje(this::iniciarJuego);
 
         contenedor.add(pantallaIntro, VISTA_INTRO);
         contenedor.add(menuPrincipal, VISTA_MENU);
+        contenedor.add(panelAjustes, VISTA_AJUSTES);
         contenedor.add(panelSeleccion, VISTA_SELECCION);
+        controladorMenuAjustes = new ControladorMenuAjustes(
+            ventana,
+            panelAjustes,
+            new GestorMusica(this::mostrarErrorAjustes),
+            new RepositorioAjustes(),
+            this::mostrarErrorAjustes,
+            this::mostrarConfirmacionAjustes,
+            this::mostrarMenu
+        );
         configurarBotonesMenu();
 
         ventana.add(contenedor);
@@ -61,11 +76,11 @@ public class PrincipalControlador {
         // pack() solo se llama UNA vez, para darle un tamaño inicial a la ventana
         // a partir del preferredSize de sus paneles. Después de esto, el usuario
         // maneja el tamaño arrastrando el borde de la ventana.
+        cardLayout.show(contenedor, VISTA_INTRO);
         ventana.pack();
         ventana.setLocationRelativeTo(null);
+        controladorMenuAjustes.iniciar();
         ventana.setVisible(true);
-
-        cardLayout.show(contenedor, VISTA_INTRO);
     }
 
 
@@ -81,12 +96,27 @@ public class PrincipalControlador {
         menuPrincipal.getBtnJugar().addActionListener(e -> mostrarSeleccion());
 
         menuPrincipal.getBtnOpciones().addActionListener(e ->
-            JOptionPane.showMessageDialog(ventana,
-                "falta implementar opciones.",
-                "Opciones", JOptionPane.INFORMATION_MESSAGE)
-        );
+            cardLayout.show(contenedor, VISTA_AJUSTES));
 
         menuPrincipal.getBtnSalir().addActionListener(e -> System.exit(0));
+    }
+
+    private void mostrarErrorAjustes(String mensaje) {
+        JOptionPane.showMessageDialog(
+            ventana,
+            mensaje,
+            "Error en ajustes",
+            JOptionPane.ERROR_MESSAGE
+        );
+    }
+
+    private void mostrarConfirmacionAjustes(String mensaje) {
+        JOptionPane.showMessageDialog(
+            ventana,
+            mensaje,
+            "Ajustes",
+            JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     private void iniciarJuego(Personaje personajeElegido) {
