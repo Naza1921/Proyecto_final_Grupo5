@@ -80,8 +80,7 @@ Piso	Descripción	Enemigos Principales	Obstáculos	Comida Disponible
 | 2    | Área de lavandería | Baldes de lavandina | Máquinas de lavar en movimiento | Detergente (mala), sobras |
 | 1    | Lobby / Recepción | Fantasmas + trampas de suelo | Puertas giratorias, alfombras móviles | Golosinas, sándwiches |
 | 0    | Planta baja / Garage | Fantasmas + peligros de aceite | Coches estacionados, neumáticos | Aceite (mala), hot‑dogs |
-| -1   | Bodega | Fantasmas + ratas enemigas | Estanterías inestables | Conservas (buenas/malas) |
-| -2   | Cocina (objetivo) | Jefe final | Hornallas, cubiertos, superficies calientes | Queso (objetivo final) |
+| -1   | Bodega | Fantasmas + ratas enemigas | Estanterías inestables | Conservas (buenas/malas) | Queso (objetivo final) |
 
 ####  Arte y Estilo Visual
 Paleta de colores: tonos oscuros y sucios con acentos amarillos/verdes para power‑ups y rojos para peligros.
