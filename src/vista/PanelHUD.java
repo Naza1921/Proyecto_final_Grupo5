@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Locale;
 
 import controlador.utilz.loadsave;
 import modelos.personajes.Personaje;
@@ -9,10 +10,16 @@ import modelos.personajes.Personaje;
 public class PanelHUD {
     private final SpriteSheet barraVidaSprite;
     private final BufferedImage spritePuntaje;
+    private final BufferedImage spriteTemporizador;
     private static final double ESCALA_BARRA_VIDA = 0.5;
     private static final int ANCHO_PUNTAJE = 330;
     private static final int ALTO_PUNTAJE = 110;
     private static final int TAMANO_FUENTE_PUNTAJE = 25;
+    private static final int ANCHO_TEMPORIZADOR = 300;
+    private static final int ALTO_TEMPORIZADOR = 150;
+    private static final int TAMANO_FUENTE_TEMPORIZADOR = 23;
+    private static final int TEMPORIZADOR_Y = 0;
+    private static final int PUNTAJE_Y = 12;
 
     //posicion donde se dibuja el hud, en este caso en la esquina superior izquierda
     private static final int HUD_X = 20;
@@ -30,15 +37,17 @@ public class PanelHUD {
     public PanelHUD() {
         barraVidaSprite = new SpriteSheet("/assets/Hud/sprite_barra_vida.jpeg", 10);
         spritePuntaje = loadsave.GetSpriteatlas("assets/Hud/puntaje_proyecto.png");
+        spriteTemporizador = loadsave.GetSpriteatlas("assets/temporizador.png");
     }
 
     //la estamina puede ser cuadrado donde tendriamos 3 frames 
     // pero apartir de 100(esta bien la rata) , 50(medio cansada) , 0 (esta cansada la rata)
-    public void dibujar(Graphics2D g, Personaje jugador, int puntaje, int anchoPanel) {
+    public void dibujar(Graphics2D g, Personaje jugador, int puntaje,
+                        long tiempoPartidaMillis, int anchoPanel) {
         // Si todavía no se eligió personaje no hay nada que dibujar
         if (jugador == null) return;
-        if (puntaje < 0 || anchoPanel < 0) {
-            throw new IllegalArgumentException("El puntaje y el ancho del panel deben ser válidos");
+        if (puntaje < 0 || tiempoPartidaMillis < 0 || anchoPanel < 0) {
+            throw new IllegalArgumentException("El puntaje, el tiempo y el ancho del panel deben ser válidos");
         }
 
         // Se trabaja sobre una copia del Graphics2D: los cambios de color, fuente,
@@ -48,6 +57,7 @@ public class PanelHUD {
             dibujarNombre(g2, jugador);
             dibujarBarraVida(g2, jugador);
             dibujarPuntaje(g2, puntaje, anchoPanel);
+            dibujarTemporizador(g2, tiempoPartidaMillis, anchoPanel);
         } finally {
             g2.dispose();
         }
@@ -86,7 +96,7 @@ public class PanelHUD {
 
     private void dibujarPuntaje(Graphics2D g, int puntaje, int anchoPanel) {
         int x = Math.max(0, anchoPanel - HUD_X - ANCHO_PUNTAJE);
-        int y = HUD_Y;
+        int y = PUNTAJE_Y;
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g.drawImage(spritePuntaje, x, y, ANCHO_PUNTAJE, ALTO_PUNTAJE, null);
@@ -100,6 +110,31 @@ public class PanelHUD {
         int textoX = x + (int) (ANCHO_PUNTAJE * 0.66)
                 - metricas.stringWidth(texto) / 2;
         int textoY = y + (int) (ALTO_PUNTAJE * 0.62);
+        g.drawString(texto, textoX, textoY);
+        g.setFont(fuenteAnterior);
+        g.setColor(colorAnterior);
+    }
+
+    private void dibujarTemporizador(Graphics2D g, long tiempoPartidaMillis, int anchoPanel) {
+        int x = (anchoPanel - ANCHO_TEMPORIZADOR) / 2;
+        int y = TEMPORIZADOR_Y;
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.drawImage(spriteTemporizador, x, y, ANCHO_TEMPORIZADOR, ALTO_TEMPORIZADOR, null);
+
+        long segundosTotales = tiempoPartidaMillis / 1_000;
+        long minutos = segundosTotales / 60;
+        long segundos = segundosTotales % 60;
+        String texto = String.format(Locale.ROOT, "%02d:%02d", minutos, segundos);
+
+        Font fuenteAnterior = g.getFont();
+        Color colorAnterior = g.getColor();
+        g.setFont(new Font("Arial", Font.BOLD, TAMANO_FUENTE_TEMPORIZADOR));
+        g.setColor(Color.WHITE);
+        FontMetrics metricas = g.getFontMetrics();
+        int textoX = x + (int) (ANCHO_TEMPORIZADOR * 0.72)
+                - metricas.stringWidth(texto) / 2;
+        int textoY = y + (int) (ALTO_TEMPORIZADOR * 0.60);
         g.drawString(texto, textoX, textoY);
         g.setFont(fuenteAnterior);
         g.setColor(colorAnterior);

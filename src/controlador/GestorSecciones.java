@@ -19,6 +19,7 @@ public class GestorSecciones {
 
     public void setListener(SeccionListener listener) { this.listener = listener; }
     public boolean estaTerminado() { return terminado; }
+    public int getSeccionActual() { return niveles.getSeccion(); }
 
     public void actualizar(Personaje p) {
         if (terminado) return;

@@ -3,6 +3,9 @@ package vista;
 //mostrar en pantalla
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.swing.*;
 
 import controlador.levelmanager;
@@ -11,6 +14,7 @@ import controlador.utilz.loadsave;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import modelos.personajes.Hitbox;
+import modelos.items.PowerUp;
 import controlador.ColisionNivel;
 import controlador.ColisionNivel;
 import controlador.GestorSecciones;
@@ -24,6 +28,8 @@ public class PanelJuego extends JPanel {
     private final Puntaje modeloPuntaje;
     private final Hitbox hitboxJugador;
     private final PanelHUD hud;
+    private List<PowerUp> powerUps = Collections.emptyList();
+    private long tiempoPartidaMillis;
     private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros   
     private static final int TAM_TILE = 30;
     private static final int COLS_NIVEL = 42;
@@ -94,6 +100,26 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
         repaint();
     }
 
+    public void actualizarPowerUps(List<PowerUp> powerUps) {
+        if (powerUps == null) {
+            throw new IllegalArgumentException("La lista de power-ups debe ser válida");
+        }
+        for (PowerUp powerUp : powerUps) {
+            if (powerUp == null) {
+                throw new IllegalArgumentException("La lista de power-ups debe ser válida");
+            }
+        }
+        this.powerUps = Collections.unmodifiableList(new ArrayList<>(powerUps));
+        repaint();
+    }
+
+    public void actualizarTiempoPartida(long tiempoPartidaMillis) {
+        if (tiempoPartidaMillis < 0) {
+            throw new IllegalArgumentException("El tiempo de partida no puede ser negativo");
+        }
+        this.tiempoPartidaMillis = tiempoPartidaMillis;
+        repaint();
+    }
 
     //Carga la imagen de fondo del escenario desde los recursos.
     private void cargarFondo(String ruta) {
@@ -115,6 +141,7 @@ g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
 manejadornivel.draw(g2, TAM_TILE);
+dibujarPowerUps(g2);
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
 
 BufferedImage cuadroRata = animacionRata.getFrameActual();
@@ -153,7 +180,7 @@ if (cuadroRata != null) {
 
 
         // Dibujar el HUD en las esquinas superiores de la pantalla.
-        hud.dibujar(g2, jugador, modeloPuntaje.getTotal(), getWidth());
+        hud.dibujar(g2, jugador, modeloPuntaje.getTotal(), tiempoPartidaMillis, getWidth());
     if (nivelCompletado) {
     g2.setColor(new Color(0, 0, 0, 170));
     g2.fillRect(0, 0, getWidth(), getHeight());
@@ -174,6 +201,20 @@ if (cuadroRata != null) {
     nivelCompletado = true;
     repaint();
     }  
+
+    private void dibujarPowerUps(Graphics2D g2) {
+        for (PowerUp powerUp : powerUps) {
+            BufferedImage sprite = SpritesPowerUps.cargar(powerUp);
+            g2.drawImage(
+                sprite,
+                (int) Math.round(powerUp.getX() - 15),
+                (int) Math.round(powerUp.getY() - 15),
+                30,
+                30,
+                this
+            );
+        }
+    }
 
     public void resolverColisiones() {
     colision.resolver(jugador);

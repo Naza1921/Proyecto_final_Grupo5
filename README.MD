@@ -63,6 +63,7 @@ Pantalla de Game Over: mensaje correspondiente, opción de reiniciar o volver al
 
 #### Sistema de Puntos y Tiempo
 Tiempo de juego: cronómetro que comienza al iniciar y se detiene al terminar.
+El HUD ya muestra el tiempo transcurrido en formato `MM:SS` con el sprite `src/assets/temporizador.png`.
 Puntos por comida buena: +X puntos por cada pieza consumida.
 Penalización por comida mala: –Y puntos por cada pieza consumida.
 Penalización por daño recibido: –Z puntos por cada punto de vida perdido (o por cada contacto con enemigo/trampa).
@@ -185,6 +186,6 @@ La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de
 - Permite incorporar efectos nuevos implementando `EfectoTemporal`, por ejemplo salto triple o controles invertidos, cuando se implementen esas mecánicas.
 - Centraliza la activación, renovación, reemplazo y vencimiento de los efectos temporales.
 
-**Estado actual:** están implementadas las estrategias de Velocidad++, Lento e Invulnerabilidad y el gestor que las activa y vence. El juego todavía debe conectar los power-ups que se colocan en cada nivel con `ControladorPartida.recogerPowerUp(...)` para que el personaje los pueda recoger durante una partida.
+**Estado actual:** las estrategias de Velocidad++, Lento e Invulnerabilidad están conectadas a la partida. Los objetos aparecen uno por sección del primer piso y se recogen automáticamente al contacto. Velocidad dura 5 segundos, lento 5 segundos e invulnerabilidad 3 segundos. Se usan los sprites de `src/assets/powerUp/`, mostrados a 30×30 px. Velocidad y lento se reemplazan entre sí; invulnerabilidad puede coexistir con uno de ellos.
 
 El diagrama UML de las clases y relaciones del patrón Strategy está en [Diagrama UML de Strategy para power-ups](docs/uml-strategy-powerups.svg).

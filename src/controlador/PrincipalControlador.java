@@ -2,7 +2,13 @@ package controlador;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.util.List;
+import java.util.Map;
 import javax.swing.*;
+import modelos.items.PowerUp;
+import modelos.items.PowerUpInvulnerabilidad;
+import modelos.items.PowerUpLento;
+import modelos.items.PowerUpVelocidad;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import vista.MenuPrincipal;
@@ -18,6 +24,9 @@ public class PrincipalControlador {
     private static final String VISTA_AJUSTES = "ajustes";
     private static final String VISTA_SELECCION = "seleccion";
     private static final String VISTA_JUEGO = "juego";
+    private static final long DURACION_VELOCIDAD_MS = 5_000;
+    private static final long DURACION_LENTO_MS = 5_000;
+    private static final long DURACION_INVULNERABILIDAD_MS = 3_000;
 
     private Personaje jugador;
     private JFrame ventana;
@@ -142,8 +151,14 @@ public class PrincipalControlador {
         ControladorPuntaje controladorPuntaje = new ControladorPuntaje(puntaje);
         panelJuego = new PanelJuego(jugador, puntaje);
         controladorTecladoRata = new ControladorTecladoRata(panelJuego, gestorControles);
+        Map<Integer, List<PowerUp>> powerUpsPorSeccion = Map.of(
+            0, List.of(new PowerUpVelocidad(DURACION_VELOCIDAD_MS, 180, 640)),
+            1, List.of(new PowerUpLento(DURACION_LENTO_MS, 600, 640)),
+            2, List.of(new PowerUpInvulnerabilidad(DURACION_INVULNERABILIDAD_MS, 1020, 640))
+        );
         controladorPartida = new ControladorPartida(
-            controladorRata, gestorControles, gestorEfectos, controladorPuntaje, panelJuego
+            controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
+            panelJuego, powerUpsPorSeccion
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);
