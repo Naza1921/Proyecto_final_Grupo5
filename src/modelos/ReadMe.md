@@ -17,4 +17,6 @@ según sus propias características.
 
 - Se corrigio Personaje.setX, que antes lanzaba una excepcion sin implementar
   (UnsupportedOperationException), y se agrego Personaje.setY para poder
-  ubicar al personaje en el escenario. 
+  ubicar al personaje en el escenario.
+- `enemigos.fantasma` encapsula los limites de patrulla, el tamaño de su hitbox
+  y el daño de 10 puntos que aplica al entrar en contacto con una rata.

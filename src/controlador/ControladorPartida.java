@@ -7,19 +7,24 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Timer;
 import modelos.enemigos.enemigo;
+import modelos.enemigos.fantasma;
 import modelos.items.PowerUp;
+import modelos.personajes.Personaje;
 import vista.PanelJuego;
 
 // Coordina el ciclo temporal de la partida y solicita el repintado de la vista.
 public class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
+    private static final double POSICION_Y_FANTASMA = 390.0;
 
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
     private final GestorEfectosTemporales gestorEfectos;
     private final ControladorPuntaje controladorPuntaje;
     private final PanelJuego panelJuego;
+    private final Personaje jugador;
+    private final fantasma enemigo;
     private final Map<Integer, List<PowerUp>> powerUpsPorSeccion;
     private final Timer temporizador;
     private long ultimaRecargaEstaminaNanos = System.nanoTime();
@@ -35,7 +40,7 @@ public class ControladorPartida implements SeccionListener {
                               ControladorPuntaje controladorPuntaje,
                               PanelJuego panelJuego) {
         this(controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, Map.of());
+            panelJuego, Map.of(), null, null);
     }
 
     public ControladorPartida(ControladorRata controladorRata,
@@ -44,9 +49,21 @@ public class ControladorPartida implements SeccionListener {
                               ControladorPuntaje controladorPuntaje,
                               PanelJuego panelJuego,
                               Map<Integer, List<PowerUp>> powerUpsPorSeccion) {
+        this(controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
+            panelJuego, powerUpsPorSeccion, null, null);
+    }
+
+    public ControladorPartida(ControladorRata controladorRata,
+                              GestorControlesRatas gestorControles,
+                              GestorEfectosTemporales gestorEfectos,
+                              ControladorPuntaje controladorPuntaje,
+                              PanelJuego panelJuego,
+                              Map<Integer, List<PowerUp>> powerUpsPorSeccion,
+                              Personaje jugador,
+                              fantasma enemigo) {
         if (controladorRata == null || gestorControles == null
                 || gestorEfectos == null || controladorPuntaje == null || panelJuego == null
-                || powerUpsPorSeccion == null) {
+                || powerUpsPorSeccion == null || (jugador == null) != (enemigo == null)) {
             throw new IllegalArgumentException(
                 "Se requieren controladores, puntaje, vista e inventario válidos"
             );
@@ -56,6 +73,8 @@ public class ControladorPartida implements SeccionListener {
         this.gestorEfectos = gestorEfectos;
         this.controladorPuntaje = controladorPuntaje;
         this.panelJuego = panelJuego;
+        this.jugador = jugador;
+        this.enemigo = enemigo;
         this.powerUpsPorSeccion = copiarPowerUpsPorSeccion(powerUpsPorSeccion);
         this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, evento -> actualizar());
         panelJuego.getGestorSecciones().setListener(this);
@@ -191,6 +210,10 @@ private void actualizar() {
     gestorEfectos.actualizar();
     controladorRata.actualizar(Double.POSITIVE_INFINITY);
     panelJuego.resolverColisiones();
+    if (enemigo != null) {
+        enemigo.actualizarPatrulla(POSICION_Y_FANTASMA);
+        enemigo.atacar(jugador, panelJuego.getAnchoHitbox(), panelJuego.getAltoHitbox());
+    }
     actualizarPowerUpsVisibles();
     actualizarTiempoPartida();
     panelJuego.actualizarPresentacion();

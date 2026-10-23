@@ -39,5 +39,8 @@ se implemento para la 4ta entrega que es un prototipo visual
   cada rata usa la grilla propia de su recurso. Se conserva el anclaje original
   de las celdas para evitar desplazamientos y cortes; si Swing se retrasa, se
   recuperan los frames transcurridos en vez de ralentizar la secuencia.
+- `SpritesFantasma` recorta las animaciones de patrulla del recurso del fantasma;
+  `PanelJuego` alterna los cuadros según la dirección y lo dibuja dentro del
+  mundo con la transformación de cámara.
 - Controles actuales: las flechas izquierda/derecha mueven a la rata y Espacio
   la hace saltar. El personaje colisiona con los tiles sólidos de cada sección.

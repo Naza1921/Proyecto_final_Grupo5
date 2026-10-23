@@ -12,6 +12,7 @@ import javax.swing.*;
 import controlador.levelmanager;
 import controlador.GestorAnimacionSprite;
 import controlador.utilz.loadsave;
+import modelos.enemigos.fantasma;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import modelos.personajes.Hitbox;
@@ -28,6 +29,7 @@ public class PanelJuego extends JPanel {
     private static final double SUAVIZADO_CAMARA_SEGUNDOS = 0.12;
 
     private final Personaje jugador;
+    private final fantasma enemigo;
     private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
     private final Puntaje modeloPuntaje;
     private final Hitbox hitboxJugador;
@@ -49,14 +51,17 @@ public class PanelJuego extends JPanel {
 
     // El gestor mantiene el ritmo de la animación y entrega frames con un anclaje común.
     private final GestorAnimacionSprite animacionRata;
+    private final GestorAnimacionSprite animacionFantasmaDerecha;
+    private final GestorAnimacionSprite animacionFantasmaIzquierda;
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
-    if (jugador == null || modeloPuntaje == null) {
-        throw new IllegalArgumentException("Se requieren un personaje y el modelo de puntaje");
+public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo) {
+    if (jugador == null || modeloPuntaje == null || enemigo == null) {
+        throw new IllegalArgumentException("Se requieren un personaje, puntaje y enemigo");
     }
     this.jugador = jugador;
+    this.enemigo = enemigo;
     this.modeloPuntaje = modeloPuntaje;
 
     // Posición inicial primero (esa celda debe ser aire en el PNG de la sección 1)
@@ -70,6 +75,12 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
     SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
     this.animacionRata = new GestorAnimacionSprite(
         SpritesRatas.crearFramesAlineados(spriteRata, 0), DURACION_FRAME_NANOS
+    );
+    this.animacionFantasmaDerecha = new GestorAnimacionSprite(
+        SpritesFantasma.cargarPatrulla(true), 180_000_000L
+    );
+    this.animacionFantasmaIzquierda = new GestorAnimacionSprite(
+        SpritesFantasma.cargarPatrulla(false), 180_000_000L
     );
 
     this.colision = new ColisionNivel(
@@ -101,6 +112,8 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
 
     public void actualizarPresentacion() {
         animacionRata.actualizar();
+        animacionFantasmaDerecha.actualizar();
+        animacionFantasmaIzquierda.actualizar();
         repaint();
     }
 
@@ -161,6 +174,13 @@ manejadornivel.draw(g2, TAM_TILE);
 dibujarPowerUps(g2);
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
 
+GestorAnimacionSprite animacionFantasma = enemigo.estaMoviendoseDerecha()
+    ? animacionFantasmaDerecha
+    : animacionFantasmaIzquierda;
+BufferedImage cuadroFantasma = animacionFantasma.getFrameActual();
+g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
+    (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
+
 BufferedImage cuadroRata = animacionRata.getFrameActual();
 
 if (cuadroRata != null) {
@@ -211,6 +231,7 @@ if (cuadroRata != null) {
     }
     public GestorSecciones getGestorSecciones() { return secciones; }
     public int getAnchoHitbox() { return ANCHO_RATA; }
+    public int getAltoHitbox() { return ALTO_RATA; }
     public double getAnchoNivelPx() {
     return manejadornivel.getNivel().getAncho() * TAM_TILE;
     }

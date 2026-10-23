@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
+import modelos.enemigos.fantasma;
 import modelos.items.PowerUp;
 import modelos.items.PowerUpInvulnerabilidad;
 import modelos.items.PowerUpLento;
@@ -29,6 +30,8 @@ public class PrincipalControlador {
     private static final long DURACION_VELOCIDAD_MS = 5_000;
     private static final long DURACION_LENTO_MS = 5_000;
     private static final long DURACION_INVULNERABILIDAD_MS = 3_000;
+    private static final double ANCHO_FANTASMA = 72;
+    private static final double ALTO_FANTASMA = 82;
 
     private Personaje jugador;
     private JFrame ventana;
@@ -185,7 +188,10 @@ public class PrincipalControlador {
         gestorEfectos = new GestorEfectosTemporales(jugador);
         Puntaje puntaje = new Puntaje();
         ControladorPuntaje controladorPuntaje = new ControladorPuntaje(puntaje);
-        panelJuego = new PanelJuego(jugador, puntaje);
+        fantasma enemigo = new fantasma(
+            "Fantasma", 2.0, 0, 190, 420, ANCHO_FANTASMA, ALTO_FANTASMA
+        );
+        panelJuego = new PanelJuego(jugador, puntaje, enemigo);
         controladorTecladoRata = new ControladorTecladoRata(
             panelJuego, gestorControles, this::pausarJuego
         );
@@ -196,7 +202,7 @@ public class PrincipalControlador {
         );
         controladorPartida = new ControladorPartida(
             controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, powerUpsPorSeccion
+            panelJuego, powerUpsPorSeccion, jugador, enemigo
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);

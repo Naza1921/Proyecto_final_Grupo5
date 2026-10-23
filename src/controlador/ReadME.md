@@ -20,3 +20,6 @@ usando CardLayout, ademas de conectar los botones del menu con sus acciones.
 - `RepositorioPreferenciasAjustes` persiste las opciones con
   `java.util.prefs.Preferences`; los archivos de música se cargan desde
   `src/assets/audio/`.
+- `ControladorPartida` actualiza la patrulla del fantasma y comprueba el daño
+  por contacto usando la hitbox actual de la rata, sin reemplazar el ciclo de
+  secciones, power-ups ni puntaje.
