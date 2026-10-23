@@ -9,7 +9,7 @@ import modelos.escenario.levels.level;
 public class levelmanager {
 
     private static final String[][] RUTAS = {
-        { "assets/escenarios/piso_1_1.png","assets/escenarios/piso_1_2.png", "assets/escenarios/piso_1_3.png" }
+        { "assets/escenarios/piso_1_1.png","assets/escenarios/piso_1_2.png", "assets/escenarios/piso_1_3.png", "assets/escenarios/piso_1_4.png", "assets/escenarios/piso_1_5.png" }
     };
 
     private BufferedImage[] nivelsprite;

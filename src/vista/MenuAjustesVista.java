@@ -53,6 +53,7 @@ public final class MenuAjustesVista extends JPanel {
     private final JLabel lblElegir = new JLabel("Elegir música");
     private final JRadioButton rdbCancion1 = new JRadioButton("Canción 1");
     private final JRadioButton rdbCancion2 = new JRadioButton("Canción 2");
+    private final JRadioButton rdbCancion3 = new JRadioButton("Canción 3");
     private final ButtonGroup grupoCanciones = new ButtonGroup();
     private final JPanel canciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 0));
     private final JPanel tarjetaMusica = new JPanel();
@@ -114,6 +115,7 @@ public final class MenuAjustesVista extends JPanel {
     public void addCancionListener(IntConsumer listener) {
         rdbCancion1.addActionListener(event -> listener.accept(1));
         rdbCancion2.addActionListener(event -> listener.accept(2));
+        rdbCancion3.addActionListener(event -> listener.accept(3));
     }
 
     public void addVolumenListener(IntConsumer listener) {
@@ -133,7 +135,7 @@ public final class MenuAjustesVista extends JPanel {
     }
 
     public PreferenciasAjustes obtenerPreferencias() {
-        int cancionSeleccionada = rdbCancion1.isSelected() ? 1 : rdbCancion2.isSelected() ? 2 : 0;
+        int cancionSeleccionada = rdbCancion1.isSelected() ? 1 : rdbCancion2.isSelected() ? 2 : rdbCancion3.isSelected() ? 3 : 0;
         return new PreferenciasAjustes(
                 chkMusica.isSelected(),
                 cancionSeleccionada,
@@ -153,6 +155,8 @@ public final class MenuAjustesVista extends JPanel {
             rdbCancion1.setSelected(true);
         } else if (preferencias.cancionSeleccionada() == 2) {
             rdbCancion2.setSelected(true);
+        } else if (preferencias.cancionSeleccionada() == 3) {
+            rdbCancion3.setSelected(true);
         }
         chkPantallaCompleta.setSelected(preferencias.pantallaCompleta());
     }
@@ -181,11 +185,14 @@ public final class MenuAjustesVista extends JPanel {
         lblElegir.setForeground(COLOR_SECUNDARIO_CLARO);
         rdbCancion1.setOpaque(false);
         rdbCancion2.setOpaque(false);
+        rdbCancion3.setOpaque(false);
         canciones.setOpaque(false);
         grupoCanciones.add(rdbCancion1);
         grupoCanciones.add(rdbCancion2);
+        grupoCanciones.add(rdbCancion3);
         canciones.add(rdbCancion1);
         canciones.add(rdbCancion2);
+        canciones.add(rdbCancion3);
 
         tarjetaMusica.setLayout(new BoxLayout(tarjetaMusica, BoxLayout.Y_AXIS));
         tarjetaMusica.setBackground(COLOR_TARJETA_CLARO);
@@ -289,6 +296,7 @@ public final class MenuAjustesVista extends JPanel {
         lblElegir.setForeground(colorSecundario);
         rdbCancion1.setForeground(colorTexto);
         rdbCancion2.setForeground(colorTexto);
+        rdbCancion3.setForeground(colorTexto);
         lblEncabezadoVolumen.setForeground(colorSecundario);
         lblVolumen.setForeground(colorTexto);
         volumen.setForeground(colorTexto);

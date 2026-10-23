@@ -8,23 +8,26 @@
     ],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.base.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.controls.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.fxml.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.graphics.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.media.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.swing.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.web.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx-swt.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jdk.jsobject.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jfx.incubator.input.jar",
-        "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jfx.incubator.richtext.jar"
+         "C:/javafx/javafx-sdk-21.0.12/lib/*.jar"
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.base.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.controls.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.fxml.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.graphics.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.media.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.swing.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx.web.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\javafx-swt.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jdk.jsobject.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jfx.incubator.input.jar",
+    //     "c:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\jfx.incubator.richtext.jar"
     ],
     "java.configuration.runtimes": [
         {
-            "name": "JavaSE-25",
-            "path": "C:/Program Files/Amazon Corretto/jdk25.0.4_10",
+            "name": "JavaSE-21",
+            "path": "C:/Program Files/Java/jdk-21.0.12.1", 
             //"C:/Program Files/Amazon Corretto/jdk25.0.4_10",
+            //"C:/Program Files/Amazon Corretto/jdk25.0.4_10",
+
             "default": true
         }
     ]
