@@ -18,6 +18,7 @@ public class PanelHUD {
     private static final int ANCHO_TEMPORIZADOR = 300;
     private static final int ALTO_TEMPORIZADOR = 150;
     private static final int TAMANO_FUENTE_TEMPORIZADOR = 23;
+    private static final int SEPARACION_INDICADORES = 12;
     private static final int TEMPORIZADOR_Y = 0;
     private static final int PUNTAJE_Y = 12;
 
@@ -95,32 +96,39 @@ public class PanelHUD {
     }
 
     private void dibujarPuntaje(Graphics2D g, int puntaje, int anchoPanel) {
-        int x = Math.max(0, anchoPanel - HUD_X - ANCHO_PUNTAJE);
-        int y = PUNTAJE_Y;
+        double escala = calcularEscalaIndicadores(anchoPanel);
+        int ancho = (int) Math.round(ANCHO_PUNTAJE * escala);
+        int alto = (int) Math.round(ALTO_PUNTAJE * escala);
+        int x = Math.max(0, anchoPanel - HUD_X - ancho);
+        int y = (int) Math.round(PUNTAJE_Y * escala);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g.drawImage(spritePuntaje, x, y, ANCHO_PUNTAJE, ALTO_PUNTAJE, null);
+        g.drawImage(spritePuntaje, x, y, ancho, alto, null);
 
         Font fuenteAnterior = g.getFont();
         Color colorAnterior = g.getColor();
-        g.setFont(new Font("Arial", Font.BOLD, TAMANO_FUENTE_PUNTAJE));
+        g.setFont(new Font("Arial", Font.BOLD,
+                Math.max(1, (int) Math.round(TAMANO_FUENTE_PUNTAJE * escala))));
         g.setColor(Color.WHITE);
         FontMetrics metricas = g.getFontMetrics();
         String texto = Integer.toString(puntaje);
-        int textoX = x + (int) (ANCHO_PUNTAJE * 0.66)
+        int textoX = x + (int) (ancho * 0.66)
                 - metricas.stringWidth(texto) / 2;
-        int textoY = y + (int) (ALTO_PUNTAJE * 0.62);
+        int textoY = y + (int) (alto * 0.62);
         g.drawString(texto, textoX, textoY);
         g.setFont(fuenteAnterior);
         g.setColor(colorAnterior);
     }
 
     private void dibujarTemporizador(Graphics2D g, long tiempoPartidaMillis, int anchoPanel) {
-        int x = (anchoPanel - ANCHO_TEMPORIZADOR) / 2;
-        int y = TEMPORIZADOR_Y;
+        double escala = calcularEscalaIndicadores(anchoPanel);
+        int ancho = (int) Math.round(ANCHO_TEMPORIZADOR * escala);
+        int alto = (int) Math.round(ALTO_TEMPORIZADOR * escala);
+        int x = Math.max(0, (anchoPanel - ancho) / 2);
+        int y = (int) Math.round(TEMPORIZADOR_Y * escala);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g.drawImage(spriteTemporizador, x, y, ANCHO_TEMPORIZADOR, ALTO_TEMPORIZADOR, null);
+        g.drawImage(spriteTemporizador, x, y, ancho, alto, null);
 
         long segundosTotales = tiempoPartidaMillis / 1_000;
         long minutos = segundosTotales / 60;
@@ -129,15 +137,22 @@ public class PanelHUD {
 
         Font fuenteAnterior = g.getFont();
         Color colorAnterior = g.getColor();
-        g.setFont(new Font("Arial", Font.BOLD, TAMANO_FUENTE_TEMPORIZADOR));
+        g.setFont(new Font("Arial", Font.BOLD,
+                Math.max(1, (int) Math.round(TAMANO_FUENTE_TEMPORIZADOR * escala))));
         g.setColor(Color.WHITE);
         FontMetrics metricas = g.getFontMetrics();
-        int textoX = x + (int) (ANCHO_TEMPORIZADOR * 0.72)
+        int textoX = x + (int) (ancho * 0.72)
                 - metricas.stringWidth(texto) / 2;
-        int textoY = y + (int) (ALTO_TEMPORIZADOR * 0.60);
+        int textoY = y + (int) (alto * 0.60);
         g.drawString(texto, textoX, textoY);
         g.setFont(fuenteAnterior);
         g.setColor(colorAnterior);
+    }
+
+    private double calcularEscalaIndicadores(int anchoPanel) {
+        double espacioDisponible = anchoPanel / 2.0 - HUD_X - SEPARACION_INDICADORES;
+        double espacioRequerido = ANCHO_PUNTAJE + ANCHO_TEMPORIZADOR / 2.0;
+        return Math.min(1.0, Math.max(0.0, espacioDisponible / espacioRequerido));
     }
 
     // Elige el frame de la barra según el porcentaje de vida
