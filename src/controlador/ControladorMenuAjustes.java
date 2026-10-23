@@ -23,7 +23,10 @@ public final class ControladorMenuAjustes {
     private static final Map<Integer, String> CANCIONES = Map.of(
             1, "assets/audio/alex-morgan-video-game-pixel-chiptune-music-583271.mp3",
             2, "assets/audio/maksymmalko-game-game-music-581017.mp3",
-            3, "assets/audio/MCZ STH2HD.mpeg"
+            3, "assets/audio/MCZ STH2HD.mpeg",
+            4, "assets/audio/MM MHX AA.mpeg",
+            5, "assets/audio/MM3 - Snake.mpeg"
+
     );
 
     private final JFrame ventana;

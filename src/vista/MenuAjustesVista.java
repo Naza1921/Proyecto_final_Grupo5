@@ -54,6 +54,8 @@ public final class MenuAjustesVista extends JPanel {
     private final JRadioButton rdbCancion1 = new JRadioButton("Canción 1");
     private final JRadioButton rdbCancion2 = new JRadioButton("Canción 2");
     private final JRadioButton rdbCancion3 = new JRadioButton("Canción 3");
+    private final JRadioButton rdbCancion4 = new JRadioButton("Canción 4");
+    private final JRadioButton rdbCancion5 = new JRadioButton("Canción 5");
     private final ButtonGroup grupoCanciones = new ButtonGroup();
     private final JPanel canciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 0));
     private final JPanel tarjetaMusica = new JPanel();
@@ -116,6 +118,8 @@ public final class MenuAjustesVista extends JPanel {
         rdbCancion1.addActionListener(event -> listener.accept(1));
         rdbCancion2.addActionListener(event -> listener.accept(2));
         rdbCancion3.addActionListener(event -> listener.accept(3));
+        rdbCancion4.addActionListener(event -> listener.accept(4));
+        rdbCancion5.addActionListener(event -> listener.accept(5));
     }
 
     public void addVolumenListener(IntConsumer listener) {
@@ -135,7 +139,7 @@ public final class MenuAjustesVista extends JPanel {
     }
 
     public PreferenciasAjustes obtenerPreferencias() {
-        int cancionSeleccionada = rdbCancion1.isSelected() ? 1 : rdbCancion2.isSelected() ? 2 : rdbCancion3.isSelected() ? 3 : 0;
+        int cancionSeleccionada = rdbCancion1.isSelected() ? 1 : rdbCancion2.isSelected() ? 2 : rdbCancion3.isSelected() ? 3 : rdbCancion4.isSelected() ? 4 : rdbCancion5.isSelected() ? 5 : 0;
         return new PreferenciasAjustes(
                 chkMusica.isSelected(),
                 cancionSeleccionada,
@@ -157,6 +161,10 @@ public final class MenuAjustesVista extends JPanel {
             rdbCancion2.setSelected(true);
         } else if (preferencias.cancionSeleccionada() == 3) {
             rdbCancion3.setSelected(true);
+        } else if (preferencias.cancionSeleccionada() == 4) {
+            // Selección de la canción 4 (si es necesario)
+        } else if (preferencias.cancionSeleccionada() == 5) {
+            // Selección de la canción 5 (si es necesario)
         }
         chkPantallaCompleta.setSelected(preferencias.pantallaCompleta());
     }
@@ -186,13 +194,19 @@ public final class MenuAjustesVista extends JPanel {
         rdbCancion1.setOpaque(false);
         rdbCancion2.setOpaque(false);
         rdbCancion3.setOpaque(false);
+        rdbCancion4.setOpaque(false);
+        rdbCancion5.setOpaque(false);
         canciones.setOpaque(false);
         grupoCanciones.add(rdbCancion1);
         grupoCanciones.add(rdbCancion2);
         grupoCanciones.add(rdbCancion3);
+        grupoCanciones.add(rdbCancion4);
+        grupoCanciones.add(rdbCancion5);
         canciones.add(rdbCancion1);
         canciones.add(rdbCancion2);
         canciones.add(rdbCancion3);
+        canciones.add(rdbCancion4);
+        canciones.add(rdbCancion5); 
 
         tarjetaMusica.setLayout(new BoxLayout(tarjetaMusica, BoxLayout.Y_AXIS));
         tarjetaMusica.setBackground(COLOR_TARJETA_CLARO);
@@ -297,6 +311,8 @@ public final class MenuAjustesVista extends JPanel {
         rdbCancion1.setForeground(colorTexto);
         rdbCancion2.setForeground(colorTexto);
         rdbCancion3.setForeground(colorTexto);
+        rdbCancion4.setForeground(colorTexto);
+        rdbCancion5.setForeground(colorTexto);
         lblEncabezadoVolumen.setForeground(colorSecundario);
         lblVolumen.setForeground(colorTexto);
         volumen.setForeground(colorTexto);
