@@ -3,6 +3,7 @@ package controlador;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import javax.swing.*;
+import modelos.enemigos.fantasma;
 import modelos.personajes.Personaje;
 import vista.MenuPrincipal;
 import vista.PanelJuego;
@@ -15,6 +16,8 @@ public class PrincipalControlador {
     private static final String VISTA_MENU = "menu";
     private static final String VISTA_SELECCION = "seleccion";
     private static final String VISTA_JUEGO = "juego";
+    private static final double ANCHO_FANTASMA = 72;
+    private static final double ALTO_FANTASMA = 82;
 
     private Personaje jugador;
     private JFrame ventana;
@@ -101,9 +104,11 @@ public class PrincipalControlador {
 
         ControladorRata controladorRata = new ratacontroller(jugador);
         GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);
-        panelJuego = new PanelJuego(jugador, gestorControles);
+        fantasma enemigo = new fantasma("Fantasma", 2.0, 0,
+            190, 420, ANCHO_FANTASMA, ALTO_FANTASMA);
+        panelJuego = new PanelJuego(jugador, gestorControles, enemigo);
         controladorPartida = new ControladorPartida(
-            controladorRata, gestorControles, panelJuego
+            controladorRata, gestorControles, panelJuego, jugador, enemigo
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);

@@ -16,8 +16,12 @@ public class SpriteSheet {
 
     // Mantiene compatibilidad con hojas de una sola fila, como la barra de vida.
     public SpriteSheet(String path, int cantidadFrames) {
-<<<<<<< HEAD
         this(cargarHoja(path), cantidadFrames);
+    }
+
+    public SpriteSheet(String path, int cantidadFrames, int x, int y,
+                       int anchoRegion, int altoRegion) {
+        this(cargarHoja(path), cantidadFrames, x, y, anchoRegion, altoRegion);
     }
 
     public SpriteSheet(BufferedImage hoja, int cantidadFrames) {
@@ -35,19 +39,77 @@ public class SpriteSheet {
             throw new IllegalArgumentException("Región inválida para la hoja de sprites.");
         }
 
-        frames = new BufferedImage[cantidadFrames];
-        contornos = new BufferedImage[cantidadFrames];
+        frames = new BufferedImage[1][cantidadFrames];
+        contornos = new BufferedImage[1][cantidadFrames];
         for (int i = 0; i < cantidadFrames; i++) {
             int inicioX = x + (int) ((long) i * anchoRegion / cantidadFrames);
             int finX = x + (int) ((long) (i + 1) * anchoRegion / cantidadFrames);
             BufferedImage recorte = hoja.getSubimage(inicioX, y, finX - inicioX, altoRegion);
-            BufferedImage sinFondo = quitarFondoNegro(recorte, 40);
-            frames[i] = sinFondo;
-            contornos[i] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+            guardarFrame(0, i, recorte);
         }
     }
 
+    // Carga filas configurables de una hoja cuyo ancho está dividido en columnas iguales.
+    public SpriteSheet(String path, int[] limitesFilas, int[] cantidadesPorFila,
+                       int[] columnasPorFila) {
+        this(path, limitesFilas, cantidadesPorFila, columnasPorFila,
+            new int[cantidadesPorFila == null ? 0 : cantidadesPorFila.length]);
+    }
+
+    // Permite indicar desde qué columna se recorta cada fila del atlas.
+    public SpriteSheet(String path, int[] limitesFilas, int[] cantidadesPorFila,
+                       int[] columnasPorFila, int[] inicioColumna) {
+        if (limitesFilas == null || cantidadesPorFila == null
+                || cantidadesPorFila.length == 0
+                || limitesFilas.length != cantidadesPorFila.length + 1
+                || columnasPorFila == null || columnasPorFila.length != cantidadesPorFila.length
+                || inicioColumna == null || inicioColumna.length != cantidadesPorFila.length) {
+            throw new IllegalArgumentException("La configuración de filas y columnas no es válida");
+        }
+
+        BufferedImage hoja = cargarHoja(path);
+        int[] limites = limitesFilas.clone();
+        int[] cantidades = cantidadesPorFila.clone();
+        int[] columnas = columnasPorFila.clone();
+        int[] inicios = inicioColumna.clone();
+        if (limites[limites.length - 1] == -1) {
+            limites[limites.length - 1] = hoja.getHeight();
+        }
+        validarConfiguracion(hoja, limites, cantidades, columnas, inicios);
+
+        frames = new BufferedImage[cantidades.length][];
+        contornos = new BufferedImage[cantidades.length][];
+        for (int fila = 0; fila < cantidades.length; fila++) {
+            frames[fila] = new BufferedImage[cantidades[fila]];
+            contornos[fila] = new BufferedImage[cantidades[fila]];
+            for (int indice = 0; indice < cantidades[fila]; indice++) {
+                int columna = inicios[fila] + indice;
+                int inicioX = columna * hoja.getWidth() / columnas[fila];
+                int finX = (columna + 1) * hoja.getWidth() / columnas[fila];
+                BufferedImage recorte = hoja.getSubimage(
+                    inicioX, limites[fila], finX - inicioX, limites[fila + 1] - limites[fila]
+                );
+                guardarFrame(fila, indice, recorte);
+            }
+        }
+    }
+
+    private void guardarFrame(int fila, int indice, BufferedImage recorte) {
+        int[] coloresFondo = {
+            recorte.getRGB(0, 0),
+            recorte.getRGB(recorte.getWidth() - 1, 0),
+            recorte.getRGB(0, recorte.getHeight() - 1),
+            recorte.getRGB(recorte.getWidth() - 1, recorte.getHeight() - 1)
+        };
+        BufferedImage sinFondo = quitarFondo(recorte, coloresFondo, 24);
+        frames[fila][indice] = sinFondo;
+        contornos[fila][indice] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+    }
+
     private static BufferedImage cargarHoja(String path) {
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("La ruta de la hoja de sprites es obligatoria");
+        }
         try (InputStream is = SpriteSheet.class.getResourceAsStream(path)) {
             if (is == null) {
                 throw new IllegalArgumentException("No se encontró el recurso: " + path);
@@ -57,72 +119,6 @@ public class SpriteSheet {
                 throw new IllegalArgumentException("El recurso no es una imagen válida: " + path);
             }
             return hoja;
-=======
-        this(path, new int[] {0, -1}, new int[] {cantidadFrames},
-            new int[] {cantidadFrames}, new int[] {0});
-    }
-
-    // Estas opciones sencillas sirven cuando todas las filas parten de la primera columna.
-    public SpriteSheet(String path, int[] limitesFilas, int[] cantidadesPorFila,
-                    int[] columnasPorFila) {
-        this(path, limitesFilas, cantidadesPorFila, columnasPorFila,
-            new int[cantidadesPorFila == null ? 0 : cantidadesPorFila.length]);
-    }
-
-    // Acá recibimos la configuración completa: límites verticales, cuadros,
-    // columnas fuente y desplazamiento horizontal por fila.
-    public SpriteSheet(String path, int[] limitesFilas, int[] cantidadesPorFila,
-                       int[] columnasPorFila, int[] inicioColumna) {
-        if (limitesFilas == null || cantidadesPorFila == null
-                || limitesFilas.length != cantidadesPorFila.length + 1
-                || columnasPorFila == null || columnasPorFila.length != cantidadesPorFila.length
-                || inicioColumna == null || inicioColumna.length != cantidadesPorFila.length) {
-            throw new IllegalArgumentException("La configuración de filas y columnas no es válida");
-        }
-
-        int[] cantidadCuadros = cantidadesPorFila.clone();
-        int[] cantidadColumnas = columnasPorFila.clone();
-        int[] columnaInicial = inicioColumna.clone();
-        frames = new BufferedImage[cantidadCuadros.length][];
-        contornos = new BufferedImage[cantidadCuadros.length][];
-
-        try (InputStream entrada = getClass().getResourceAsStream(path)) {
-            if (entrada == null) {
-                throw new IOException("No se encontró el recurso");
-            }
-            BufferedImage hoja = ImageIO.read(entrada);
-            if (hoja == null) {
-                throw new IOException("El recurso no contiene una imagen válida");
-            }
-
-            int[] limites = limitesFilas.clone();
-            if (limites[limites.length - 1] == -1) {
-                limites[limites.length - 1] = hoja.getHeight();
-            }
-            validarConfiguracion(hoja, limites, cantidadCuadros, cantidadColumnas, columnaInicial);
-
-            for (int fila = 0; fila < cantidadCuadros.length; fila++) {
-                frames[fila] = new BufferedImage[cantidadCuadros[fila]];
-                contornos[fila] = new BufferedImage[cantidadCuadros[fila]];
-                for (int columna = 0; columna < cantidadCuadros[fila]; columna++) {
-                    int indiceColumna = columnaInicial[fila] + columna;
-                    int xInicio = indiceColumna * hoja.getWidth() / cantidadColumnas[fila];
-                    int xFin = (indiceColumna + 1) * hoja.getWidth() / cantidadColumnas[fila];
-                    BufferedImage recorte = hoja.getSubimage(
-                        xInicio, limites[fila], xFin - xInicio, limites[fila + 1] - limites[fila]
-                    );
-                    int[] fondos = {
-                        recorte.getRGB(0, 0),
-                        recorte.getRGB(recorte.getWidth() - 1, 0),
-                        recorte.getRGB(0, recorte.getHeight() - 1),
-                        recorte.getRGB(recorte.getWidth() - 1, recorte.getHeight() - 1)
-                    };
-                    frames[fila][columna] = quitarFondo(recorte, fondos, 24);
-                    contornos[fila][columna] =
-                        generarContorno(frames[fila][columna], GROSOR_CONTORNO, COLOR_CONTORNO);
-                }
-            }
->>>>>>> origin/main
         } catch (IOException | IllegalArgumentException e) {
             throw new IllegalArgumentException("No se pudo cargar la hoja de sprites: " + path, e);
         }
@@ -139,6 +135,7 @@ public class SpriteSheet {
                     || cantidadesPorFila[fila] <= 0
                     || columnasPorFila[fila] <= 0
                     || inicioColumna[fila] < 0
+                    || columnasPorFila[fila] > hoja.getWidth()
                     || inicioColumna[fila] + cantidadesPorFila[fila] > columnasPorFila[fila]) {
                 throw new IllegalArgumentException("La fila " + fila + " tiene límites o cuadros inválidos");
             }

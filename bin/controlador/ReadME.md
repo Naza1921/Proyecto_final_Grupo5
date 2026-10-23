@@ -13,3 +13,5 @@ usando CardLayout, ademas de conectar los botones del menu con sus acciones.
   tamaño minimo para que no se rompa el HUD ni los botones.
 - El boton "Jugar" crea al personaje, ubica su posicion inicial en el escenario
   y muestra el panel de juego (PanelJuego).
+- `ControladorPartida` actualiza el movimiento del personaje y la patrulla del
+  fantasma, y coordina el chequeo de contacto durante el ciclo de juego.

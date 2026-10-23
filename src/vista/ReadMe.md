@@ -36,3 +36,7 @@ se implemento para la 4ta entrega que es un prototipo visual
 - Controles actuales: las flechas izquierda/derecha mueven a la rata y Espacio
   la hace saltar. Mientras no haya plataformas conectadas, el borde inferior del
   panel funciona como piso temporal.
+- `PanelJuego` dibuja el fantasma patrullero desde el estado del modelo; no
+  calcula colisiones ni aplica daño. Sus cuadros de patrulla se recortan de
+  `assets/arte_enemigos/fantasma.jpeg` y se usa la orientación correspondiente
+  al sentido de movimiento.

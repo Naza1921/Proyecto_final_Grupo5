@@ -7,9 +7,9 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
-
 import controlador.GestorControlesRatas;
 import controlador.GestorAnimacionSprite;
+import modelos.enemigos.fantasma;
 import modelos.personajes.Personaje;
 
 //aqui nosotros estamos definimos el panel visual del juego
@@ -18,6 +18,7 @@ public class PanelJuego extends JPanel {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
 
     private final Personaje jugador;
+    private final fantasma enemigo;
     private final GestorControlesRatas gestorControles;
     private final PanelHUD hud;
     private boolean saltoPresionado;
@@ -27,19 +28,31 @@ public class PanelJuego extends JPanel {
 
     // El gestor mantiene el ritmo de la animación y entrega frames con un anclaje común.
     private final GestorAnimacionSprite animacionRata;
+    private final GestorAnimacionSprite animacionFantasmaDerecha;
+    private final GestorAnimacionSprite animacionFantasmaIzquierda;
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-    public PanelJuego(Personaje jugador, GestorControlesRatas gestorControles) {
-        if (jugador == null || gestorControles == null) {
-            throw new IllegalArgumentException("Se requieren un personaje y el gestor de controles");
+    public PanelJuego(Personaje jugador, GestorControlesRatas gestorControles,
+                      fantasma enemigo) {
+        if (jugador == null || gestorControles == null || enemigo == null) {
+            throw new IllegalArgumentException(
+                "Se requieren un personaje, el gestor de controles y el enemigo"
+            );
         }
         this.jugador = jugador;
+        this.enemigo = enemigo;
         this.gestorControles = gestorControles;
         this.hud = new PanelHUD();
         SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
         this.animacionRata = new GestorAnimacionSprite(
             SpritesRatas.crearFramesAlineados(spriteRata, 0), DURACION_FRAME_NANOS
+        );
+        this.animacionFantasmaDerecha = new GestorAnimacionSprite(
+            SpritesFantasma.cargarPatrulla(true), 180_000_000L
+        );
+        this.animacionFantasmaIzquierda = new GestorAnimacionSprite(
+            SpritesFantasma.cargarPatrulla(false), 180_000_000L
         );
         //determinamos el alto y ancho de la ventana
         setPreferredSize(new Dimension(800, 600));
@@ -68,6 +81,8 @@ public class PanelJuego extends JPanel {
 
     public void actualizarPresentacion() {
         animacionRata.actualizar();
+        animacionFantasmaDerecha.actualizar();
+        animacionFantasmaIzquierda.actualizar();
         repaint();
     }
 
@@ -134,6 +149,13 @@ public class PanelJuego extends JPanel {
         if (fondoImagen != null) {
             g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
         }
+
+        GestorAnimacionSprite animacionFantasma = enemigo.estaMoviendoseDerecha()
+            ? animacionFantasmaDerecha
+            : animacionFantasmaIzquierda;
+        BufferedImage cuadroFantasma = animacionFantasma.getFrameActual();
+        g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
+            (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
 
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
         BufferedImage cuadroRata = animacionRata.getFrameActual();

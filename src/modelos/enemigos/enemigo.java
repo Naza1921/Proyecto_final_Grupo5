@@ -1,6 +1,6 @@
 package modelos.enemigos;
 
-import modelos.Personaje;
+import modelos.personajes.Personaje;
 
 public abstract class enemigo {
     protected  String nombre;
