@@ -26,6 +26,7 @@ public class ControladorPartida implements SeccionListener {
     private long inicioPartidaNanos;
     private long tiempoAcumuladoNanos;
     private boolean partidaEnCurso;
+    private boolean pausada;
     private int seccionPowerUpsPresentada = -1;
 
     public ControladorPartida(ControladorRata controladorRata,
@@ -140,6 +141,29 @@ public class ControladorPartida implements SeccionListener {
         }
         inicioPartidaNanos = System.nanoTime();
         partidaEnCurso = true;
+        pausada = false;
+        temporizador.start();
+    }
+
+    public boolean pausar() {
+        if (!partidaEnCurso) {
+            return false;
+        }
+        temporizador.stop();
+        tiempoAcumuladoNanos += System.nanoTime() - inicioPartidaNanos;
+        partidaEnCurso = false;
+        pausada = true;
+        actualizarTiempoPartida();
+        return true;
+    }
+
+    public void reanudar() {
+        if (!pausada) {
+            return;
+        }
+        inicioPartidaNanos = System.nanoTime();
+        partidaEnCurso = true;
+        pausada = false;
         temporizador.start();
     }
 
@@ -150,6 +174,7 @@ public class ControladorPartida implements SeccionListener {
             partidaEnCurso = false;
             actualizarTiempoPartida();
         }
+        pausada = false;
     }
 
 private void actualizar() {

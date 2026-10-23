@@ -34,6 +34,7 @@ Movimiento y Controles
 Movimiento básico: izquierda / derecha, salto.
 Acciones especiales: agacharse, interactuar (comer, activar interruptores).
 Configuración de controles (teclado).
+Pausa: presionar ESC abre un menú desde el que se puede reanudar la partida o volver al menú principal.
 Sistema de Daño y Vida
 Puntos de vida (HP) y visualización (corazones, iconos de queso, etc.).
 Fuentes de daño: fantasmas, baldes de lavandina, trampas eléctricas, pinchos, etc.

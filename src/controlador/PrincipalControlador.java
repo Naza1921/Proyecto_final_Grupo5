@@ -16,6 +16,7 @@ import vista.MenuAjustesVista;
 import vista.PanelJuego;
 import vista.PanelSeleccionPersonaje;
 import vista.PantallaIntro;
+import vista.MenuPausa;
 
 public class PrincipalControlador {
 
@@ -24,6 +25,7 @@ public class PrincipalControlador {
     private static final String VISTA_AJUSTES = "ajustes";
     private static final String VISTA_SELECCION = "seleccion";
     private static final String VISTA_JUEGO = "juego";
+    private static final String VISTA_PAUSA = "pausa";
     private static final long DURACION_VELOCIDAD_MS = 5_000;
     private static final long DURACION_LENTO_MS = 5_000;
     private static final long DURACION_INVULNERABILIDAD_MS = 3_000;
@@ -35,6 +37,7 @@ public class PrincipalControlador {
     private ControladorTecladoRata controladorTecladoRata;
     private GestorEfectosTemporales gestorEfectos;
     private MenuPrincipal menuPrincipal;
+    private MenuPausa menuPausa;
     private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
     private PantallaIntro pantallaIntro;
     private MenuAjustesVista panelAjustes;
@@ -60,6 +63,7 @@ public class PrincipalControlador {
 
         pantallaIntro = new PantallaIntro(this::mostrarMenu);
         menuPrincipal = new MenuPrincipal();
+        menuPausa = new MenuPausa();
         panelAjustes = new MenuAjustesVista();
 
         //El panel de seleccion llama a iniciarJuego pasandole el personaje elegido
@@ -69,6 +73,7 @@ public class PrincipalControlador {
         contenedor.add(menuPrincipal, VISTA_MENU);
         contenedor.add(panelAjustes, VISTA_AJUSTES);
         contenedor.add(panelSeleccion, VISTA_SELECCION);
+        contenedor.add(menuPausa, VISTA_PAUSA);
         controladorMenuAjustes = new ControladorMenuAjustes(
             ventana,
             panelAjustes,
@@ -108,6 +113,37 @@ public class PrincipalControlador {
             cardLayout.show(contenedor, VISTA_AJUSTES));
 
         menuPrincipal.getBtnSalir().addActionListener(e -> System.exit(0));
+        menuPausa.getBtnReanudar().addActionListener(e -> reanudarJuego());
+        menuPausa.getBtnVolverAlMenu().addActionListener(e -> volverAlMenuDesdePausa());
+    }
+
+    private void pausarJuego() {
+        if (controladorPartida == null) {
+            return;
+        }
+        if (!controladorPartida.pausar()) {
+            return;
+        }
+        controladorTecladoRata.limpiarEntradas();
+        gestorEfectos.pausar();
+        cardLayout.show(contenedor, VISTA_PAUSA);
+        menuPausa.getBtnReanudar().requestFocusInWindow();
+    }
+
+    private void reanudarJuego() {
+        if (controladorPartida == null) {
+            return;
+        }
+        gestorEfectos.reanudar();
+        controladorPartida.reanudar();
+        cardLayout.show(contenedor, VISTA_JUEGO);
+        panelJuego.requestFocusInWindow();
+    }
+
+    private void volverAlMenuDesdePausa() {
+        controladorPartida.detener();
+        gestorEfectos.limpiar();
+        cardLayout.show(contenedor, VISTA_MENU);
     }
 
     private void mostrarErrorAjustes(String mensaje) {
@@ -150,7 +186,9 @@ public class PrincipalControlador {
         Puntaje puntaje = new Puntaje();
         ControladorPuntaje controladorPuntaje = new ControladorPuntaje(puntaje);
         panelJuego = new PanelJuego(jugador, puntaje);
-        controladorTecladoRata = new ControladorTecladoRata(panelJuego, gestorControles);
+        controladorTecladoRata = new ControladorTecladoRata(
+            panelJuego, gestorControles, this::pausarJuego
+        );
         Map<Integer, List<PowerUp>> powerUpsPorSeccion = Map.of(
             0, List.of(new PowerUpVelocidad(DURACION_VELOCIDAD_MS, 180, 640)),
             1, List.of(new PowerUpLento(DURACION_LENTO_MS, 600, 640)),

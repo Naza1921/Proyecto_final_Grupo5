@@ -13,6 +13,8 @@ public final class GestorEfectosTemporales {
     private final Personaje personaje;
     private final Map<CategoriaEfectoTemporal, EfectoActivo> efectosActivos =
         new EnumMap<>(CategoriaEfectoTemporal.class);
+    private long pausaIniciadaEnNanos;
+    private boolean pausado;
 
     public GestorEfectosTemporales(Personaje personaje) {
         if (personaje == null) {
@@ -73,11 +75,33 @@ public final class GestorEfectosTemporales {
         }
     }
 
+    public void pausar() {
+        if (!pausado) {
+            pausaIniciadaEnNanos = System.nanoTime();
+            pausado = true;
+        }
+    }
+
+    public void reanudar() {
+        if (!pausado) {
+            return;
+        }
+
+        long duracionPausaNanos = System.nanoTime() - pausaIniciadaEnNanos;
+        for (EfectoActivo activo : efectosActivos.values()) {
+            activo.iniciadoEnNanos += duracionPausaNanos;
+        }
+        pausaIniciadaEnNanos = 0;
+        pausado = false;
+    }
+
     public void limpiar() {
         for (EfectoActivo activo : efectosActivos.values()) {
             activo.efecto.revertir(personaje);
         }
         efectosActivos.clear();
+        pausaIniciadaEnNanos = 0;
+        pausado = false;
     }
 
     public boolean estaActivo(CategoriaEfectoTemporal categoria) {
@@ -89,7 +113,7 @@ public final class GestorEfectosTemporales {
 
     private static final class EfectoActivo {
         private final EfectoTemporal efecto;
-        private final long iniciadoEnNanos;
+        private long iniciadoEnNanos;
         private final long duracionNanos;
 
         private EfectoActivo(EfectoTemporal efecto, long iniciadoEnNanos, long duracionNanos) {

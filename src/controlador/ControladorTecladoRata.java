@@ -11,9 +11,12 @@ import javax.swing.KeyStroke;
 public class ControladorTecladoRata {
     private final GestorControlesRatas gestorControles;
 
-    public ControladorTecladoRata(JComponent componente, GestorControlesRatas gestorControles) {
-        if (componente == null || gestorControles == null) {
-            throw new IllegalArgumentException("Se requieren el componente y el gestor de controles");
+    public ControladorTecladoRata(JComponent componente, GestorControlesRatas gestorControles,
+                                  Runnable accionPausa) {
+        if (componente == null || gestorControles == null || accionPausa == null) {
+            throw new IllegalArgumentException(
+                "Se requieren el componente, el gestor de controles y la acción de pausa"
+            );
         }
         this.gestorControles = gestorControles;
 
@@ -33,6 +36,8 @@ public class ControladorTecladoRata {
             gestorControles::presionarAgacharse);
         vincularTecla(componente, "released DOWN", "levantarse",
             gestorControles::soltarAgacharse);
+        vincularTecla(componente, "pressed ESCAPE", "pausar",
+            accionPausa);
 
         componente.addFocusListener(new FocusAdapter() {
             @Override
@@ -40,6 +45,10 @@ public class ControladorTecladoRata {
                 ControladorTecladoRata.this.gestorControles.limpiarEntradas();
             }
         });
+    }
+
+    public void limpiarEntradas() {
+        gestorControles.limpiarEntradas();
     }
 
     private void vincularTecla(JComponent componente, String secuencia,
