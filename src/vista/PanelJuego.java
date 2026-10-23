@@ -191,7 +191,7 @@ if (cuadroRata != null) {
     (float) jugador.getY()
     );
     // Dibujamos el rectángulo rosa encima del escenario y la rata.
-    hitboxJugador.dibujar(g2);
+    //hitboxJugador.dibujar(g2);
     }
 
 

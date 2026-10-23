@@ -14,8 +14,10 @@ public final class SpritesPowerUps {
     private static final Map<Class<? extends EfectoTemporal>, BufferedImage> SPRITES = Map.of(
         EfectoVelocidad.class, cargar("/assets/powerUp/LataRedBull(powerUpvelocidad).jpeg"),
         EfectoLento.class, cargar("/assets/powerUp/QuesoconMoho(powerUplento).jpeg"),
-        EfectoInvulnerabilidad.class,
-            cargar("/assets/powerUp/Queso(powerupinvulnerabilidad).jpeg")
+        EfectoInvulnerabilidad.class,cargar("/assets/powerUp/Queso(powerupinvulnerabilidad).jpeg")
+        //EfectoInvulnerabilidad.class,cargar("/assets/powerUp/Queso(powerupinvulnerabilidad).jpeg"),
+        //EfectoLento.class, cargar("/assets/powerUp/HamburgesaconMoho(powerUplento).png"),
+        //EfectoInvulnerabilidad.class,cargar("/assets/powerUp/Pizza(powerupinvulnerabilidad).png")
     );
 
     private SpritesPowerUps() {

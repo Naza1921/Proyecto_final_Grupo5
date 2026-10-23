@@ -13,7 +13,7 @@ public class rata_negra extends Personaje {
 
     public rata_negra(String nombre) {
         // Es más rápida y salta más alto, pero tiene menos vida y estamina.
-        super(nombre, TipoRata.NEGRA, 85, 7, 12, 90);
+        super(nombre, TipoRata.NEGRA, 50, 7, 12, 90);
     }
 
     @Override
