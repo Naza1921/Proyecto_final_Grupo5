@@ -1,5 +1,4 @@
 package modelos.personajes;
-
 import modelos.enemigos.enemigo;
 // La rata verde hereda el comportamiento común y conserva sus estadísticas
 // y el costo de su habilidad de ácido en esta clase.

@@ -21,6 +21,10 @@ se implemento para la 4ta entrega que es un prototipo visual
 - Panel de juego (PanelJuego): muestra el fondo del nivel
   (escenarios/Escenario_nivel3.jpeg)
   y dibuja al personaje con un sprite animado en lugar de una figura sin forma.
+- La cámara de presentación sigue suavemente al personaje con zoom 2× y respeta
+  los límites del mapa. El escenario, los power-ups y el personaje se dibujan
+  con el desplazamiento de cámara; el HUD y el aviso de nivel completado se
+  dibujan en coordenadas de pantalla.
 - Sprite del personaje (SpriteSheet): se recorta la hoja de sprites y se elimina
   el fondo original; el personaje se dibuja sin halo amarillo y el contorno del
   sprite se conserva para el indicador de estamina del HUD.
@@ -36,5 +40,4 @@ se implemento para la 4ta entrega que es un prototipo visual
   de las celdas para evitar desplazamientos y cortes; si Swing se retrasa, se
   recuperan los frames transcurridos en vez de ralentizar la secuencia.
 - Controles actuales: las flechas izquierda/derecha mueven a la rata y Espacio
-  la hace saltar. Mientras no haya plataformas conectadas, el borde inferior del
-  panel funciona como piso temporal.
+  la hace saltar. El personaje colisiona con los tiles sólidos de cada sección.

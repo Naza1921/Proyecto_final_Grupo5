@@ -3,6 +3,7 @@ package vista;
 //mostrar en pantalla
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,8 +24,11 @@ import controlador.GestorSecciones;
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
 public class PanelJuego extends JPanel {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
+    private static final double ZOOM_CAMARA = 2.0;
+    private static final double SUAVIZADO_CAMARA_SEGUNDOS = 0.12;
 
     private final Personaje jugador;
+    private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
     private final Puntaje modeloPuntaje;
     private final Hitbox hitboxJugador;
     private final PanelHUD hud;
@@ -137,9 +141,22 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje) {
 protected void paintComponent(Graphics g) {
 super.paintComponent(g);
 Graphics2D g2 = (Graphics2D) g;
+
+AffineTransform transformacionPantalla = g2.getTransform();
+double anchoMundo = manejadornivel.getNivel().getAncho() * TAM_TILE;
+double altoMundo = manejadornivel.getNivel().getAlto() * TAM_TILE;
+g2.transform(camara.actualizar(
+    jugador.getX() + ANCHO_RATA / 2.0,
+    jugador.getY() + ALTO_RATA / 2.0,
+    getWidth(),
+    getHeight(),
+    anchoMundo,
+    altoMundo
+));
+
 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, getWidth(), getHeight(), this);
+if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, (int) anchoMundo, (int) altoMundo, this);
 manejadornivel.draw(g2, TAM_TILE);
 dibujarPowerUps(g2);
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
@@ -180,6 +197,7 @@ if (cuadroRata != null) {
 
 
         // Dibujar el HUD en las esquinas superiores de la pantalla.
+        g2.setTransform(transformacionPantalla);
         hud.dibujar(g2, jugador, modeloPuntaje.getTotal(), tiempoPartidaMillis, getWidth());
     if (nivelCompletado) {
     g2.setColor(new Color(0, 0, 0, 170));

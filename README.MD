@@ -65,6 +65,8 @@ Pantalla de Game Over: mensaje correspondiente, opción de reiniciar o volver al
 #### Sistema de Puntos y Tiempo
 Tiempo de juego: cronómetro que comienza al iniciar y se detiene al terminar.
 El HUD ya muestra el tiempo transcurrido en formato `MM:SS` con el sprite `src/assets/temporizador.png`.
+La cámara de presentación sigue suavemente al personaje con zoom 2× y límites
+del mapa; el HUD permanece fijo en la pantalla mientras el escenario se desplaza.
 Puntos por comida buena: +X puntos por cada pieza consumida.
 Penalización por comida mala: –Y puntos por cada pieza consumida.
 Penalización por daño recibido: –Z puntos por cada punto de vida perdido (o por cada contacto con enemigo/trampa).
