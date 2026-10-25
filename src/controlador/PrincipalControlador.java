@@ -22,6 +22,7 @@ import vista.PanelJuego;
 import vista.PanelSeleccionPersonaje;
 import vista.PantallaIntro;
 import vista.MenuPausa;
+import vista.TableroPuntajes;
 
 public class PrincipalControlador {
 
@@ -31,6 +32,7 @@ public class PrincipalControlador {
     private static final String VISTA_SELECCION = "seleccion";
     private static final String VISTA_JUEGO = "juego";
     private static final String VISTA_PAUSA = "pausa";
+    private static final String VISTA_TABLERO = "tablero";
     private static final long DURACION_VELOCIDAD_MS = 5_000;
     private static final long DURACION_LENTO_MS = 5_000;
     private static final long DURACION_INVULNERABILIDAD_MS = 3_000;
@@ -44,6 +46,7 @@ public class PrincipalControlador {
     private ControladorTecladoRata controladorTecladoRata;
     private GestorEfectosTemporales gestorEfectos;
     private MenuPrincipal menuPrincipal;
+    private TableroPuntajes tableroPuntajes;
     private MenuPausa menuPausa;
     private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
     private PantallaIntro pantallaIntro;
@@ -81,6 +84,7 @@ public class PrincipalControlador {
 
         pantallaIntro = new PantallaIntro(this::mostrarMenu);
         menuPrincipal = new MenuPrincipal();
+        tableroPuntajes = new TableroPuntajes(this::mostrarMenu);
         menuPausa = new MenuPausa();
         panelAjustes = new MenuAjustesVista();
 
@@ -89,6 +93,7 @@ public class PrincipalControlador {
 
         contenedor.add(pantallaIntro, VISTA_INTRO);
         contenedor.add(menuPrincipal, VISTA_MENU);
+        contenedor.add(tableroPuntajes, VISTA_TABLERO);
         contenedor.add(panelAjustes, VISTA_AJUSTES);
         contenedor.add(panelSeleccion, VISTA_SELECCION);
         contenedor.add(menuPausa, VISTA_PAUSA);
@@ -124,12 +129,28 @@ public class PrincipalControlador {
     private void mostrarSeleccion() {
         cardLayout.show(contenedor, VISTA_SELECCION);
     }
+
+    private void mostrarTablero() {
+        try {
+            tableroPuntajes.mostrarResultados(servicioPuntajes.listarMejoresPuntajes());
+            cardLayout.show(contenedor, VISTA_TABLERO);
+        } catch (SQLException excepcion) {
+            JOptionPane.showMessageDialog(
+                ventana,
+                "No se pudo cargar el tablero de puntajes: " + excepcion.getMessage(),
+                "Error de base de datos",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
     private void configurarBotonesMenu() {
         menuPrincipal.getBtnJugar().addActionListener(e -> mostrarSeleccion());
 
         menuPrincipal.getBtnOpciones().addActionListener(e ->
             cardLayout.show(contenedor, VISTA_AJUSTES));
 
+        menuPrincipal.getBtnTablero().addActionListener(e -> mostrarTablero());
         menuPrincipal.getBtnSalir().addActionListener(e -> System.exit(0));
         menuPausa.getBtnReanudar().addActionListener(e -> reanudarJuego());
         menuPausa.getBtnVolverAlMenu().addActionListener(e -> volverAlMenuDesdePausa());

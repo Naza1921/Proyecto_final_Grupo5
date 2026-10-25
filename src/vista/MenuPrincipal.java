@@ -7,6 +7,7 @@ public class MenuPrincipal extends JPanel {
  //botones para el menu principal, jugar, instrucciones y salir
     private BotonEstilizado btnJugar;
     private BotonEstilizado btnOpciones;
+    private BotonEstilizado btnTablero;
     private BotonEstilizado btnSalir;
     private Image fondo;
     private Image titulo;
@@ -41,6 +42,7 @@ public class MenuPrincipal extends JPanel {
 
         btnJugar = new BotonEstilizado("Jugar");
         btnOpciones = new BotonEstilizado("Opciones");
+        btnTablero = new BotonEstilizado("Tablero");
         btnSalir = new BotonEstilizado("Salir");
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -51,6 +53,7 @@ public class MenuPrincipal extends JPanel {
         //add(titulo, gbc);
         add(btnJugar, gbc);
         add(btnOpciones, gbc);
+        add(btnTablero, gbc);
         add(btnSalir, gbc);
     }
     // Sobrescribir el método paintComponent para dibujar el fondo del menú
@@ -69,5 +72,6 @@ public class MenuPrincipal extends JPanel {
     // Getters para los botones del menú principal
     public JButton getBtnJugar() { return btnJugar; }
     public JButton getBtnOpciones() { return btnOpciones; }
+    public JButton getBtnTablero() { return btnTablero; }
     public JButton getBtnSalir() { return btnSalir; }
 }
