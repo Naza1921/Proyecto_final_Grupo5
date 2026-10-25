@@ -2,6 +2,7 @@ package controlador;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
@@ -12,6 +13,9 @@ import modelos.items.PowerUpLento;
 import modelos.items.PowerUpVelocidad;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
+import persistencia.ConexionSQLite;
+import persistencia.SQLitePuntajeDAO;
+import servicios.ServicioPuntajes;
 import vista.MenuPrincipal;
 import vista.MenuAjustesVista;
 import vista.PanelJuego;
@@ -45,10 +49,21 @@ public class PrincipalControlador {
     private PantallaIntro pantallaIntro;
     private MenuAjustesVista panelAjustes;
     private ControladorMenuAjustes controladorMenuAjustes;
+    private final ServicioPuntajes servicioPuntajes;
     private CardLayout cardLayout;
     private JPanel contenedor;
 
     public PrincipalControlador() {
+        this(new ServicioPuntajes(
+            new SQLitePuntajeDAO(ConexionSQLite.obtenerInstancia())
+        ));
+    }
+
+    public PrincipalControlador(ServicioPuntajes servicioPuntajes) {
+        if (servicioPuntajes == null) {
+            throw new IllegalArgumentException("Se requiere el servicio de puntajes");
+        }
+        this.servicioPuntajes = servicioPuntajes;
         iniciarVentana();
     }
 
@@ -202,7 +217,7 @@ public class PrincipalControlador {
         );
         controladorPartida = new ControladorPartida(
             controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, powerUpsPorSeccion, jugador, enemigo
+            panelJuego, powerUpsPorSeccion, jugador, enemigo, this::guardarResultadoPartida
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);
@@ -210,5 +225,55 @@ public class PrincipalControlador {
 
         panelJuego.requestFocusInWindow();
         controladorPartida.iniciar();
+    }
+
+    private void guardarResultadoPartida() {
+        String nombre = JOptionPane.showInputDialog(
+            ventana,
+            "Ingresá tu nombre para guardar el puntaje:",
+            jugador.getNombre()
+        );
+        if (nombre == null) {
+            JOptionPane.showMessageDialog(
+                ventana,
+                "El resultado de esta partida no se guardó.",
+                "Puntaje no guardado",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+        if (nombre.isBlank()) {
+            JOptionPane.showMessageDialog(
+                ventana,
+                "El nombre no puede estar vacío; el resultado no se guardó.",
+                "Nombre inválido",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        try {
+            boolean nuevoMejorPuntaje = servicioPuntajes.guardarMejorPuntaje(
+                nombre,
+                controladorPartida.obtenerPuntaje(),
+                controladorPartida.obtenerTiempoPartidaSegundos()
+            );
+            String mensaje = nuevoMejorPuntaje
+                ? "Puntaje guardado correctamente."
+                : "No superaste tu mejor puntaje anterior; se conservó el registro existente.";
+            JOptionPane.showMessageDialog(
+                ventana,
+                mensaje,
+                "Resultado de la partida",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        } catch (SQLException excepcion) {
+            JOptionPane.showMessageDialog(
+                ventana,
+                "No se pudo guardar el puntaje en SQLite: " + excepcion.getMessage(),
+                "Error de base de datos",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 }

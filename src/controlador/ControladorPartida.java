@@ -27,6 +27,7 @@ public class ControladorPartida implements SeccionListener {
     private final fantasma enemigo;
     private final Map<Integer, List<PowerUp>> powerUpsPorSeccion;
     private final Timer temporizador;
+    private final Runnable alCompletarNivel;
     private long ultimaRecargaEstaminaNanos = System.nanoTime();
     private long inicioPartidaNanos;
     private long tiempoAcumuladoNanos;
@@ -40,7 +41,7 @@ public class ControladorPartida implements SeccionListener {
                               ControladorPuntaje controladorPuntaje,
                               PanelJuego panelJuego) {
         this(controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, Map.of(), null, null);
+            panelJuego, Map.of(), null, null, () -> { });
     }
 
     public ControladorPartida(ControladorRata controladorRata,
@@ -50,7 +51,7 @@ public class ControladorPartida implements SeccionListener {
                               PanelJuego panelJuego,
                               Map<Integer, List<PowerUp>> powerUpsPorSeccion) {
         this(controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, powerUpsPorSeccion, null, null);
+            panelJuego, powerUpsPorSeccion, null, null, () -> { });
     }
 
     public ControladorPartida(ControladorRata controladorRata,
@@ -60,10 +61,12 @@ public class ControladorPartida implements SeccionListener {
                               PanelJuego panelJuego,
                               Map<Integer, List<PowerUp>> powerUpsPorSeccion,
                               Personaje jugador,
-                              fantasma enemigo) {
+                              fantasma enemigo,
+                              Runnable alCompletarNivel) {
         if (controladorRata == null || gestorControles == null
                 || gestorEfectos == null || controladorPuntaje == null || panelJuego == null
-                || powerUpsPorSeccion == null || (jugador == null) != (enemigo == null)) {
+                || powerUpsPorSeccion == null || (jugador == null) != (enemigo == null)
+                || alCompletarNivel == null) {
             throw new IllegalArgumentException(
                 "Se requieren controladores, puntaje, vista e inventario válidos"
             );
@@ -76,6 +79,7 @@ public class ControladorPartida implements SeccionListener {
         this.jugador = jugador;
         this.enemigo = enemigo;
         this.powerUpsPorSeccion = copiarPowerUpsPorSeccion(powerUpsPorSeccion);
+        this.alCompletarNivel = alCompletarNivel;
         this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, evento -> actualizar());
         panelJuego.getGestorSecciones().setListener(this);
         actualizarPowerUpsVisibles();
@@ -97,8 +101,7 @@ public class ControladorPartida implements SeccionListener {
         return true;
     }
 
-    private Map<Integer, List<PowerUp>> copiarPowerUpsPorSeccion(
-            Map<Integer, List<PowerUp>> powerUpsPorSeccion) {
+    private Map<Integer, List<PowerUp>> copiarPowerUpsPorSeccion( Map<Integer, List<PowerUp>> powerUpsPorSeccion) {
         Map<Integer, List<PowerUp>> copia = new HashMap<>();
         for (Map.Entry<Integer, List<PowerUp>> entrada : powerUpsPorSeccion.entrySet()) {
             Integer seccion = entrada.getKey();
@@ -196,6 +199,18 @@ public class ControladorPartida implements SeccionListener {
         pausada = false;
     }
 
+    public long obtenerTiempoPartidaSegundos() {
+        long tiempoNanos = tiempoAcumuladoNanos;
+        if (partidaEnCurso) {
+            tiempoNanos += System.nanoTime() - inicioPartidaNanos;
+        }
+        return tiempoNanos / 1_000_000_000L;
+    }
+
+    public int obtenerPuntaje() {
+        return controladorPuntaje.obtenerPuntaje();
+    }
+
 private void actualizar() {
     long ahora = System.nanoTime();
     if (ahora - ultimaRecargaEstaminaNanos >= INTERVALO_RECARGA_ESTAMINA_NANOS) {
@@ -235,5 +250,6 @@ public void alCambiarSeccion(int seccion) { }
 public void alTerminarNivel() {
     detener();
     panelJuego.mostrarNivelCompletado();
+    alCompletarNivel.run();
 }
 }

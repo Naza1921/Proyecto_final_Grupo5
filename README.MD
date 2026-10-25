@@ -192,3 +192,24 @@ La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de
 **Estado actual:** las estrategias de Velocidad++, Lento e Invulnerabilidad están conectadas a la partida. Los objetos aparecen uno por sección del primer piso y se recogen automáticamente al contacto. Velocidad dura 5 segundos, lento 5 segundos e invulnerabilidad 3 segundos. Se usan los sprites de `src/assets/powerUp/`, mostrados a 30×30 px. Velocidad y lento se reemplazan entre sí; invulnerabilidad puede coexistir con uno de ellos.
 
 El diagrama UML de las clases y relaciones del patrón Strategy está en [Diagrama UML de Strategy para power-ups](docs/uml-strategy-powerups.svg).
+
+### Persistencia SQLite: DAO y Singleton
+
+La aplicación guarda el mejor resultado de cada jugador en `Score.db`, en la
+tabla `score` (`Nombre`, `Puntuacion` y `Tiempo`). Al completar el
+nivel se solicita el nombre del jugador; el tiempo se almacena en segundos.
+Para un mismo nombre se conserva la puntuación más alta y, en caso de empate,
+el menor tiempo. El jugador puede consultar los resultados ordenados a través
+de `PuntajeDAO.listarMejoresPuntajes()`; todavía no hay una pantalla de ranking.
+
+`ConexionSQLite` aplica Singleton y mantiene la conexión compartida. `PuntajeDAO`
+define las operaciones de persistencia y `SQLitePuntajeDAO` las implementa con
+sentencias preparadas. `ServicioPuntajes` recibe el DAO y coordina la creación
+del resultado y su guardado; el controlador conserva únicamente la interacción
+visual (solicitud del nombre y notificación al jugador). La aplicación utiliza
+la ubicación `Score.db` en el directorio de ejecución por defecto. Si no existe
+la tabla `score`, se crea al abrir la base. Se puede
+indicar otra ruta absoluta con la propiedad Java
+`-Dghostsrats.db.path=C:\ruta\Score.db` o con la variable
+de entorno `GHOSTSRATS_DB_PATH`. Si la base configurada no existe, la aplicación
+notifica el error en lugar de crear silenciosamente otra base vacía.
