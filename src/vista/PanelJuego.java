@@ -31,11 +31,11 @@ public class PanelJuego extends JPanel {
     private final Personaje jugador;
     private final fantasma enemigo;
     private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
-    private final Puntaje modeloPuntaje;
     private final Hitbox hitboxJugador;
     private final PanelHUD hud;
     private List<PowerUp> powerUps = Collections.emptyList();
     private long tiempoPartidaMillis;
+    private int puntajePresentado;
     private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros   
     private static final int TAM_TILE = 30;
     private static final int COLS_NIVEL = 42;
@@ -62,7 +62,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo) {
     }
     this.jugador = jugador;
     this.enemigo = enemigo;
-    this.modeloPuntaje = modeloPuntaje;
+    this.puntajePresentado = modeloPuntaje.getTotal();
 
     // Posición inicial primero (esa celda debe ser aire en el PNG de la sección 1)
     jugador.setX(2 * TAM_TILE);
@@ -135,6 +135,14 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo) {
             throw new IllegalArgumentException("El tiempo de partida no puede ser negativo");
         }
         this.tiempoPartidaMillis = tiempoPartidaMillis;
+        repaint();
+    }
+
+    public void actualizarPuntajePresentado(int puntaje) {
+        if (puntaje < 0) {
+            throw new IllegalArgumentException("El puntaje presentado no puede ser negativo");
+        }
+        puntajePresentado = puntaje;
         repaint();
     }
 
@@ -218,7 +226,7 @@ if (cuadroRata != null) {
 
         // Dibujar el HUD en las esquinas superiores de la pantalla.
         g2.setTransform(transformacionPantalla);
-        hud.dibujar(g2, jugador, modeloPuntaje.getTotal(), tiempoPartidaMillis, getWidth());
+        hud.dibujar(g2, jugador, puntajePresentado, tiempoPartidaMillis, getWidth());
     if (nivelCompletado) {
     g2.setColor(new Color(0, 0, 0, 170));
     g2.fillRect(0, 0, getWidth(), getHeight());

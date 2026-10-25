@@ -14,6 +14,13 @@ public final class Puntaje {
         total = Math.addExact(total, puntos);
     }
 
+    public void penalizar(int puntos) {
+        if (puntos <= 0) {
+            throw new IllegalArgumentException("La penalización debe ser positiva");
+        }
+        total = Math.max(0, total - puntos);
+    }
+
     public void reiniciar() {
         total = 0;
     }

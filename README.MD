@@ -201,6 +201,11 @@ nivel se solicita el nombre del jugador; el tiempo se almacena en segundos.
 Para un mismo nombre se conserva la puntuación más alta y, en caso de empate,
 el menor tiempo. El jugador puede consultar los resultados ordenados a través
 de `PuntajeDAO.listarMejoresPuntajes()`; todavía no hay una pantalla de ranking.
+Al recoger Velocidad se suman 75 puntos, Invulnerabilidad suma 100 y Lento
+resta 50, sin permitir que el puntaje baje de cero. El HUD refleja estos cambios
+durante la partida. Además, cada 30 segundos completos se descuentan 10 puntos
+del puntaje presentado, con un mínimo de cero; ese mismo puntaje ajustado se
+guarda al completar el nivel.
 
 `ConexionSQLite` aplica Singleton y mantiene la conexión compartida. `PuntajeDAO`
 define las operaciones de persistencia y `SQLitePuntajeDAO` las implementa con

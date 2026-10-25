@@ -8,6 +8,9 @@ import java.util.Map;
 import javax.swing.Timer;
 import modelos.enemigos.enemigo;
 import modelos.enemigos.fantasma;
+import modelos.items.EfectoInvulnerabilidad;
+import modelos.items.EfectoLento;
+import modelos.items.EfectoVelocidad;
 import modelos.items.PowerUp;
 import modelos.personajes.Personaje;
 import vista.PanelJuego;
@@ -17,6 +20,11 @@ public class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
     private static final double POSICION_Y_FANTASMA = 390.0;
+    private static final int PUNTOS_VELOCIDAD = 75;
+    private static final int PUNTOS_INVULNERABILIDAD = 100;
+    private static final int PENALIZACION_LENTO = 50;
+    private static final long INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS = 30;
+    private static final int PENALIZACION_TIEMPO_PUNTOS = 10;
 
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
@@ -93,11 +101,12 @@ public class ControladorPartida implements SeccionListener {
             panelJuego.getGestorSecciones().getSeccionActual()
         );
         if (disponibles == null || !disponibles.contains(powerUp)
-                || !gestorEfectos.recogerSiColisiona(powerUp)) {
+                || !recogerPowerUpSiColisiona(powerUp)) {
             return false;
         }
         disponibles.remove(powerUp);
         panelJuego.actualizarPowerUps(disponibles);
+        actualizarPuntajePresentado();
         return true;
     }
 
@@ -138,7 +147,7 @@ public class ControladorPartida implements SeccionListener {
         boolean cambioInventario = false;
         Iterator<PowerUp> iterador = powerUps.iterator();
         while (iterador.hasNext()) {
-            if (gestorEfectos.recogerSiColisiona(iterador.next())) {
+            if (recogerPowerUpSiColisiona(iterador.next())) {
                 iterador.remove();
                 cambioInventario = true;
             }
@@ -148,13 +157,40 @@ public class ControladorPartida implements SeccionListener {
         }
     }
 
+    private boolean recogerPowerUpSiColisiona(PowerUp powerUp) {
+        int puntos;
+        boolean penalizacion;
+        if (powerUp.getEfecto() instanceof EfectoVelocidad) {
+            puntos = PUNTOS_VELOCIDAD;
+            penalizacion = false;
+        } else if (powerUp.getEfecto() instanceof EfectoInvulnerabilidad) {
+            puntos = PUNTOS_INVULNERABILIDAD;
+            penalizacion = false;
+        } else if (powerUp.getEfecto() instanceof EfectoLento) {
+            puntos = PENALIZACION_LENTO;
+            penalizacion = true;
+        } else {
+            throw new IllegalArgumentException("No hay una regla de puntaje para este power-up");
+        }
+
+        if (!gestorEfectos.recogerSiColisiona(powerUp)) {
+            return false;
+        }
+        if (penalizacion) {
+            controladorPuntaje.penalizar(puntos);
+        } else {
+            controladorPuntaje.agregarPuntos(puntos);
+        }
+        return true;
+    }
+
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
         return gestorControles.usarHabilidad(objetivo, xDestino, yDestino);
     }
 
     public void agregarPuntos(int puntos) {
         controladorPuntaje.agregarPuntos(puntos);
-        panelJuego.actualizarPresentacion();
+        actualizarPuntajePresentado();
     }
 
     public void iniciar() {
@@ -200,15 +236,26 @@ public class ControladorPartida implements SeccionListener {
     }
 
     public long obtenerTiempoPartidaSegundos() {
+        return obtenerTiempoPartidaNanos() / 1_000_000_000L;
+    }
+
+    private long obtenerTiempoPartidaNanos() {
         long tiempoNanos = tiempoAcumuladoNanos;
         if (partidaEnCurso) {
             tiempoNanos += System.nanoTime() - inicioPartidaNanos;
         }
-        return tiempoNanos / 1_000_000_000L;
+        return tiempoNanos;
     }
 
     public int obtenerPuntaje() {
-        return controladorPuntaje.obtenerPuntaje();
+        long intervalosCompletos = obtenerTiempoPartidaSegundos()
+            / INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS;
+        long penalizacion = intervalosCompletos * PENALIZACION_TIEMPO_PUNTOS;
+        return (int) Math.max(0, controladorPuntaje.obtenerPuntaje() - penalizacion);
+    }
+
+    private void actualizarPuntajePresentado() {
+        panelJuego.actualizarPuntajePresentado(obtenerPuntaje());
     }
 
 private void actualizar() {
@@ -236,11 +283,9 @@ private void actualizar() {
 }
 
 private void actualizarTiempoPartida() {
-    long tiempoNanos = tiempoAcumuladoNanos;
-    if (partidaEnCurso) {
-        tiempoNanos += System.nanoTime() - inicioPartidaNanos;
-    }
+    long tiempoNanos = obtenerTiempoPartidaNanos();
     panelJuego.actualizarTiempoPartida(tiempoNanos / 1_000_000);
+    actualizarPuntajePresentado();
 }
 
 @Override

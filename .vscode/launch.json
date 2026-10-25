@@ -3,22 +3,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "app",
-            "request": "launch",
-            "mainClass": "app",
-            "projectName": "Proyecto_final_Grupo5_c2dbd4ef",
-            "vmArgs": "--module-path \"C:/javafx/javafx-sdk-21.0.12/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED" 
-            // "--module-path \"C:\\Users\\takru\\OneDrive\\Escritorio\\openjfx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\" --add-modules javafx.controls,javafx.media,javafx.swing --add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED"
-        },
-        {
-            "type": "java",
             "name": "Ghosts and Rats",
             "request": "launch",
             "mainClass": "app",
-            "vmArgs": //"--module-path \"C:/Program Files/Java/javafx-27_windows-x64_bin-sdk/javafx-sdk-27/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED"
-            "--module-path \"C:/javafx/javafx-sdk-21.0.12/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED"
-            //"--module-path \"C:/Users/takru/OneDrive/Escritorio/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED"
-            //"--module-path \"C:/Users/takru/OneDrive/Escritorio/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --enable-native-access=javafx.graphics,javafx.media"
+            "vmArgs": "--module-path \"C:/Users/takru/OneDrive/Escritorio/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib\" --add-modules javafx.controls,javafx.media,javafx.swing --add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED"
         }
     ]
 }

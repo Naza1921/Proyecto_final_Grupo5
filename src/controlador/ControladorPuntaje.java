@@ -20,6 +20,10 @@ public final class ControladorPuntaje {
         puntaje.agregar(puntos);
     }
 
+    public void penalizar(int puntos) {
+        puntaje.penalizar(puntos);
+    }
+
     public void reiniciar() {
         puntaje.reiniciar();
     }
