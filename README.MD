@@ -22,8 +22,7 @@ Desplazamiento: Las/las ratas se desplazan entre los pisos, esquivando las amena
 
 Comida: Por los niveles hay comida tirada en buen y mal estado, que pueden darle power ups o power downs temporales a las ratitas.
 
-Game Over: Puede ocurrir de 3 maneras posibles:Perdiste vida por un fantasma y ellos te llevaron para tenerte de mascota.
-Perdiste vida por comer comida en mal estado.
+Game Over: Puede ocurrir de 2 maneras posibles:Perdiste vida por un fantasma y ellos te llevaron para tenerte de mascota.
 Se hicieron las 6 am y llegaron los encargados de limpiar el edificio con vos incluido.
 
 Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nuestro tiempo de juego y nuestro puntaje, que se calcula según: tiempo que se tardó en terminar el juego, puntaje por comer comida o se nos resta por comer comida en mal estado o haber recibido daño en el nivel.
@@ -32,29 +31,32 @@ Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nu
 
 Movimiento y Controles
 Movimiento básico: izquierda / derecha, salto.
-Acciones especiales: agacharse, interactuar (comer, activar interruptores).
+Acciones especiales: agacharse, interactuar (comer).
 Configuración de controles (teclado).
 Pausa: presionar ESC abre un menú desde el que se puede reanudar la partida o volver al menú principal.
+
 Sistema de Daño y Vida
 Puntos de vida (HP) y visualización (corazones, iconos de queso, etc.).
 Fuentes de daño: fantasmas, baldes de lavandina, trampas eléctricas, pinchos, etc.
+
 Efecto de daño: reducción de HP, posible aturdimiento o retroceso.
 
 #### Objetos Interactables
 Comida buena: otorga power‑ups temporales (velocidad, salto alto, invulnerabilidad, etc.).
 Comida mala: provoca power‑downs (lentos, visión borrosa, controles invertidos, pérdida de HP).
-Otros objetos: llaves, interruptores, plataformas móviles, trampas activables.
+Otros objetos: plataformas móviles , trampas activables.
 
 #### Enemigos y Obstáculos por Nivel
-Fantasmas: patrullas estáticas o rutas predefinidas; contacto = daño.
-Baldes de lavandina: áreas de peligro que infligen daño al tocar.
+
+Fantasmas: patrullas estáticas o rutas predefinidas; 
+contacto = daño.
 Trampas de piso: pinchos, láminas eléctricas, superficies resbaladizas.
 
 #### Sistema de Power‑Ups / Power‑Downs
 Duración: temporizador visible (icono + cuenta regresiva).
 Ejemplos de efectos:
 Velocidad++, salto triple, invisibilidad (comida buena).
-Lentos, visión borrosa, controles invertidos (comida mala).
+Lentos, controles invertidos (comida mala).
 Condiciones de Game Over
 
 Daño por fantasma → Secuestro: la rata es capturada y se muestra una escena de “mascota”.
@@ -95,7 +97,7 @@ UI: barra de vida, contador de tiempo, íconos de activos power‑up, mini‑map
 
 #### Audio y Musica
 Música de fondo: Un tema en bucle que queda a lección del jugador desde menu de  ajustes
-Efectos de sonido: salto, golpe, comer (bueno/malo), daño, aparición de fantasma, activación de trampa, voz del jefe, jingle de game over, fanfara de victoria.
+Efectos de sonido: salto, golpe, comer (bueno/malo), daño, aparición de fantasma, activación de trampa, jingle de game over, fanfara de victoria.
 Voces/Opcionales: gruñidos de rata, risas fantasmas, anunciador de “¡6 am!”.
 
 #### Panel de ajustes
