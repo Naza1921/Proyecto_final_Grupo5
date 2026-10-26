@@ -23,6 +23,7 @@ public class ControladorPartida implements SeccionListener {
     private static final int PUNTOS_VELOCIDAD = 475;
     private static final int PUNTOS_INVULNERABILIDAD = 1_000;
     private static final int PENALIZACION_LENTO = 300;
+    private static final int PENALIZACION_GOLPE_FANTASMA = 125;
     private static final long INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS = 30;
     private static final int PENALIZACION_TIEMPO_PUNTOS = 10;
 
@@ -274,7 +275,11 @@ private void actualizar() {
     panelJuego.resolverColisiones();
     if (enemigo != null) {
         enemigo.actualizarPatrulla(POSICION_Y_FANTASMA);
+        int vidaAntesDelGolpe = jugador.getVida();
         enemigo.atacar(jugador, panelJuego.getAnchoHitbox(), panelJuego.getAltoHitbox());
+        if (jugador.getVida() < vidaAntesDelGolpe) {
+            controladorPuntaje.penalizar(PENALIZACION_GOLPE_FANTASMA);
+        }
     }
     actualizarPowerUpsVisibles();
     actualizarTiempoPartida();

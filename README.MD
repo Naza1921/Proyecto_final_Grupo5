@@ -205,7 +205,8 @@ Al recoger Velocidad se suman 475 puntos, Invulnerabilidad suma 1000 y Lento
 resta 300, sin permitir que el puntaje baje de cero. El HUD refleja estos cambios
 durante la partida. Además, cada 30 segundos completos se descuentan 10 puntos
 del puntaje presentado, con un mínimo de cero; ese mismo puntaje ajustado se
-guarda al completar el nivel.
+guarda al completar el nivel. Cada golpe efectivo del fantasma descuenta 125
+puntos, también con un mínimo de cero.
 
 `ConexionSQLite` aplica Singleton y mantiene la conexión compartida. `PuntajeDAO`
 define las operaciones de persistencia y `SQLitePuntajeDAO` las implementa con
