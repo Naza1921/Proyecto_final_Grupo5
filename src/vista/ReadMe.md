@@ -41,6 +41,13 @@ se implemento para la 4ta entrega que es un prototipo visual
   izquierda. Cada acción carga su hoja desde la carpeta de la rata y alinea
   sus cuadros. La rata negra no tiene hoja de agachado, por lo que conserva el
   sprite quieto en esa postura.
+- Cuando la vida de la rata llega a cero, `ControladorPartida` detiene el ciclo
+  de juego y `PanelJuego` reproduce una vez la hoja de muerte; el último cuadro
+  queda visible. Todavía no hay una pantalla de Game Over ni una opción de
+  reinicio en ese estado.
+- Si la rata recibe daño y sobrevive, `PanelJuego` reproduce la hoja de daño
+  correspondiente durante la secuencia y luego retoma la animación según su
+  movimiento. Si el golpe la deja sin vida, prevalece la animación de muerte.
 - `ControladorPartida` coordina el ciclo de juego, las colisiones y los cambios
   de sección. `PanelJuego` recibe el nivel para dibujarlo, pero ya no crea ni
   actualiza los gestores de colisión o secciones; las dimensiones compartidas

@@ -13,11 +13,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
-import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import controlador.utilz.loadsave;
 import persistencia.ResultadoPuntaje;
 
 public final class TableroPuntajes extends JPanel {
@@ -154,25 +154,12 @@ public final class TableroPuntajes extends JPanel {
     }
 
     private static java.awt.image.BufferedImage cargarImagen(String recurso) {
-        try (InputStream entrada = TableroPuntajes.class.getResourceAsStream(recurso)) {
-            if (entrada == null) {
-                throw new IllegalStateException("No se encontró el recurso " + recurso);
-            }
-            java.awt.image.BufferedImage imagen = ImageIO.read(entrada);
-            if (imagen == null) {
-                throw new IllegalStateException("No se pudo leer la imagen " + recurso);
-            }
-            return imagen;
-        } catch (IOException excepcion) {
-            throw new IllegalStateException("No se pudo cargar el recurso " + recurso, excepcion);
-        }
+        String rutaRecurso = recurso.startsWith("/") ? recurso.substring(1) : recurso;
+        return loadsave.GetSpriteatlas(rutaRecurso);
     }
 
     private static Font cargarFuente(String recurso) {
-        try (InputStream entrada = TableroPuntajes.class.getResourceAsStream(recurso)) {
-            if (entrada == null) {
-                throw new IllegalStateException("No se encontró la fuente " + recurso);
-            }
+        try (InputStream entrada = loadsave.obtenerURLRecurso(recurso).openStream()) {
             return Font.createFont(Font.TRUETYPE_FONT, entrada);
         } catch (FontFormatException | IOException excepcion) {
             throw new IllegalStateException("No se pudo cargar la fuente " + recurso, excepcion);

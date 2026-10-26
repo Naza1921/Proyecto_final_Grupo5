@@ -10,7 +10,7 @@ public final class SpritesRatas {
     private static final int FILA_IDLE = 0;
 
     public enum Accion {
-        QUIETA, CAMINAR, SALTAR, AGACHADA
+        QUIETA, CAMINAR, SALTAR, AGACHADA, RECIBIR_DANIO, MUERTE
     }
 
     private SpritesRatas() {

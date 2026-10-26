@@ -2,6 +2,7 @@ package vista;
 
 import javax.swing.*;
 import java.awt.*;
+import controlador.utilz.loadsave;
 
 public class MenuPrincipal extends JPanel {
  //botones para el menu principal, jugar, instrucciones y salir
@@ -16,20 +17,8 @@ public class MenuPrincipal extends JPanel {
         setPreferredSize(new Dimension(800, 600));
         setLayout(new GridBagLayout());
 
-        java.net.URL urlImagen = getClass().getResource("/assets/Portada_rata.png");
-        if (urlImagen == null) {
-            System.err.println("No se encontró /assets/Portada_rata.png en el classpath.");
-            fondo = null;
-        } else {
-            fondo = new ImageIcon(urlImagen).getImage();
-        }
-        java.net.URL urlImagenTITULO = getClass().getResource("/assets/TITULO 2.png");
-        if (urlImagenTITULO == null) {
-            System.err.println("No se encontró /assets/TITULO 2.png en el classpath.");
-            titulo = null;
-        } else {
-            titulo = new ImageIcon(urlImagenTITULO).getImage();
-        }
+        fondo = loadsave.GetSpriteatlas("assets/Portada_rata.png");
+        titulo = loadsave.GetSpriteatlas("assets/TITULO 2.png");
         
 
 

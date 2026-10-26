@@ -17,6 +17,10 @@ final class CatalogoSpritesRatas {
             "/assets/rata_blanca/rata_blanca_v2_salta.jpg", 7);
         registrar(TipoRata.BLANCA, SpritesRatas.Accion.AGACHADA,
             "/assets/rata_blanca/rata_blanca_v2_agache.jpg", 6);
+        registrar(TipoRata.BLANCA, SpritesRatas.Accion.MUERTE,
+            "/assets/rata_blanca/rata_blanca_v2_muerte.jpg", 10);
+        registrar(TipoRata.BLANCA, SpritesRatas.Accion.RECIBIR_DANIO,
+            "/assets/rata_blanca/rata_blanca_v2_recibir_danio.png", 10);
 
         registrar(TipoRata.NEGRA, SpritesRatas.Accion.QUIETA,
             "/assets/rata_negra/rata_negra_v2_quieta.jpg", 1);
@@ -26,6 +30,10 @@ final class CatalogoSpritesRatas {
             "/assets/rata_negra/rata_negra_v2_caminar.jpg", 8);
         registrar(TipoRata.NEGRA, SpritesRatas.Accion.SALTAR,
             "/assets/rata_negra/rata_negra_v2_salta.jpg", 10);
+        registrar(TipoRata.NEGRA, SpritesRatas.Accion.MUERTE,
+            "/assets/rata_negra/rata_negra_v2_muerte.jpg", 10);
+        registrar(TipoRata.NEGRA, SpritesRatas.Accion.RECIBIR_DANIO,
+            "/assets/rata_negra/rata_negra_v2_recibir_danio.jpg", 10);
 
         registrar(TipoRata.GRIS, SpritesRatas.Accion.QUIETA,
             "/assets/rata_sprites_gris/rata_gris_v2_quieta.jpg", 4);
@@ -35,6 +43,10 @@ final class CatalogoSpritesRatas {
             "/assets/rata_sprites_gris/rata_gris_v2_salta.jpg", 6);
         registrar(TipoRata.GRIS, SpritesRatas.Accion.AGACHADA,
             "/assets/rata_sprites_gris/rata_gris_v2_agache.jpg", 6);
+        registrar(TipoRata.GRIS, SpritesRatas.Accion.MUERTE,
+            "/assets/rata_sprites_gris/rata_gris_v2_muerte.jpg", 10);
+        registrar(TipoRata.GRIS, SpritesRatas.Accion.RECIBIR_DANIO,
+            "/assets/rata_sprites_gris/rata_gris_v2_recibir_danio.jpg", 10);
 
         registrar(TipoRata.VERDE, SpritesRatas.Accion.QUIETA,
             "/assets/rata_verde/rata_verde_v2_quieta.jpg", 4);
@@ -44,6 +56,10 @@ final class CatalogoSpritesRatas {
             "/assets/rata_verde/rata_verde_v2_salta.jpg", 7);
         registrar(TipoRata.VERDE, SpritesRatas.Accion.AGACHADA,
             "/assets/rata_verde/rata_verde_v2_agacha.jpg", 6);
+        registrar(TipoRata.VERDE, SpritesRatas.Accion.MUERTE,
+            "/assets/rata_verde/rata_verde_v2_muerte.jpg", 10);
+        registrar(TipoRata.VERDE, SpritesRatas.Accion.RECIBIR_DANIO,
+            "/assets/rata_verde/rata_verde_v2_recibir_danio.jpg", 10);
     }
 
     private CatalogoSpritesRatas() {

@@ -199,6 +199,10 @@ public class ControladorPartida implements SeccionListener {
         if (partidaEnCurso) {
             return;
         }
+        if (!jugador.estaViva()) {
+            panelJuego.mostrarAnimacionMuerte();
+            return;
+        }
         inicioPartidaNanos = System.nanoTime();
         partidaEnCurso = true;
         pausada = false;
@@ -262,6 +266,7 @@ public class ControladorPartida implements SeccionListener {
 
 private void actualizar() {
     long ahora = System.nanoTime();
+    int vidaAntesDeActualizar = jugador.getVida();
     if (ahora - ultimaRecargaEstaminaNanos >= INTERVALO_RECARGA_ESTAMINA_NANOS) {
         controladorRata.recargarEstamina();
         ultimaRecargaEstaminaNanos = ahora;
@@ -287,6 +292,14 @@ private void actualizar() {
         if (jugador.getVida() < vidaAntesDelGolpe) {
             controladorPuntaje.penalizar(PENALIZACION_GOLPE_FANTASMA);
         }
+    }
+    if (!jugador.estaViva()) {
+        panelJuego.mostrarAnimacionMuerte();
+        detener();
+        return;
+    }
+    if (jugador.getVida() < vidaAntesDeActualizar) {
+        panelJuego.mostrarAnimacionDanio();
     }
     actualizarPowerUpsVisibles();
     actualizarTiempoPartida();

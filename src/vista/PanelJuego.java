@@ -50,6 +50,12 @@ public class PanelJuego extends JPanel {
     private boolean mirandoIzquierda;
     private BufferedImage frameBaseCalculada;
     private int ultimaFilaVisibleRata;
+    private final BufferedImage[] framesMuerte;
+    private final Timer temporizadorAnimacionMuerte;
+    private int indiceFrameMuerte;
+    private final BufferedImage[] framesDanio;
+    private final Timer temporizadorAnimacionDanio;
+    private int indiceFrameDanio;
     private final GestorAnimacionSprite animacionFantasmaDerecha;
     private final GestorAnimacionSprite animacionFantasmaIzquierda;
 
@@ -67,10 +73,28 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
 
     this.hud = new PanelHUD();
     for (SpritesRatas.Accion accion : SpritesRatas.Accion.values()) {
+        if (accion == SpritesRatas.Accion.MUERTE
+                || accion == SpritesRatas.Accion.RECIBIR_DANIO) {
+            continue;
+        }
         this.animacionesRata.put(accion, new GestorAnimacionSprite(
             SpritesRatas.cargarFrames(jugador.getTipoRata(), accion), DURACION_FRAME_NANOS
         ));
     }
+    this.framesMuerte = SpritesRatas.cargarFrames(
+        jugador.getTipoRata(), SpritesRatas.Accion.MUERTE
+    );
+    this.temporizadorAnimacionMuerte = new Timer(
+        (int) (DURACION_FRAME_NANOS / 1_000_000L), evento -> avanzarAnimacionMuerte()
+    );
+    this.temporizadorAnimacionMuerte.setCoalesce(true);
+    this.framesDanio = SpritesRatas.cargarFrames(
+        jugador.getTipoRata(), SpritesRatas.Accion.RECIBIR_DANIO
+    );
+    this.temporizadorAnimacionDanio = new Timer(
+        (int) (DURACION_FRAME_NANOS / 1_000_000L), evento -> avanzarAnimacionDanio()
+    );
+    this.temporizadorAnimacionDanio.setCoalesce(true);
     this.ultimaXPresentada = jugador.getX();
     this.animacionFantasmaDerecha = new GestorAnimacionSprite(
         SpritesFantasma.cargarPatrulla(true), 180_000_000L
@@ -97,10 +121,22 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
     }
 
     public double getAnchoSprite() {
+        if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
+            return framesMuerte[0].getWidth();
+        }
+        if (accionAnimacionRata == SpritesRatas.Accion.RECIBIR_DANIO) {
+            return framesDanio[0].getWidth();
+        }
         return animacionesRata.get(accionAnimacionRata).getAncho();
     }
 
     public double getAltoSprite() {
+        if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
+            return framesMuerte[0].getHeight();
+        }
+        if (accionAnimacionRata == SpritesRatas.Accion.RECIBIR_DANIO) {
+            return framesDanio[0].getHeight();
+        }
         return animacionesRata.get(accionAnimacionRata).getAlto();
     }
 
@@ -112,6 +148,14 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         }
         ultimaXPresentada = xActual;
 
+        if (accionAnimacionRata == SpritesRatas.Accion.MUERTE
+                || accionAnimacionRata == SpritesRatas.Accion.RECIBIR_DANIO) {
+            animacionFantasmaDerecha.actualizar();
+            animacionFantasmaIzquierda.actualizar();
+            repaint();
+            return;
+        }
+
         SpritesRatas.Accion accionActual = obtenerAccionAnimacion(desplazamientoX);
         if (accionActual != accionAnimacionRata) {
             accionAnimacionRata = accionActual;
@@ -120,6 +164,50 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         animacionesRata.get(accionAnimacionRata).actualizar();
         animacionFantasmaDerecha.actualizar();
         animacionFantasmaIzquierda.actualizar();
+        repaint();
+    }
+
+    public void mostrarAnimacionMuerte() {
+        if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
+            return;
+        }
+        temporizadorAnimacionDanio.stop();
+        accionAnimacionRata = SpritesRatas.Accion.MUERTE;
+        indiceFrameMuerte = 0;
+        frameBaseCalculada = null;
+        temporizadorAnimacionMuerte.start();
+        repaint();
+    }
+
+    public void mostrarAnimacionDanio() {
+        if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
+            return;
+        }
+        accionAnimacionRata = SpritesRatas.Accion.RECIBIR_DANIO;
+        indiceFrameDanio = 0;
+        frameBaseCalculada = null;
+        temporizadorAnimacionDanio.restart();
+        repaint();
+    }
+
+    private void avanzarAnimacionMuerte() {
+        if (indiceFrameMuerte >= framesMuerte.length - 1) {
+            temporizadorAnimacionMuerte.stop();
+            return;
+        }
+        indiceFrameMuerte++;
+        repaint();
+    }
+
+    private void avanzarAnimacionDanio() {
+        if (indiceFrameDanio >= framesDanio.length - 1) {
+            temporizadorAnimacionDanio.stop();
+            accionAnimacionRata = SpritesRatas.Accion.QUIETA;
+            frameBaseCalculada = null;
+            repaint();
+            return;
+        }
+        indiceFrameDanio++;
         repaint();
     }
 
@@ -211,7 +299,14 @@ BufferedImage cuadroFantasma = animacionFantasma.getFrameActual();
 g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
     (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
 
-BufferedImage cuadroRata = animacionesRata.get(accionAnimacionRata).getFrameActual();
+BufferedImage cuadroRata;
+if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
+    cuadroRata = framesMuerte[indiceFrameMuerte];
+} else if (accionAnimacionRata == SpritesRatas.Accion.RECIBIR_DANIO) {
+    cuadroRata = framesDanio[indiceFrameDanio];
+} else {
+    cuadroRata = animacionesRata.get(accionAnimacionRata).getFrameActual();
+}
 
 if (cuadroRata != null) {
     g2.setRenderingHint(

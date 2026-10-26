@@ -2,9 +2,7 @@ package vista;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import javax.imageio.ImageIO;
+import controlador.utilz.loadsave;
 
 // Leemos hojas de sprites y guardamos cada cuadro por fila para que la vista pida
 // una animación concreta sin mezclarla con los cuadros de otra acción.
@@ -105,16 +103,10 @@ public class SpriteSheet {
     }
 
     private static BufferedImage cargarHoja(String path) {
-        try (InputStream is = SpriteSheet.class.getResourceAsStream(path)) {
-            if (is == null) {
-                throw new IllegalArgumentException("No se encontró el recurso: " + path);
-            }
-            BufferedImage hoja = ImageIO.read(is);
-            if (hoja == null) {
-                throw new IllegalArgumentException("El recurso no es una imagen válida: " + path);
-            }
-            return hoja;
-        } catch (IOException | IllegalArgumentException e) {
+        try {
+            String rutaRecurso = path.startsWith("/") ? path.substring(1) : path;
+            return loadsave.GetSpriteatlas(rutaRecurso);
+        } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("No se pudo cargar la hoja de sprites: " + path, e);
         }
     }
