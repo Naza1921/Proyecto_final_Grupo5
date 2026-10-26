@@ -132,7 +132,7 @@ Build y pruebas en plataformas objetivo.
 ![Portada del Juego](src/assets/Portada_rata.png)
 
 //Este es el Diagrama de la idea del juego 
-![Diagrama del Juego](docs/diagrama de clases.png)
+![Diagrama del Juego](docs/diagrama_de_clases.png)
 
 ## Patrones de diseño aplicados
 
