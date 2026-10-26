@@ -5,7 +5,7 @@ import java.awt.geom.AffineTransform;
 public final class Camara {
     private static final long DELTA_MAXIMO_NANOS = 50_000_000L;
 
-    private final double zoom;
+    private double zoom;
     private final double duracionSuavizadoNanos;
     private double x;
     private double y;
@@ -20,6 +20,13 @@ public final class Camara {
         }
         this.zoom = zoom;
         duracionSuavizadoNanos = duracionSuavizadoSegundos * 1_000_000_000L;
+    }
+
+    public void setZoom(double zoom) {
+        if (!Double.isFinite(zoom) || zoom <= 0) {
+            throw new IllegalArgumentException("El zoom debe ser positivo y finito");
+        }
+        this.zoom = zoom;
     }
 
     public AffineTransform actualizar(double focoX, double focoY,

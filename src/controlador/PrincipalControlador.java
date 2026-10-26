@@ -11,6 +11,7 @@ import modelos.items.PowerUp;
 import modelos.items.PowerUpInvulnerabilidad;
 import modelos.items.PowerUpLento;
 import modelos.items.PowerUpVelocidad;
+import modelos.partida.ConfiguracionPartida;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
@@ -215,9 +216,8 @@ public class PrincipalControlador {
         }
 
         this.jugador = personajeElegido;
-        // Posición inicial cerca del agujero verde del escenario (ajustar a ojo si hace falta).
-        jugador.setX(50);
-        jugador.setY(40);
+        jugador.setX(ConfiguracionPartida.POSICION_INICIAL_X);
+        jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
 
         ControladorRata controladorRata = new ratacontroller(jugador);
         GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);
@@ -227,7 +227,8 @@ public class PrincipalControlador {
         fantasma enemigo = new fantasma(
             "Fantasma", 2.0, 0, 190, 420, ANCHO_FANTASMA, ALTO_FANTASMA
         );
-        panelJuego = new PanelJuego(jugador, puntaje, enemigo);
+        levelmanager niveles = new levelmanager();
+        panelJuego = new PanelJuego(jugador, puntaje, enemigo, niveles);
         controladorTecladoRata = new ControladorTecladoRata(
             panelJuego, gestorControles, this::pausarJuego
         );
@@ -238,7 +239,8 @@ public class PrincipalControlador {
         );
         controladorPartida = new ControladorPartida(
             controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, powerUpsPorSeccion, jugador, enemigo, this::guardarResultadoPartida
+            panelJuego, niveles, powerUpsPorSeccion, jugador, enemigo,
+            this::guardarResultadoPartida
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);

@@ -5,12 +5,12 @@
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "C:/Users/takru/OneDrive/Escritorio/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib/*.jar"
+        "C:\\Program Files\\Java\\javafx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\*.jar"
     ],
     "java.configuration.runtimes": [
         {
-            "name": "JavaSE-25",
-            "path": "C:/Program Files/Amazon Corretto/jdk25.0.4_10",
+            "name": "JavaSE-27",
+            "path": "C:\\Program Files\\Java\\jdk-27",
             "default": true
         }
     ]

@@ -21,24 +21,34 @@ se implemento para la 4ta entrega que es un prototipo visual
 - Panel de juego (PanelJuego): muestra el fondo del nivel
   (escenarios/Escenario_nivel3.jpeg)
   y dibuja al personaje con un sprite animado en lugar de una figura sin forma.
-- La cámara de presentación sigue suavemente al personaje con zoom 2× y respeta
-  los límites del mapa. El escenario, los power-ups y el personaje se dibujan
-  con el desplazamiento de cámara; el HUD y el aviso de nivel completado se
-  dibujan en coordenadas de pantalla.
+- La cámara de presentación sigue suavemente al personaje con zoom 2× en modo
+  ventana y 2,5× en pantalla completa, respetando los límites del mapa. El
+  escenario, los power-ups y el personaje se dibujan con el desplazamiento de
+  cámara; el HUD y el aviso de nivel completado se dibujan en coordenadas de
+  pantalla.
 - Sprite del personaje (SpriteSheet): se recorta la hoja de sprites y se elimina
   el fondo original; el personaje se dibuja sin halo amarillo y el contorno del
   sprite se conserva para el indicador de estamina del HUD.
 
 - Selección de personaje: `PanelSeleccionPersonaje` entrega la rata elegida a
-  `PrincipalControlador`; `PanelJuego` consulta su tipo y carga la secuencia
-  idle correspondiente mediante `SpritesRatas`.
+  `PrincipalControlador`; `SpritesRatas` usa sus nuevos assets y proporciona
+  la secuencia quieta para la vista previa y el juego.
 - El selector presenta las cuatro ratas con su sprite y nombre, sin mostrar las
   estadísticas que permanecen definidas en sus clases del modelo.
-- `GestorAnimacionSprite` controla el avance de la animación cada 160 ms; los
-  frames idle se cargan desde la franja correspondiente de cada hoja completa y
-  cada rata usa la grilla propia de su recurso. Se conserva el anclaje original
-  de las celdas para evitar desplazamientos y cortes; si Swing se retrasa, se
-  recuperan los frames transcurridos en vez de ralentizar la secuencia.
+- `GestorAnimacionSprite` controla el avance cada 160 ms. `PanelJuego` elige
+  reposo, caminar/correr, salto o agachado según el estado y el desplazamiento
+  del personaje; también refleja horizontalmente los sprites al moverse a la
+  izquierda. Cada acción carga su hoja desde la carpeta de la rata y alinea
+  sus cuadros. La rata negra no tiene hoja de agachado, por lo que conserva el
+  sprite quieto en esa postura.
+- `ControladorPartida` coordina el ciclo de juego, las colisiones y los cambios
+  de sección. `PanelJuego` recibe el nivel para dibujarlo, pero ya no crea ni
+  actualiza los gestores de colisión o secciones; las dimensiones compartidas
+  de tiles y jugador se definen en `ConfiguracionPartida`.
+- El personaje se dibuja alineando la última fila visible del frame con la base
+  de su hitbox; así los márgenes transparentes de las hojas no lo hacen parecer
+  suspendido ni cambian su posición o sus colisiones. La rata verde recibe un
+  ajuste visual adicional de un píxel de mundo.
 - `SpritesFantasma` recorta las animaciones de patrulla del recurso del fantasma;
   `PanelJuego` alterna los cuadros según la dirección y lo dibuja dentro del
   mundo con la transformación de cámara.
