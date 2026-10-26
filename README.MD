@@ -256,7 +256,7 @@ public void activar(PowerUp powerUp) {
 - Centraliza la activación, renovación, reemplazo y vencimiento de los efectos temporales.
 
 **Estado actual:** las estrategias de Velocidad++, Lento e Invulnerabilidad están conectadas a la partida. Los objetos aparecen uno por sección del primer piso y se recogen automáticamente al contacto. Velocidad dura 5 segundos, lento 5 segundos e invulnerabilidad 3 segundos. Se usan los sprites de `src/assets/powerUp/`, mostrados a 30×30 px. Velocidad y lento se reemplazan entre sí; invulnerabilidad puede coexistir con uno de ellos.
-[Link](https://refactoring.guru/es/design-patterns/strategy)
+[Patrones de diseño STRATEGY](https://refactoring.guru/es/design-patterns/strategy)
 
 ### Persistencia SQLite: DAO y Singleton
 
