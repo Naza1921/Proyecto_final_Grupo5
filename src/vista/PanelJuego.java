@@ -64,6 +64,7 @@ public class PanelJuego extends JPanel {
     private final GestorAnimacionSprite animacionFantasmaDerecha;
     private final GestorAnimacionSprite animacionFantasmaIzquierda;
     private final SpriteRataInfestada spriteRataInfestada;
+    private final Runnable alTerminarAnimacionMuerte;
     private SpriteAcido spriteAcido;
     private double ultimaXRataInfestada;
     private long ultimaActualizacionSpriteRataNanos;
@@ -71,15 +72,18 @@ public class PanelJuego extends JPanel {
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
 public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
-                  ratainfestada rataInfestada, levelmanager manejadornivel) {
+                  ratainfestada rataInfestada, levelmanager manejadornivel,
+                  Runnable alTerminarAnimacionMuerte) {
     if (jugador == null || modeloPuntaje == null || enemigo == null
-            || rataInfestada == null || manejadornivel == null) {
+            || rataInfestada == null || manejadornivel == null
+            || alTerminarAnimacionMuerte == null) {
         throw new IllegalArgumentException("Se requieren el estado de partida y el nivel");
     }
     this.jugador = jugador;
     this.enemigo = enemigo;
     this.rataInfestada = rataInfestada;
     this.manejadornivel = manejadornivel;
+    this.alTerminarAnimacionMuerte = alTerminarAnimacionMuerte;
     this.puntajePresentado = modeloPuntaje.getTotal();
     this.spriteRataInfestada = new SpriteRataInfestada();
     this.ultimaXRataInfestada = rataInfestada.getX();
@@ -208,6 +212,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
     private void avanzarAnimacionMuerte() {
         if (indiceFrameMuerte >= framesMuerte.length - 1) {
             temporizadorAnimacionMuerte.stop();
+            alTerminarAnimacionMuerte.run();
             return;
         }
         indiceFrameMuerte++;

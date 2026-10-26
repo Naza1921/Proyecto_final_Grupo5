@@ -5,62 +5,82 @@ import java.awt.*;
 import controlador.utilz.loadsave;
 
 public class MenuPrincipal extends JPanel {
- //botones para el menu principal, jugar, instrucciones y salir
-    private BotonEstilizado btnJugar;
-    private BotonEstilizado btnOpciones;
-    private BotonEstilizado btnTablero;
-    private BotonEstilizado btnSalir;
-    private Image fondo;
-    private Image titulo;
- // Constructor del panel del menú principal
+    private static final int ANCHO_BOTON = 300;
+    private static final int ALTO_BOTON = 112;
+    private static final int ANCHO_TITULO = 760;
+    private static final int ALTO_TITULO = 445;
+
+    private final BotonImagen btnJugar;
+    private final BotonImagen btnOpciones;
+    private final BotonImagen btnRanking;
+    private final BotonImagen btnSalir;
+    private final Image fondo;
+    private final Image titulo;
+
     public MenuPrincipal() {
         setPreferredSize(new Dimension(800, 600));
         setLayout(new GridBagLayout());
 
         fondo = loadsave.GetSpriteatlas("assets/Portada_rata.png");
         titulo = loadsave.GetSpriteatlas("assets/TITULO 2.png");
-        
 
+        btnJugar = crearBoton("Jugar", "boton_jugar.png");
+        btnOpciones = crearBoton("Opciones", "boton_opciones.png");
+        btnRanking = crearBoton("Ranking", "boton_ranking.png");
+        btnSalir = crearBoton("Salir", "boton_salir.png");
 
-        // Crear y configurar los botones y el título
-        // Crear y configurar los botones y el título
-        
-        //JLabel titulo = new JLabel("Ghosts and Rats");
-        //titulo.setFont(new Font("Serif", Font.BOLD, 34));
-        //titulo.setForeground(Color.BLACK);
+        JPanel botonera = new JPanel(new GridLayout(2, 2, 8, 8));
+        botonera.setOpaque(false);
+        botonera.add(btnJugar);
+        botonera.add(btnOpciones);
+        botonera.add(btnRanking);
+        botonera.add(btnSalir);
 
-        btnJugar = new BotonEstilizado("Jugar");
-        btnOpciones = new BotonEstilizado("Opciones");
-        btnTablero = new BotonEstilizado("Tablero");
-        btnSalir = new BotonEstilizado("Salir");
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.insets = new Insets(12, 0, 12, 0);
-        gbc.anchor = GridBagConstraints.CENTER;
-
-        //add(titulo, gbc);
-        add(btnJugar, gbc);
-        add(btnOpciones, gbc);
-        add(btnTablero, gbc);
-        add(btnSalir, gbc);
+        GridBagConstraints restricciones = new GridBagConstraints();
+        restricciones.gridx = 0;
+        restricciones.gridy = 0;
+        restricciones.weighty = 1;
+        restricciones.anchor = GridBagConstraints.SOUTH;
+        restricciones.insets = new Insets(0, 0, 20, 0);
+        add(botonera, restricciones);
     }
-    // Sobrescribir el método paintComponent para dibujar el fondo del menú
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (fondo != null) {
             g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
-
         }
         if (titulo != null) {
-            g.drawImage(titulo, 0, 0, getWidth(), getHeight(), this);
+            double escala = Math.min(
+                (double) getWidth() / ANCHO_TITULO,
+                (double) getHeight() / ALTO_TITULO
+            );
+            int ancho = (int) Math.round(ANCHO_TITULO * escala);
+            int alto = (int) Math.round(ALTO_TITULO * escala);
+            g.drawImage(titulo, (getWidth() - ancho) / 2, 12, ancho, alto, this);
         }
-
     }
-    // Getters para los botones del menú principal
-    public JButton getBtnJugar() { return btnJugar; }
-    public JButton getBtnOpciones() { return btnOpciones; }
-    public JButton getBtnTablero() { return btnTablero; }
-    public JButton getBtnSalir() { return btnSalir; }
+
+    private static BotonImagen crearBoton(String nombre, String archivo) {
+        return new BotonImagen(
+            nombre, "assets/botones/" + archivo, ANCHO_BOTON, ALTO_BOTON
+        );
+    }
+
+    public JButton getBtnJugar() {
+        return btnJugar;
+    }
+
+    public JButton getBtnOpciones() {
+        return btnOpciones;
+    }
+
+    public JButton getBtnRanking() {
+        return btnRanking;
+    }
+
+    public JButton getBtnSalir() {
+        return btnSalir;
+    }
 }

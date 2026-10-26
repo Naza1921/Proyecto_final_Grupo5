@@ -24,6 +24,7 @@ import vista.PanelJuego;
 import vista.PanelSeleccionPersonaje;
 import vista.PantallaIntro;
 import vista.MenuPausa;
+import vista.MenuGameOver;
 import vista.TableroPuntajes;
 
 public class PrincipalControlador {
@@ -34,6 +35,7 @@ public class PrincipalControlador {
     private static final String VISTA_SELECCION = "seleccion";
     private static final String VISTA_JUEGO = "juego";
     private static final String VISTA_PAUSA = "pausa";
+    private static final String VISTA_GAME_OVER = "gameOver";
     private static final String VISTA_TABLERO = "tablero";
     private static final long DURACION_VELOCIDAD_MS = 5_000;
     private static final long DURACION_LENTO_MS = 5_000;
@@ -50,6 +52,7 @@ public class PrincipalControlador {
     private MenuPrincipal menuPrincipal;
     private TableroPuntajes tableroPuntajes;
     private MenuPausa menuPausa;
+    private MenuGameOver menuGameOver;
     private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
     private PantallaIntro pantallaIntro;
     private MenuAjustesVista panelAjustes;
@@ -88,6 +91,7 @@ public class PrincipalControlador {
         menuPrincipal = new MenuPrincipal();
         tableroPuntajes = new TableroPuntajes(this::mostrarMenu);
         menuPausa = new MenuPausa();
+        menuGameOver = new MenuGameOver();
         panelAjustes = new MenuAjustesVista();
 
         //El panel de seleccion llama a iniciarJuego pasandole el personaje elegido
@@ -99,6 +103,7 @@ public class PrincipalControlador {
         contenedor.add(panelAjustes, VISTA_AJUSTES);
         contenedor.add(panelSeleccion, VISTA_SELECCION);
         contenedor.add(menuPausa, VISTA_PAUSA);
+        contenedor.add(menuGameOver, VISTA_GAME_OVER);
         controladorMenuAjustes = new ControladorMenuAjustes(
             ventana,
             panelAjustes,
@@ -152,10 +157,13 @@ public class PrincipalControlador {
         menuPrincipal.getBtnOpciones().addActionListener(e ->
             cardLayout.show(contenedor, VISTA_AJUSTES));
 
-        menuPrincipal.getBtnTablero().addActionListener(e -> mostrarTablero());
+        menuPrincipal.getBtnRanking().addActionListener(e -> mostrarTablero());
         menuPrincipal.getBtnSalir().addActionListener(e -> System.exit(0));
         menuPausa.getBtnReanudar().addActionListener(e -> reanudarJuego());
         menuPausa.getBtnVolverAlMenu().addActionListener(e -> volverAlMenuDesdePausa());
+        menuPausa.getBtnSalir().addActionListener(e -> System.exit(0));
+        menuGameOver.getBtnVolver().addActionListener(e -> mostrarMenu());
+        menuGameOver.getBtnSalir().addActionListener(e -> System.exit(0));
     }
 
     private void pausarJuego() {
@@ -185,6 +193,17 @@ public class PrincipalControlador {
         controladorPartida.detener();
         gestorEfectos.limpiar();
         cardLayout.show(contenedor, VISTA_MENU);
+    }
+
+    private void mostrarMenuGameOver() {
+        if (controladorTecladoRata != null) {
+            controladorTecladoRata.limpiarEntradas();
+        }
+        if (gestorEfectos != null) {
+            gestorEfectos.limpiar();
+        }
+        cardLayout.show(contenedor, VISTA_GAME_OVER);
+        menuGameOver.getBtnVolver().requestFocusInWindow();
     }
 
     private void mostrarErrorAjustes(String mensaje) {
@@ -231,7 +250,10 @@ public class PrincipalControlador {
         ratainfestada rataInfestada = new ratainfestada("Rata Infestada", 2.0, 0);
         rataInfestada.setPosicion(600, 640);
         levelmanager niveles = new levelmanager();
-        panelJuego = new PanelJuego(jugador, puntaje, enemigo, rataInfestada, niveles);
+        panelJuego = new PanelJuego(
+            jugador, puntaje, enemigo, rataInfestada, niveles,
+            this::mostrarMenuGameOver
+        );
         controladorTecladoRata = new ControladorTecladoRata(
             panelJuego, gestorControles, this::pausarJuego
         );

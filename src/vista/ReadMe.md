@@ -14,8 +14,12 @@ se implemento para la 4ta entrega que es un prototipo visual
   (intro_concepto_final/concepto_inicio_juego_10s_con_musica.mp4)
   con musica usando JavaFX (JFXPanel + MediaPlayer + MediaView), y al terminar
   pasa automaticamente al menu principal.
-- Menu principal (MenuPrincipal): pantalla con fondo (Portada_rata.png) y los
-  botones Jugar, Opciones y Salir.
+- Menú principal (MenuPrincipal): presenta el fondo y el título; los botones de
+  Jugar, Opciones, Ranking y Salir son imágenes clicables.
+- Menú de pausa (MenuPausa): permite continuar, volver al menú principal o salir.
+  Los botones son controles de imagen y Escape mantiene la acción de pausa.
+- Menú de Game Over (MenuGameOver): después de completar la animación de muerte,
+  muestra `GAME_OVER.png` y permite volver al menú principal o salir.
 - Panel de ajustes (MenuAjustesVista): controles de música y volumen, tema claro
   u oscuro, pantalla completa, guardar/restaurar preferencias y volver al menú.
 - Panel de juego (PanelJuego): muestra el fondo del nivel
@@ -42,9 +46,8 @@ se implemento para la 4ta entrega que es un prototipo visual
   sus cuadros. La rata negra no tiene hoja de agachado, por lo que conserva el
   sprite quieto en esa postura.
 - Cuando la vida de la rata llega a cero, `ControladorPartida` detiene el ciclo
-  de juego y `PanelJuego` reproduce una vez la hoja de muerte; el último cuadro
-  queda visible. Todavía no hay una pantalla de Game Over ni una opción de
-  reinicio en ese estado.
+  de juego y `PanelJuego` reproduce una vez la hoja de muerte; al terminar,
+  `PrincipalControlador` presenta el menú de Game Over.
 - Si la rata recibe daño y sobrevive, `PanelJuego` reproduce la hoja de daño
   correspondiente durante la secuencia y luego retoma la animación según su
   movimiento. Si el golpe la deja sin vida, prevalece la animación de muerte.

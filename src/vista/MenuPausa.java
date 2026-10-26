@@ -11,8 +11,18 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class MenuPausa extends JPanel {
-    private final BotonEstilizado btnReanudar = new BotonEstilizado("Reanudar");
-    private final BotonEstilizado btnVolverAlMenu = new BotonEstilizado("Volver al menú");
+    private static final int ANCHO_BOTON = 300;
+    private static final int ALTO_BOTON = 112;
+
+    private final BotonImagen btnReanudar = new BotonImagen(
+        "Continuar", "assets/botones/boton_continuar.png", ANCHO_BOTON, ALTO_BOTON
+    );
+    private final BotonImagen btnVolverAlMenu = new BotonImagen(
+        "Volver al menú", "assets/botones/boton_volver.png", ANCHO_BOTON, ALTO_BOTON
+    );
+    private final BotonImagen btnSalir = new BotonImagen(
+        "Salir", "assets/botones/boton_salir.png", ANCHO_BOTON, ALTO_BOTON
+    );
 
     public MenuPausa() {
         setPreferredSize(new Dimension(800, 600));
@@ -31,6 +41,7 @@ public class MenuPausa extends JPanel {
         add(titulo, restricciones);
         add(btnReanudar, restricciones);
         add(btnVolverAlMenu, restricciones);
+        add(btnSalir, restricciones);
     }
 
     public JButton getBtnReanudar() {
@@ -39,5 +50,9 @@ public class MenuPausa extends JPanel {
 
     public JButton getBtnVolverAlMenu() {
         return btnVolverAlMenu;
+    }
+
+    public JButton getBtnSalir() {
+        return btnSalir;
     }
 }
