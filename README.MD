@@ -131,12 +131,17 @@ Build y pruebas en plataformas objetivo.
 //Esta la portada de el juego
 ![Portada del Juego](src/assets/Portada_rata.png)
 
-//Este es el Diagrama de la idea del juego 
+
+//Este es el Diagrama de herencia de la clase personaje a cada rata  
 ![Diagrama del Juego](docs/diagrama_de_clases.png)
+
+
+
+
 
 ## Patrones de diseño aplicados
 
-###En el juego utilizamos varios tipos de `Patrones de Diseño` 
+### En el juego utilizamos varios tipos de `Patrones de Diseño` 
 
 ####  simple Factory: `Creación de personaje `
  El problema que se nos presento cuando nos toco trabajar en el código fue ver que en varias parte del código como por ejemplo ; `PanelDeSeleccion`  y `ProncipalControlador` se encontraba el código para instanciar a la rata seleccionada por esta razón decidimos que era mejor  aplicar el patrón Factory que permite centralizar la creación de objetos tipo personaje ( cada rata ) pero llegamos a una concusión diferente cuando nos planteamos que capaz no era necesario la aplicación de este patrón ya que no teníamos pensado ampliar la cantidad de ratas. Pero si necesitábamos centralizarla llegamos a la solución de aplicar un simple Factory.
