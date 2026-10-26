@@ -20,9 +20,9 @@ public class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
     private static final double POSICION_Y_FANTASMA = 390.0;
-    private static final int PUNTOS_VELOCIDAD = 75;
-    private static final int PUNTOS_INVULNERABILIDAD = 100;
-    private static final int PENALIZACION_LENTO = 50;
+    private static final int PUNTOS_VELOCIDAD = 475;
+    private static final int PUNTOS_INVULNERABILIDAD = 1_000;
+    private static final int PENALIZACION_LENTO = 300;
     private static final long INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS = 30;
     private static final int PENALIZACION_TIEMPO_PUNTOS = 10;
 
