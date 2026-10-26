@@ -131,16 +131,14 @@ Build y pruebas en plataformas objetivo.
 //Esta la portada de el juego
 ![Portada del Juego](src/assets/Portada_rata.png)
 
-//Este es el Diagrama de la idea del juego (No es propiamente un DER)
-![Diagrama del Juego](src/assets/DER_Proyecto_juego.drawio.png)
-//Usamos Draw.io para hacer el diagrama
+//Este es el Diagrama de la idea del juego 
+![Diagrama del Juego](docs/diagrama de clases.png)
 
 ## Patrones de diseño aplicados
 
+###En el juego utilizamos varios tipos de `Patrones de Diseño` 
 
-En el juego utilizamos varios tipos de `Patrones de Diseño` 
-
-###  simple Factory: `Creación de personaje `
+####  simple Factory: `Creación de personaje `
  El problema que se nos presento cuando nos toco trabajar en el código fue ver que en varias parte del código como por ejemplo ; `PanelDeSeleccion`  y `ProncipalControlador` se encontraba el código para instanciar a la rata seleccionada por esta razón decidimos que era mejor  aplicar el patrón Factory que permite centralizar la creación de objetos tipo personaje ( cada rata ) pero llegamos a una concusión diferente cuando nos planteamos que capaz no era necesario la aplicación de este patrón ya que no teníamos pensado ampliar la cantidad de ratas. Pero si necesitábamos centralizarla llegamos a la solución de aplicar un simple Factory.
 
 **En realidad no es un Patron de Diseño es mas una buena práctica.**
@@ -181,34 +179,70 @@ En el juego utilizamos varios tipos de `Patrones de Diseño`
 - Evita repetir condicionales de creación en las vistas y controladores.
 - Facilita añadir o ajustar tipos de rata sin propagar la lógica de construcción por todo el proyecto.
 
-**IMPORTATNE:**
-La aplicación   de este patron nos permite respetar los principios SOLID debido a que:
-- Evitas un acoplamiento fuerte entre el creador y los productos concretos.
-- Principio de responsabilidad única.Existe PersonajeFactory que es el unico responsable de instanciar el personje.
-- No estariamos respetando Open/Close 
 
 
-### Strategy: efectos temporales de power-ups
+#### Strategy: efectos temporales de power-ups
+
 
 `EfectoTemporal` define el contrato de una estrategia: cada efecto declara su categoría y cómo aplicarse y revertirse sobre un `Personaje`. Las clases `EfectoVelocidad`, `EfectoLento` y `EfectoInvulnerabilidad` implementan ese contrato.
-
+```java
+public interface EfectoTemporal {
+    CategoriaEfectoTemporal getCategoria();
+    void aplicar(Personaje personaje);
+    void revertir(Personaje personaje);
+}
+```
 Cada objeto `PowerUp` contiene una estrategia y una duración en milisegundos. Por ejemplo, `PowerUpVelocidad` se construye con un `EfectoVelocidad`:
 
-```java
-PowerUp powerUp = new PowerUpVelocidad(
-    5000, // duración en milisegundos
-    120,  // posición X
-    300   // posición Y
-);
-```
-
-`GestorEfectosTemporales` activa la estrategia, guarda cuándo comenzó y la revierte cuando termina su duración. También puede comprobar una colisión con el personaje:
 
 ```java
-boolean recogido = gestorEfectos.recogerSiColisiona(powerUp);
+public final class EfectoVelocidad implements EfectoTemporal {
+    private static final double MULTIPLICADOR = 1.5;
+
+    @Override
+    public CategoriaEfectoTemporal getCategoria() {
+        return CategoriaEfectoTemporal.VELOCIDAD;
+    }
+
+    @Override
+    public void aplicar(Personaje personaje) {
+        personaje.setMultiplicadorVelocidadTemporal(MULTIPLICADOR);
+    }
+
+    @Override
+    public void revertir(Personaje personaje) {
+        personaje.setMultiplicadorVelocidadTemporal(1.0);
+    }
+}
 ```
 
+`GestorEfectosTemporales` activa la estrategia, guarda cuándo comenzó y la revierte cuando termina su duración:
 La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de juego. Los efectos de velocidad comparten categoría: si se activa `EfectoLento` mientras está activo `EfectoVelocidad`, el primero se revierte y el nuevo lo reemplaza. Si se vuelve a activar el mismo efecto, se renueva su duración. La invulnerabilidad pertenece a otra categoría, por lo que puede coexistir con cualquiera de los efectos de velocidad.
+
+```java
+public void activar(PowerUp powerUp) {
+    if (powerUp == null || powerUp.getEfecto() == null || powerUp.getDuracion() <= 0) {
+        throw new IllegalArgumentException("El power-up debe tener efecto y duración válidos");
+    }
+    EfectoTemporal nuevoEfecto = powerUp.getEfecto();
+    CategoriaEfectoTemporal categoria = nuevoEfecto.getCategoria();
+
+    long ahora = System.nanoTime();
+    long duracionNanos = TimeUnit.MILLISECONDS.toNanos(powerUp.getDuracion());
+    EfectoActivo anterior = efectosActivos.get(categoria);
+
+    if (anterior != null && anterior.efecto.getClass() != nuevoEfecto.getClass()) {
+        anterior.efecto.revertir(personaje);
+        efectosActivos.remove(categoria);
+        anterior = null;
+    }
+    if (anterior == null) {
+        nuevoEfecto.aplicar(personaje);
+    }
+    efectosActivos.put(categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos));
+}
+```
+
 
 **Por qué es útil para el juego:**
 
@@ -217,6 +251,7 @@ La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de
 - Centraliza la activación, renovación, reemplazo y vencimiento de los efectos temporales.
 
 **Estado actual:** las estrategias de Velocidad++, Lento e Invulnerabilidad están conectadas a la partida. Los objetos aparecen uno por sección del primer piso y se recogen automáticamente al contacto. Velocidad dura 5 segundos, lento 5 segundos e invulnerabilidad 3 segundos. Se usan los sprites de `src/assets/powerUp/`, mostrados a 30×30 px. Velocidad y lento se reemplazan entre sí; invulnerabilidad puede coexistir con uno de ellos.
+[Link](https://refactoring.guru/es/design-patterns/strategy)
 
 El diagrama UML de las clases y relaciones del patrón Strategy está en [Diagrama UML de Strategy para power-ups](docs/uml-strategy-powerups.svg).
 
