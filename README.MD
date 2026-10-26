@@ -187,7 +187,7 @@ Build y pruebas en plataformas objetivo.
 
 
 #### Strategy: efectos temporales de power-ups
-
+![Diagrama del Juego](docs/diagrama_del_patron_strategy.png)
 
 `EfectoTemporal` define el contrato de una estrategia: cada efecto declara su categoría y cómo aplicarse y revertirse sobre un `Personaje`. Las clases `EfectoVelocidad`, `EfectoLento` y `EfectoInvulnerabilidad` implementan ese contrato.
 ```java
