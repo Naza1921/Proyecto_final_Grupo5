@@ -22,8 +22,7 @@ Desplazamiento: Las/las ratas se desplazan entre los pisos, esquivando las amena
 
 Comida: Por los niveles hay comida tirada en buen y mal estado, que pueden darle power ups o power downs temporales a las ratitas.
 
-Game Over: Puede ocurrir de 3 maneras posibles:Perdiste vida por un fantasma y ellos te llevaron para tenerte de mascota.
-Perdiste vida por comer comida en mal estado.
+Game Over: Puede ocurrir de 2 maneras posibles:Perdiste vida por un fantasma y ellos te llevaron para tenerte de mascota.
 Se hicieron las 6 am y llegaron los encargados de limpiar el edificio con vos incluido.
 
 Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nuestro tiempo de juego y nuestro puntaje, que se calcula según: tiempo que se tardó en terminar el juego, puntaje por comer comida o se nos resta por comer comida en mal estado o haber recibido daño en el nivel.
@@ -32,29 +31,32 @@ Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nu
 
 Movimiento y Controles
 Movimiento básico: izquierda / derecha, salto.
-Acciones especiales: agacharse, interactuar (comer, activar interruptores).
+Acciones especiales: agacharse, interactuar (comer).
 Configuración de controles (teclado).
 Pausa: presionar ESC abre un menú desde el que se puede reanudar la partida o volver al menú principal.
+
 Sistema de Daño y Vida
 Puntos de vida (HP) y visualización (corazones, iconos de queso, etc.).
 Fuentes de daño: fantasmas, baldes de lavandina, trampas eléctricas, pinchos, etc.
+
 Efecto de daño: reducción de HP, posible aturdimiento o retroceso.
 
 #### Objetos Interactables
 Comida buena: otorga power‑ups temporales (velocidad, salto alto, invulnerabilidad, etc.).
 Comida mala: provoca power‑downs (lentos, visión borrosa, controles invertidos, pérdida de HP).
-Otros objetos: llaves, interruptores, plataformas móviles, trampas activables.
+Otros objetos: plataformas móviles , trampas activables.
 
 #### Enemigos y Obstáculos por Nivel
-Fantasmas: patrullas estáticas o rutas predefinidas; contacto = daño.
-Baldes de lavandina: áreas de peligro que infligen daño al tocar.
+
+Fantasmas: patrullas estáticas o rutas predefinidas; 
+contacto = daño.
 Trampas de piso: pinchos, láminas eléctricas, superficies resbaladizas.
 
 #### Sistema de Power‑Ups / Power‑Downs
 Duración: temporizador visible (icono + cuenta regresiva).
 Ejemplos de efectos:
 Velocidad++, salto triple, invisibilidad (comida buena).
-Lentos, visión borrosa, controles invertidos (comida mala).
+Lentos, controles invertidos (comida mala).
 Condiciones de Game Over
 
 Daño por fantasma → Secuestro: la rata es capturada y se muestra una escena de “mascota”.
@@ -95,7 +97,7 @@ UI: barra de vida, contador de tiempo, íconos de activos power‑up, mini‑map
 
 #### Audio y Musica
 Música de fondo: Un tema en bucle que queda a lección del jugador desde menu de  ajustes
-Efectos de sonido: salto, golpe, comer (bueno/malo), daño, aparición de fantasma, activación de trampa, voz del jefe, jingle de game over, fanfara de victoria.
+Efectos de sonido: salto, golpe, comer (bueno/malo), daño, aparición de fantasma, activación de trampa, jingle de game over, fanfara de victoria.
 Voces/Opcionales: gruñidos de rata, risas fantasmas, anunciador de “¡6 am!”.
 
 #### Panel de ajustes
@@ -132,24 +134,47 @@ Build y pruebas en plataformas objetivo.
 //Este es el Diagrama de la idea del juego (No es propiamente un DER)
 ![Diagrama del Juego](src/assets/DER_Proyecto_juego.drawio.png)
 //Usamos Draw.io para hacer el diagrama
+
 ## Patrones de diseño aplicados
 
-El proyecto utiliza **Factory** para crear personajes y **Strategy** para encapsular efectos temporales de power-ups. Ambos patrones ayudan a mantener separada la creación de objetos de su comportamiento y facilitan agregar variantes sin concentrar toda la lógica en una sola clase.
 
-### Factory: creación de personajes
- El problema que se me presento cuando me toco trabajar en el codigo fue ver que en varias parte del codigo como por ejemplo ; panelDeSeleccion  y proncipal controlador se encontraba el codigo para instanciar a la rata seleccionada por esta razon decidi aplicar el patron factory que permite centralizar la creacion de objetos tipo personaje ( cada rata )
+En el juego utilizamos varios tipos de `Patrones de Diseño` 
+
+###  simple Factory: `Creación de personaje `
+ El problema que se nos presento cuando nos toco trabajar en el código fue ver que en varias parte del código como por ejemplo ; `PanelDeSeleccion`  y `ProncipalControlador` se encontraba el código para instanciar a la rata seleccionada por esta razón decidimos que era mejor  aplicar el patrón Factory que permite centralizar la creación de objetos tipo personaje ( cada rata ) pero llegamos a una concusión diferente cuando nos planteamos que capaz no era necesario la aplicación de este patrón ya que no teníamos pensado ampliar la cantidad de ratas. Pero si necesitábamos centralizarla llegamos a la solución de aplicar un simple Factory.
+
+**En realidad no es un Patron de Diseño es mas una buena práctica.**
 
 `PersonajeFactory` centraliza la creación de las distintas subclases de `Personaje`. Recibe un nombre y un valor de `Personaje.TipoRata`, y devuelve la instancia concreta correspondiente:
 
-```java
-Personaje jugador = PersonajeFactory.crearPersonaje(
-    "Rata Gris",
-    Personaje.TipoRata.GRIS
+```public class PersonajeFactory {
+
+    public static Personaje crearPersonaje(String nombre, Personaje.TipoRata tipoRata) {
+        // Usamos un switch para determinar qué tipo de rata crear
+        switch (tipoRata) {
+            case GRIS -> {
+                // Retorna una instancia de rata_gris
+                return new rata_gris(nombre);
+            }
+            case BLANCA -> {
+                // Retorna una instancia de rata_blanca
+                return new rata_blanca(nombre);
+            }
+            case NEGRA -> {
+                // Retorna una instancia de rata_negra
+                return new rata_negra(nombre);
+            }
+            case VERDE -> {
+                // Retorna una instancia de rata_verde
+                return new rata_verde(nombre);
+            }
+            default -> // Si el tipo de rata no es válido, lanzamos una excepción
+                throw new IllegalArgumentException("Tipo de rata no reconocido: " + tipoRata);
+        }
+    }
+}
 );
 ```
-
-La pantalla de selección utiliza esta fábrica para crear la rata elegida. El resto del juego puede trabajar con el tipo común `Personaje`, sin tener que construir directamente `rata_gris`, `rata_blanca`, `rata_negra` o `rata_verde`.
-
 **Por qué es útil para el juego:**
 
 - Mantiene en un único lugar la correspondencia entre tipo de rata y clase concreta.
@@ -160,6 +185,8 @@ La pantalla de selección utiliza esta fábrica para crear la rata elegida. El r
 La aplicación   de este patron nos permite respetar los principios SOLID debido a que:
 - Evitas un acoplamiento fuerte entre el creador y los productos concretos.
 - Principio de responsabilidad única.Existe PersonajeFactory que es el unico responsable de instanciar el personje.
+- No estariamos respetando Open/Close 
+
 
 ### Strategy: efectos temporales de power-ups
 
