@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -21,17 +22,13 @@ import controlador.utilz.loadsave;
 import persistencia.ResultadoPuntaje;
 
 public final class TableroPuntajes extends JPanel {
-    private static final int ANCHO_ARTE = 1152;
-    private static final int ALTO_ARTE = 768;
+    private static final int ANCHO_DISENO = 900;
+    private static final int ALTO_DISENO = 600;
     private static final int CANTIDAD_FILAS = 10;
-    private static final int[] LINEAS_BASE = {
-        403, 437, 471, 505, 539, 573, 607, 641, 675, 709
-    };
-    private static final Color COLOR_PRIMER_PUESTO = new Color(255, 190, 66);
-    private static final Color COLOR_PUNTAJE = new Color(229, 218, 211);
+    private static final Color COLOR_DORADO = new Color(255, 204, 91);
+    private static final Color COLOR_TEXTO = new Color(255, 235, 190);
 
     private final java.awt.image.BufferedImage fondo;
-    private final java.awt.image.BufferedImage plantilla;
     private final Font fuentePuntajes;
     private final JButton botonVolver;
     private List<ResultadoPuntaje> resultados = List.of();
@@ -40,15 +37,21 @@ public final class TableroPuntajes extends JPanel {
         if (alVolver == null) {
             throw new IllegalArgumentException("Se requiere una acción para volver al menú");
         }
-        fondo = cargarImagen("/assets/tablero/fondo.png");
-        plantilla = cargarImagen("/assets/tablero/tabla-puntajes.png");
-        fuentePuntajes = cargarFuente("/assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf");
+        fondo = cargarImagen("/assets/tablero/fondoV2.png");
+        fuentePuntajes = cargarFuente("/assets/fonts/Cinzel/Cinzel-Bold.ttf");
 
-        setPreferredSize(new Dimension(800, 600));
+        setPreferredSize(new Dimension(900, 600));
         setLayout(null);
-        botonVolver = new BotonEstilizado("Volver al menú");
-        botonVolver.setFont(fuentePuntajes.deriveFont(Font.PLAIN, 10f));
-        botonVolver.setPreferredSize(new Dimension(210, 42));
+        botonVolver = new JButton("Volver al menú");
+        botonVolver.setFont(fuentePuntajes.deriveFont(14f));
+        botonVolver.setForeground(COLOR_TEXTO);
+        botonVolver.setBackground(new Color(5, 43, 34));
+        botonVolver.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_DORADO, 2),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)
+        ));
+        botonVolver.setFocusPainted(false);
+        botonVolver.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         botonVolver.addActionListener(evento -> alVolver.run());
         add(botonVolver);
 
@@ -72,11 +75,18 @@ public final class TableroPuntajes extends JPanel {
 
     @Override
     public void doLayout() {
-        int ancho = Math.min(210, Math.max(150, getWidth() / 4));
-        int alto = Math.min(42, Math.max(32, getHeight() / 14));
+        double escala = Math.min(
+            (double) getWidth() / ANCHO_DISENO,
+            (double) getHeight() / ALTO_DISENO
+        );
+        int ancho = (int) Math.round(184 * escala);
+        int alto = (int) Math.round(40 * escala);
+        int desplazamientoX = (getWidth() - (int) (ANCHO_DISENO * escala)) / 2;
+        int desplazamientoY = (getHeight() - (int) (ALTO_DISENO * escala)) / 2;
+        botonVolver.setFont(fuentePuntajes.deriveFont((float) (14 * escala)));
         botonVolver.setBounds(
-            Math.max(8, getWidth() - ancho - 18),
-            12,
+            desplazamientoX + (int) (18 * escala),
+            desplazamientoY + (int) (18 * escala),
             ancho,
             alto
         );
@@ -88,37 +98,81 @@ public final class TableroPuntajes extends JPanel {
         Graphics2D g = (Graphics2D) grafico.create();
         g.setRenderingHint(
             RenderingHints.KEY_INTERPOLATION,
-            RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR
+            RenderingHints.VALUE_INTERPOLATION_BICUBIC
         );
-        g.drawImage(fondo, 0, 0, getWidth(), getHeight(), this);
-        g.drawImage(plantilla, 0, 0, getWidth(), getHeight(), this);
-        dibujarResultados(g);
+        double escala = Math.min(
+            (double) getWidth() / ANCHO_DISENO,
+            (double) getHeight() / ALTO_DISENO
+        );
+        int desplazamientoX = (getWidth() - (int) (ANCHO_DISENO * escala)) / 2;
+        int desplazamientoY = (getHeight() - (int) (ALTO_DISENO * escala)) / 2;
+        g.setColor(new Color(10, 17, 31));
+        g.fillRect(0, 0, getWidth(), getHeight());
+        g.drawImage(fondo, desplazamientoX, desplazamientoY,
+            (int) (ANCHO_DISENO * escala), (int) (ALTO_DISENO * escala), this);
+        dibujarResultados(g, desplazamientoX, desplazamientoY, escala);
         g.dispose();
     }
 
-    private void dibujarResultados(Graphics2D g) {
-        double escalaX = (double) getWidth() / ANCHO_ARTE;
-        double escalaY = (double) getHeight() / ALTO_ARTE;
-        float tamanoFuente = (float) (16 * Math.min(escalaX, escalaY));
-        Font fuente = fuentePuntajes.deriveFont(Math.max(8f, tamanoFuente));
+    private void dibujarResultados(Graphics2D g, int desplazamientoX,
+                                    int desplazamientoY, double escala) {
+        int x = desplazamientoX + (int) (215 * escala);
+        int ancho = (int) (470 * escala);
+
+        Font fuente = fuentePuntajes.deriveFont((float) (16 * escala));
         g.setFont(fuente);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-            RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+            RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         FontMetrics metricas = g.getFontMetrics();
 
+        g.setColor(COLOR_DORADO);
+        g.setFont(fuentePuntajes.deriveFont((float) (18 * escala)));
+        dibujarCentrado(g, "TABLA DE PUNTAJES",
+            desplazamientoX + (int) (450 * escala),
+            desplazamientoY + (int) (158 * escala), g.getFontMetrics());
+
+        Font fuenteEncabezado = fuentePuntajes.deriveFont((float) (12 * escala));
+        g.setFont(fuenteEncabezado);
+        FontMetrics metricasEncabezado = g.getFontMetrics();
+        int encabezado = desplazamientoY + (int) (205 * escala);
+        g.setColor(COLOR_DORADO);
+        dibujarCentrado(g, "PUESTO", desplazamientoX + (int) (250 * escala),
+            encabezado, metricasEncabezado);
+        dibujarCentrado(g, "JUGADOR", desplazamientoX + (int) (380 * escala),
+            encabezado, metricasEncabezado);
+        dibujarCentrado(g, "PUNTAJE", desplazamientoX + (int) (545 * escala),
+            encabezado, metricasEncabezado);
+        dibujarCentrado(g, "TIEMPO", desplazamientoX + (int) (652 * escala),
+            encabezado, metricasEncabezado);
+
+        int inicioFilas = desplazamientoY + (int) (230 * escala);
+        int separacionFila = (int) (23 * escala);
         for (int i = 0; i < resultados.size(); i++) {
             ResultadoPuntaje resultado = resultados.get(i);
-            g.setColor(i == 0 ? COLOR_PRIMER_PUESTO : COLOR_PUNTAJE);
-            int linea = (int) Math.round(LINEAS_BASE[i] * escalaY);
+            int linea = inicioFilas + i * separacionFila;
+            int altoFila = (int) (20 * escala);
+            g.setColor(i == 0
+                ? new Color(164, 98, 10, 150)
+                : new Color(7, 53, 42, i % 2 == 0 ? 105 : 65));
+            g.fillRoundRect(x + (int) (5 * escala), linea - (int) (16 * escala),
+                ancho - (int) (10 * escala), altoFila, altoFila, altoFila);
 
-            dibujarCentrado(g, Integer.toString(i + 1), (int) (257 * escalaX), linea, metricas);
+            g.setColor(new Color(222, 164, 55, 105));
+            g.drawLine(x + (int) (10 * escala), linea + (int) (5 * escala),
+                x + ancho - (int) (10 * escala), linea + (int) (5 * escala));
+
+            g.setColor(i == 0 ? COLOR_DORADO : COLOR_TEXTO);
+            String puesto = Integer.toString(i + 1);
+            dibujarCentrado(g, puesto, desplazamientoX + (int) (250 * escala), linea,
+                metricas);
             String nombre = ajustarNombre(resultado.getNombre(), metricas,
-                (int) (315 * escalaX), (int) (601 * escalaX));
-            g.drawString(nombre, (int) (315 * escalaX), linea);
+                desplazamientoX + (int) (290 * escala),
+                desplazamientoX + (int) (475 * escala));
+            g.drawString(nombre, desplazamientoX + (int) (290 * escala), linea);
             dibujarDerecha(g, Integer.toString(resultado.getPuntuacion()),
-                (int) (780 * escalaX), linea, metricas);
+                desplazamientoX + (int) (590 * escala), linea, metricas);
             dibujarDerecha(g, formatearTiempo(resultado.getTiempoSegundos()),
-                (int) (927 * escalaX), linea, metricas);
+                desplazamientoX + (int) (675 * escala), linea, metricas);
         }
     }
 
