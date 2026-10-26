@@ -134,24 +134,47 @@ Build y pruebas en plataformas objetivo.
 //Este es el Diagrama de la idea del juego (No es propiamente un DER)
 ![Diagrama del Juego](src/assets/DER_Proyecto_juego.drawio.png)
 //Usamos Draw.io para hacer el diagrama
+
 ## Patrones de diseño aplicados
 
-El proyecto utiliza **Factory** para crear personajes y **Strategy** para encapsular efectos temporales de power-ups. Ambos patrones ayudan a mantener separada la creación de objetos de su comportamiento y facilitan agregar variantes sin concentrar toda la lógica en una sola clase.
 
-### Factory: creación de personajes
- El problema que se me presento cuando me toco trabajar en el codigo fue ver que en varias parte del codigo como por ejemplo ; panelDeSeleccion  y proncipal controlador se encontraba el codigo para instanciar a la rata seleccionada por esta razon decidi aplicar el patron factory que permite centralizar la creacion de objetos tipo personaje ( cada rata )
+En el juego utilizamos varios tipos de `Patrones de Diseño` 
+
+###  simple Factory: `Creación de personaje `
+ El problema que se nos presento cuando nos toco trabajar en el código fue ver que en varias parte del código como por ejemplo ; `PanelDeSeleccion`  y `ProncipalControlador` se encontraba el código para instanciar a la rata seleccionada por esta razón decidimos que era mejor  aplicar el patrón Factory que permite centralizar la creación de objetos tipo personaje ( cada rata ) pero llegamos a una concusión diferente cuando nos planteamos que capaz no era necesario la aplicación de este patrón ya que no teníamos pensado ampliar la cantidad de ratas. Pero si necesitábamos centralizarla llegamos a la solución de aplicar un simple Factory.
+
+**En realidad no es un Patron de Diseño es mas una buena práctica.**
 
 `PersonajeFactory` centraliza la creación de las distintas subclases de `Personaje`. Recibe un nombre y un valor de `Personaje.TipoRata`, y devuelve la instancia concreta correspondiente:
 
-```java
-Personaje jugador = PersonajeFactory.crearPersonaje(
-    "Rata Gris",
-    Personaje.TipoRata.GRIS
+```public class PersonajeFactory {
+
+    public static Personaje crearPersonaje(String nombre, Personaje.TipoRata tipoRata) {
+        // Usamos un switch para determinar qué tipo de rata crear
+        switch (tipoRata) {
+            case GRIS -> {
+                // Retorna una instancia de rata_gris
+                return new rata_gris(nombre);
+            }
+            case BLANCA -> {
+                // Retorna una instancia de rata_blanca
+                return new rata_blanca(nombre);
+            }
+            case NEGRA -> {
+                // Retorna una instancia de rata_negra
+                return new rata_negra(nombre);
+            }
+            case VERDE -> {
+                // Retorna una instancia de rata_verde
+                return new rata_verde(nombre);
+            }
+            default -> // Si el tipo de rata no es válido, lanzamos una excepción
+                throw new IllegalArgumentException("Tipo de rata no reconocido: " + tipoRata);
+        }
+    }
+}
 );
 ```
-
-La pantalla de selección utiliza esta fábrica para crear la rata elegida. El resto del juego puede trabajar con el tipo común `Personaje`, sin tener que construir directamente `rata_gris`, `rata_blanca`, `rata_negra` o `rata_verde`.
-
 **Por qué es útil para el juego:**
 
 - Mantiene en un único lugar la correspondencia entre tipo de rata y clase concreta.
@@ -162,6 +185,8 @@ La pantalla de selección utiliza esta fábrica para crear la rata elegida. El r
 La aplicación   de este patron nos permite respetar los principios SOLID debido a que:
 - Evitas un acoplamiento fuerte entre el creador y los productos concretos.
 - Principio de responsabilidad única.Existe PersonajeFactory que es el unico responsable de instanciar el personje.
+- No estariamos respetando Open/Close 
+
 
 ### Strategy: efectos temporales de power-ups
 
