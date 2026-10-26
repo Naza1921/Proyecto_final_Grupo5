@@ -27,7 +27,7 @@ public abstract class Personaje {
     private double estamina;
     private final double estaminaMaxima;
     private double velocidadY = 0;
-    private static final double GRAVEDAD = 0.8;
+    private static final double GRAVEDAD = 0.4;
     private static final double VELOCIDAD_MAXIMA_CAIDA = 15;
     
     //revisar si es necesario tipo enum para el tipo de rata, para que sea mas facil de manejar

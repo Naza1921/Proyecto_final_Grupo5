@@ -25,6 +25,16 @@ public class SpriteRataInfestada {
     private static final long DURACION_FRAME_CAMINAR_MS = 110;
     private static final long DURACION_FRAME_CORRER_MS = 80;
     private static final long DURACION_FRAME_ACCION_MS = 100;
+    // Cada límite cae entre dibujos para que el recorte no invada el cuadro vecino.
+    private static final int[] LIMITES_QUIETA = {
+        20, 206, 365, 530, 682, 838, 995, 1144, 1320
+    };
+    private static final int[] LIMITES_CAMINAR_DERECHA = {
+        20, 181, 329, 471, 612, 757, 903, 1055, 1207, 1359, 1516
+    };
+    private static final int[] LIMITES_CAMINAR_IZQUIERDA = {
+        25, 188, 343, 487, 633, 778, 926, 1070, 1217, 1359, 1515
+    };
 
     private final Map<Animacion, SpriteSheet> animaciones = new EnumMap<>(Animacion.class);
     private Animacion animacionActual = Animacion.QUIETA;
@@ -33,9 +43,11 @@ public class SpriteRataInfestada {
 
     public SpriteRataInfestada() {
         BufferedImage hoja = cargarHoja();
-        agregarAnimacion(hoja, Animacion.QUIETA, 8, 20, 55, 1496, 105);
-        agregarAnimacion(hoja, Animacion.CAMINAR_DERECHA, 10, 25, 210, 1490, 82);
-        agregarAnimacion(hoja, Animacion.CAMINAR_IZQUIERDA, 10, 30, 350, 1490, 88);
+        agregarAnimacion(hoja, Animacion.QUIETA, LIMITES_QUIETA, 55, 105);
+        agregarAnimacion(hoja, Animacion.CAMINAR_DERECHA,
+            LIMITES_CAMINAR_DERECHA, 210, 82);
+        agregarAnimacion(hoja, Animacion.CAMINAR_IZQUIERDA,
+            LIMITES_CAMINAR_IZQUIERDA, 350, 88);
         agregarAnimacion(hoja, Animacion.CORRER_DERECHA, 9, 20, 490, 1490, 86);
         agregarAnimacion(hoja, Animacion.CORRER_IZQUIERDA, 9, 25, 620, 1490, 88);
         agregarAnimacion(hoja, Animacion.MORDER, 9, 25, 755, 1490, 90);
@@ -92,13 +104,39 @@ public class SpriteRataInfestada {
 
         BufferedImage contorno = sprite.getContorno(frameActual);
         BufferedImage imagen = sprite.getFrame(frameActual);
-        graficos.drawImage(contorno, x, y, ancho, alto, null);
-        graficos.drawImage(imagen, x, y, ancho, alto, null);
+        double escala = Math.min(
+            (double) ancho / imagen.getWidth(),
+            (double) alto / imagen.getHeight()
+        );
+        int anchoDibujo = (int) Math.round(imagen.getWidth() * escala);
+        int altoDibujo = (int) Math.round(imagen.getHeight() * escala);
+        int xDibujo = x + (ancho - anchoDibujo) / 2;
+        int ultimaFilaVisible = obtenerUltimaFilaVisible(imagen);
+        int yDibujo = y + alto
+            - (int) Math.round((ultimaFilaVisible + 1) * escala);
+        graficos.drawImage(contorno, xDibujo, yDibujo, anchoDibujo, altoDibujo, null);
+        graficos.drawImage(imagen, xDibujo, yDibujo, anchoDibujo, altoDibujo, null);
     }
 
     private void agregarAnimacion(BufferedImage hoja, Animacion animacion, int cantidadFrames,
                                   int x, int y, int ancho, int alto) {
         animaciones.put(animacion, new SpriteSheet(hoja, cantidadFrames, x, y, ancho, alto));
+    }
+
+    private void agregarAnimacion(BufferedImage hoja, Animacion animacion, int[] limitesX,
+                                  int y, int alto) {
+        animaciones.put(animacion, new SpriteSheet(hoja, limitesX, y, alto));
+    }
+
+    private int obtenerUltimaFilaVisible(BufferedImage imagen) {
+        for (int y = imagen.getHeight() - 1; y >= 0; y--) {
+            for (int x = 0; x < imagen.getWidth(); x++) {
+                if ((imagen.getRGB(x, y) >>> 24) != 0) {
+                    return y;
+                }
+            }
+        }
+        throw new IllegalStateException("El cuadro de la rata infestada está vacío");
     }
 
     private BufferedImage cargarHoja() {

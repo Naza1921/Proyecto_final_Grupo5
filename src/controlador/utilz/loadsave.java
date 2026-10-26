@@ -14,7 +14,7 @@ import javax.imageio.ImageIO;
 public class loadsave {
     
     public static final String PLAYER_ATLAS = "Rata_Sprite.png";
-    public static final String NIVEL_ATLAS = "assets/nivel_sprite_tablones.png";
+    public static final String NIVEL_ATLAS = "assets/Nivel_Sprite_tablones.png";
     //public static final String NIVEL_UNO_DATO = "assets/Nivel_Uno_Sprite (3).png";
     public static final String AGUJERO_ATLAS = "assets/Agujero_Sprite.png";
 

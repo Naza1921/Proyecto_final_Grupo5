@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.*;
 import modelos.enemigos.fantasma;
+import modelos.enemigos.ratainfestada;
 import modelos.items.PowerUp;
 import modelos.items.PowerUpInvulnerabilidad;
 import modelos.items.PowerUpLento;
@@ -37,8 +38,8 @@ public class PrincipalControlador {
     private static final long DURACION_VELOCIDAD_MS = 5_000;
     private static final long DURACION_LENTO_MS = 5_000;
     private static final long DURACION_INVULNERABILIDAD_MS = 3_000;
-    private static final double ANCHO_FANTASMA = 72;
-    private static final double ALTO_FANTASMA = 82;
+    private static final double ANCHO_FANTASMA = 36;
+    private static final double ALTO_FANTASMA = 41;
 
     private Personaje jugador;
     private JFrame ventana;
@@ -227,8 +228,10 @@ public class PrincipalControlador {
         fantasma enemigo = new fantasma(
             "Fantasma", 2.0, 0, 190, 420, ANCHO_FANTASMA, ALTO_FANTASMA
         );
+        ratainfestada rataInfestada = new ratainfestada("Rata Infestada", 2.0, 0);
+        rataInfestada.setPosicion(600, 640);
         levelmanager niveles = new levelmanager();
-        panelJuego = new PanelJuego(jugador, puntaje, enemigo, niveles);
+        panelJuego = new PanelJuego(jugador, puntaje, enemigo, rataInfestada, niveles);
         controladorTecladoRata = new ControladorTecladoRata(
             panelJuego, gestorControles, this::pausarJuego
         );
@@ -239,7 +242,7 @@ public class PrincipalControlador {
         );
         controladorPartida = new ControladorPartida(
             controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, niveles, powerUpsPorSeccion, jugador, enemigo,
+            panelJuego, niveles, powerUpsPorSeccion, jugador, enemigo, rataInfestada,
             this::guardarResultadoPartida
         );
 

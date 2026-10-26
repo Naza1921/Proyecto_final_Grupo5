@@ -8,7 +8,11 @@ public class GestorSecciones {
     private final ColisionNivel colision;
     private final int tile, ancho, alto;
     private SeccionListener listener;
-    private boolean enAgujero;
+    private boolean puertaBloqueada;
+    private double zonaBloqueadaIzquierda;
+    private double zonaBloqueadaSuperior;
+    private double zonaBloqueadaDerecha;
+    private double zonaBloqueadaInferior;
     private boolean terminado;
 
     public GestorSecciones(levelmanager niveles, ColisionNivel colision,
@@ -24,9 +28,14 @@ public class GestorSecciones {
     public void actualizar(Personaje p) {
         if (terminado) return;
 
+        if (puertaBloqueada) {
+            if (seSolapaConZonaBloqueada(p)) return;
+            puertaBloqueada = false;
+            return;
+        }
+
         int tipo = niveles.getNivel().agujeroEn(p.getX(), p.getY(), ancho, alto, tile);
-        if (tipo == -1) { enAgujero = false; return; }
-        if (enAgujero) return;
+        if (tipo == -1) return;
 
         if (tipo == level.AGUJERO_SIGUIENTE) {
             if (niveles.cambiarSeccion(1)) {
@@ -43,12 +52,27 @@ public class GestorSecciones {
     private void entrar(Personaje p, int agujeroLlegada) {
         level nivel = niveles.getNivel();
         colision.setNivel(nivel);
-        enAgujero = true;
         int[] c = nivel.buscar(agujeroLlegada);
         if (c != null) {
+            double puertaX = c[0] * (double) tile;
+            double puertaY = c[1] * (double) tile;
+            zonaBloqueadaIzquierda = puertaX - tile;
+            zonaBloqueadaSuperior = puertaY - tile;
+            zonaBloqueadaDerecha = puertaX + 2.0 * tile;
+            zonaBloqueadaInferior = puertaY + 2.0 * tile;
+            puertaBloqueada = true;
             p.corregirPosicion(c[0] * tile + (tile - ancho) / 2.0, (c[1] + 1) * tile - alto);
             p.setVelocidadY(0);
+        } else {
+            puertaBloqueada = false;
         }
         if (listener != null) listener.alCambiarSeccion(niveles.getSeccion());
+    }
+
+    private boolean seSolapaConZonaBloqueada(Personaje p) {
+        return p.getX() < zonaBloqueadaDerecha
+            && p.getX() + ancho > zonaBloqueadaIzquierda
+            && p.getY() < zonaBloqueadaInferior
+            && p.getY() + alto > zonaBloqueadaSuperior;
     }
 }

@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.swing.Timer;
 import modelos.enemigos.enemigo;
 import modelos.enemigos.fantasma;
+import modelos.enemigos.ratainfestada;
 import modelos.items.EfectoInvulnerabilidad;
 import modelos.items.EfectoLento;
 import modelos.items.EfectoVelocidad;
@@ -20,13 +21,41 @@ import vista.PanelJuego;
 public class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
-    private static final double POSICION_Y_FANTASMA = 390.0;
     private static final int PUNTOS_VELOCIDAD = 475;
     private static final int PUNTOS_INVULNERABILIDAD = 1_000;
     private static final int PENALIZACION_LENTO = 300;
     private static final int PENALIZACION_GOLPE_FANTASMA = 125;
     private static final long INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS = 30;
     private static final int PENALIZACION_TIEMPO_PUNTOS = 10;
+    private static final List<ConfiguracionEnemigosSeccion> ENEMIGOS_POR_SECCION = List.of(
+        new ConfiguracionEnemigosSeccion(
+            new PosicionFantasma(190, 420, 390),
+            new PosicionRataInfestada(600, 640)
+        ),
+        new ConfiguracionEnemigosSeccion(
+            new PosicionFantasma(500, 760, 310),
+            null
+        ),
+        new ConfiguracionEnemigosSeccion(
+            null,
+            new PosicionRataInfestada(900, 640)
+        ),
+        new ConfiguracionEnemigosSeccion(
+            new PosicionFantasma(700, 1000, 290),
+            new PosicionRataInfestada(300, 640)
+        ),
+        new ConfiguracionEnemigosSeccion(
+            new PosicionFantasma(820, 1120, 350),
+            null
+        )
+    );
+
+    private record PosicionFantasma(double xMinimo, double xMaximo, double y) { }
+    private record PosicionRataInfestada(double x, double y) { }
+    private record ConfiguracionEnemigosSeccion(
+        PosicionFantasma fantasma,
+        PosicionRataInfestada rataInfestada
+    ) { }
 
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
@@ -38,6 +67,9 @@ public class ControladorPartida implements SeccionListener {
     private final GestorSecciones gestorSecciones;
     private final Personaje jugador;
     private final fantasma enemigo;
+    private final ratainfestada rataInfestada;
+    private boolean fantasmaVisible;
+    private boolean rataInfestadaVisible;
     private final Map<Integer, List<PowerUp>> powerUpsPorSeccion;
     private final Timer temporizador;
     private final Runnable alCompletarNivel;
@@ -57,11 +89,13 @@ public class ControladorPartida implements SeccionListener {
                               Map<Integer, List<PowerUp>> powerUpsPorSeccion,
                               Personaje jugador,
                               fantasma enemigo,
+                              ratainfestada rataInfestada,
                               Runnable alCompletarNivel) {
         if (controladorRata == null || gestorControles == null
                 || gestorEfectos == null || controladorPuntaje == null || panelJuego == null
                 || niveles == null
                 || powerUpsPorSeccion == null || jugador == null || enemigo == null
+                || rataInfestada == null
                 || alCompletarNivel == null) {
             throw new IllegalArgumentException(
                 "Se requieren controladores, puntaje, vista e inventario válidos"
@@ -75,6 +109,7 @@ public class ControladorPartida implements SeccionListener {
         this.niveles = niveles;
         this.jugador = jugador;
         this.enemigo = enemigo;
+        this.rataInfestada = rataInfestada;
         this.powerUpsPorSeccion = copiarPowerUpsPorSeccion(powerUpsPorSeccion);
         this.alCompletarNivel = alCompletarNivel;
         this.colisionNivel = new ColisionNivel(
@@ -92,6 +127,7 @@ public class ControladorPartida implements SeccionListener {
         );
         this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, evento -> actualizar());
         gestorSecciones.setListener(this);
+        alCambiarSeccion(niveles.getSeccion());
         actualizarPowerUpsVisibles();
     }
 
@@ -281,8 +317,8 @@ private void actualizar() {
     controladorRata.actualizar(Double.POSITIVE_INFINITY);
     colisionNivel.resolver(jugador);
     gestorSecciones.actualizar(jugador);
-    if (enemigo != null) {
-        enemigo.actualizarPatrulla(POSICION_Y_FANTASMA);
+    if (fantasmaVisible) {
+        enemigo.actualizarPatrulla(enemigo.getY());
         int vidaAntesDelGolpe = jugador.getVida();
         enemigo.atacar(
             jugador,
@@ -292,6 +328,13 @@ private void actualizar() {
         if (jugador.getVida() < vidaAntesDelGolpe) {
             controladorPuntaje.penalizar(PENALIZACION_GOLPE_FANTASMA);
         }
+    }
+    if (rataInfestadaVisible) {
+        rataInfestada.atacar(jugador);
+        rataInfestada.actualizar(
+            jugador, niveles.getNivel(), ConfiguracionPartida.TAM_TILE
+        );
+        rataInfestada.actualizarProyectiles(jugador);
     }
     if (!jugador.estaViva()) {
         panelJuego.mostrarAnimacionMuerte();
@@ -314,7 +357,29 @@ private void actualizarTiempoPartida() {
 }
 
 @Override
-public void alCambiarSeccion(int seccion) { }
+public void alCambiarSeccion(int seccion) {
+    if (seccion < 0 || seccion >= ENEMIGOS_POR_SECCION.size()) {
+        throw new IllegalArgumentException("La sección no tiene una configuración de enemigos");
+    }
+
+    ConfiguracionEnemigosSeccion configuracion = ENEMIGOS_POR_SECCION.get(seccion);
+    PosicionFantasma posicionFantasma = configuracion.fantasma();
+    fantasmaVisible = posicionFantasma != null;
+    if (fantasmaVisible) {
+        enemigo.reiniciarPatrulla(
+            posicionFantasma.xMinimo(),
+            posicionFantasma.xMaximo(),
+            posicionFantasma.y()
+        );
+    }
+
+    PosicionRataInfestada posicionRata = configuracion.rataInfestada();
+    rataInfestadaVisible = posicionRata != null;
+    if (rataInfestadaVisible) {
+        rataInfestada.reiniciar(posicionRata.x(), posicionRata.y());
+    }
+    panelJuego.actualizarEnemigosVisibles(fantasmaVisible, rataInfestadaVisible);
+}
 
 @Override
 public void alTerminarNivel() {

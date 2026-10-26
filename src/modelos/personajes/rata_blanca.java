@@ -13,7 +13,7 @@ public class rata_blanca extends Personaje {
 
     public rata_blanca(String nombre) {
         // Es más resistente, a cambio de moverse y saltar un poco menos.
-        super(nombre, TipoRata.BLANCA, 100, 7,10.5, 100);
+        super(nombre, TipoRata.BLANCA, 100, 3.5, 9, 100);
     }
 
     @Override

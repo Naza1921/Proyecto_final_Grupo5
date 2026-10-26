@@ -175,6 +175,21 @@ public abstract class enemigo {
         this.x =x;
         this.y= y; 
     }
+
+    public void reiniciar(double x, double y) {
+        if (!Double.isFinite(x) || x < 0 || !Double.isFinite(y) || y < 0) {
+            throw new IllegalArgumentException("La posición del enemigo debe ser válida");
+        }
+        vida = vidaMaxima;
+        setPosicion(x, y);
+        ralentizado = false;
+        porcentajerelantizado = 1.0;
+        factorRalentizacion = 1.0;
+        ralentizacionHastaNanos = 0;
+        aturdimientoHastaNanos = 0;
+        distraccionHastaNanos = 0;
+        actualizarVelocidad();
+    }
     
 
 }

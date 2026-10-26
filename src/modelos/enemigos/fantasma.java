@@ -7,8 +7,8 @@ public class fantasma extends enemigo {
     private static final int VIDA_FANTASMA_MAXIMA = 1;
     private static final int DANIO_CONTACTO = 10;
 
-    private final double xMinimo;
-    private final double xMaximo;
+    private double xMinimo;
+    private double xMaximo;
     private final double ancho;
     private final double alto;
     private boolean moviendoseDerecha = true;
@@ -24,11 +24,22 @@ public class fantasma extends enemigo {
                 || !Double.isFinite(alto) || alto <= 0) {
             throw new IllegalArgumentException("El fantasma requiere dimensiones y patrulla válidas");
         }
-        this.xMinimo = xMinimo;
-        this.xMaximo = xMaximo;
         this.ancho = ancho;
         this.alto = alto;
-        setPosicion(xMinimo, 0);
+        reiniciarPatrulla(xMinimo, xMaximo, 0);
+    }
+
+    public void reiniciarPatrulla(double xMinimo, double xMaximo, double posicionY) {
+        if (!Double.isFinite(xMinimo) || xMinimo < 0
+                || !Double.isFinite(xMaximo) || xMaximo <= xMinimo
+                || !Double.isFinite(posicionY) || posicionY < 0) {
+            throw new IllegalArgumentException("La patrulla del fantasma debe ser válida");
+        }
+        this.xMinimo = xMinimo;
+        this.xMaximo = xMaximo;
+        reiniciar(xMinimo, posicionY);
+        moviendoseDerecha = true;
+        enContacto = false;
     }
 
     public void actualizarPatrulla(double posicionY) {

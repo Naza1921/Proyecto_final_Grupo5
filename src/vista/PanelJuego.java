@@ -15,6 +15,8 @@ import controlador.levelmanager;
 import controlador.GestorAnimacionSprite;
 import controlador.utilz.loadsave;
 import modelos.enemigos.fantasma;
+import modelos.enemigos.ProyectilAcido;
+import modelos.enemigos.ratainfestada;
 import modelos.partida.ConfiguracionPartida;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
@@ -30,6 +32,9 @@ public class PanelJuego extends JPanel {
 
     private final Personaje jugador;
     private final fantasma enemigo;
+    private final ratainfestada rataInfestada;
+    private boolean fantasmaVisible = true;
+    private boolean rataInfestadaVisible = true;
     private final levelmanager manejadornivel;
     private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
     private final PanelHUD hud;
@@ -58,18 +63,27 @@ public class PanelJuego extends JPanel {
     private int indiceFrameDanio;
     private final GestorAnimacionSprite animacionFantasmaDerecha;
     private final GestorAnimacionSprite animacionFantasmaIzquierda;
+    private final SpriteRataInfestada spriteRataInfestada;
+    private SpriteAcido spriteAcido;
+    private double ultimaXRataInfestada;
+    private long ultimaActualizacionSpriteRataNanos;
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
 public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
-                  levelmanager manejadornivel) {
-    if (jugador == null || modeloPuntaje == null || enemigo == null || manejadornivel == null) {
+                  ratainfestada rataInfestada, levelmanager manejadornivel) {
+    if (jugador == null || modeloPuntaje == null || enemigo == null
+            || rataInfestada == null || manejadornivel == null) {
         throw new IllegalArgumentException("Se requieren el estado de partida y el nivel");
     }
     this.jugador = jugador;
     this.enemigo = enemigo;
+    this.rataInfestada = rataInfestada;
     this.manejadornivel = manejadornivel;
     this.puntajePresentado = modeloPuntaje.getTotal();
+    this.spriteRataInfestada = new SpriteRataInfestada();
+    this.ultimaXRataInfestada = rataInfestada.getX();
+    this.ultimaActualizacionSpriteRataNanos = System.nanoTime();
 
     this.hud = new PanelHUD();
     for (SpritesRatas.Accion accion : SpritesRatas.Accion.values()) {
@@ -164,6 +178,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         animacionesRata.get(accionAnimacionRata).actualizar();
         animacionFantasmaDerecha.actualizar();
         animacionFantasmaIzquierda.actualizar();
+        actualizarSpriteRataInfestada();
         repaint();
     }
 
@@ -211,6 +226,25 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         repaint();
     }
 
+    private void actualizarSpriteRataInfestada() {
+        double desplazamientoX = rataInfestada.getX() - ultimaXRataInfestada;
+        SpriteRataInfestada.Animacion animacion;
+        if (Math.abs(desplazamientoX) > 0.01) {
+            animacion = desplazamientoX < 0
+                ? SpriteRataInfestada.Animacion.CAMINAR_IZQUIERDA
+                : SpriteRataInfestada.Animacion.CAMINAR_DERECHA;
+        } else {
+            animacion = SpriteRataInfestada.Animacion.QUIETA;
+        }
+        spriteRataInfestada.setAnimacion(animacion);
+
+        long ahora = System.nanoTime();
+        long deltaMilisegundos = (ahora - ultimaActualizacionSpriteRataNanos) / 1_000_000L;
+        spriteRataInfestada.actualizar(deltaMilisegundos);
+        ultimaActualizacionSpriteRataNanos = ahora;
+        ultimaXRataInfestada = rataInfestada.getX();
+    }
+
     private SpritesRatas.Accion obtenerAccionAnimacion(double desplazamientoX) {
         if (jugador.estaEnElAire()) {
             return SpritesRatas.Accion.SALTAR;
@@ -237,6 +271,12 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         repaint();
     }
 
+    public void actualizarEnemigosVisibles(boolean fantasmaVisible, boolean rataInfestadaVisible) {
+        this.fantasmaVisible = fantasmaVisible;
+        this.rataInfestadaVisible = rataInfestadaVisible;
+        repaint();
+    }
+
     public void actualizarTiempoPartida(long tiempoPartidaMillis) {
         if (tiempoPartidaMillis < 0) {
             throw new IllegalArgumentException("El tiempo de partida no puede ser negativo");
@@ -250,6 +290,14 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
             throw new IllegalArgumentException("El puntaje presentado no puede ser negativo");
         }
         puntajePresentado = puntaje;
+        repaint();
+    }
+
+    public void establecerImagenAcido(BufferedImage imagen) {
+        if (imagen == null) {
+            throw new IllegalArgumentException("Se requiere la imagen del ácido");
+        }
+        spriteAcido = new SpriteAcido(imagen);
         repaint();
     }
 
@@ -292,12 +340,28 @@ manejadornivel.draw(g2, ConfiguracionPartida.TAM_TILE);
 dibujarPowerUps(g2);
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
 
-GestorAnimacionSprite animacionFantasma = enemigo.estaMoviendoseDerecha()
-    ? animacionFantasmaDerecha
-    : animacionFantasmaIzquierda;
-BufferedImage cuadroFantasma = animacionFantasma.getFrameActual();
-g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
-    (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
+if (fantasmaVisible) {
+    GestorAnimacionSprite animacionFantasma = enemigo.estaMoviendoseDerecha()
+        ? animacionFantasmaDerecha
+        : animacionFantasmaIzquierda;
+    BufferedImage cuadroFantasma = animacionFantasma.getFrameActual();
+    g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
+        (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
+}
+if (rataInfestadaVisible) {
+    spriteRataInfestada.dibujar(
+        g2,
+        (int) Math.round(rataInfestada.getX()),
+        (int) Math.round(rataInfestada.getY()),
+        ConfiguracionPartida.ANCHO_JUGADOR,
+        ConfiguracionPartida.ALTO_JUGADOR
+    );
+    if (spriteAcido != null) {
+        for (ProyectilAcido proyectil : rataInfestada.getProyectilesAcido()) {
+            spriteAcido.dibujar(g2, proyectil);
+        }
+    }
+}
 
 BufferedImage cuadroRata;
 if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {

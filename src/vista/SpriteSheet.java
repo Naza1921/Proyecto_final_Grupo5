@@ -36,6 +36,40 @@ public class SpriteSheet {
 
     public SpriteSheet(BufferedImage hoja, int cantidadFrames, int x, int y,
                        int anchoRegion, int altoRegion) {
+        this(hoja, crearLimitesFrames(
+            hoja, cantidadFrames, x, y, anchoRegion, altoRegion
+        ), y, altoRegion);
+    }
+
+    public SpriteSheet(BufferedImage hoja, int[] limitesX, int y, int altoRegion) {
+        if (hoja == null || limitesX == null || limitesX.length < 2
+                || y < 0 || altoRegion <= 0 || y > hoja.getHeight() - altoRegion) {
+            throw new IllegalArgumentException("Región inválida para la hoja de sprites.");
+        }
+
+        int[] limites = limitesX.clone();
+        for (int i = 0; i < limites.length - 1; i++) {
+            if (limites[i] < 0 || limites[i] >= limites[i + 1]
+                    || limites[i + 1] > hoja.getWidth()) {
+                throw new IllegalArgumentException("Los límites de los cuadros no son válidos.");
+            }
+        }
+        frames = new BufferedImage[1][];
+        contornos = new BufferedImage[1][];
+        frames[0] = new BufferedImage[limites.length - 1];
+        contornos[0] = new BufferedImage[limites.length - 1];
+        for (int i = 0; i < frames[0].length; i++) {
+            BufferedImage recorte = hoja.getSubimage(
+                limites[i], y, limites[i + 1] - limites[i], altoRegion
+            );
+            BufferedImage sinFondo = quitarFondo(recorte, obtenerColoresFondo(recorte), 24);
+            frames[0][i] = sinFondo;
+            contornos[0][i] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+        }
+    }
+
+    private static int[] crearLimitesFrames(BufferedImage hoja, int cantidadFrames,
+                                             int x, int y, int anchoRegion, int altoRegion) {
         if (hoja == null || cantidadFrames <= 0 || x < 0 || y < 0
                 || anchoRegion < cantidadFrames || altoRegion <= 0
                 || x > hoja.getWidth() - anchoRegion
@@ -43,18 +77,11 @@ public class SpriteSheet {
             throw new IllegalArgumentException("Región inválida para la hoja de sprites.");
         }
 
-        frames = new BufferedImage[1][];
-        contornos = new BufferedImage[1][];
-        frames[0] = new BufferedImage[cantidadFrames];
-        contornos[0] = new BufferedImage[cantidadFrames];
-        for (int i = 0; i < cantidadFrames; i++) {
-            int inicioX = x + (int) ((long) i * anchoRegion / cantidadFrames);
-            int finX = x + (int) ((long) (i + 1) * anchoRegion / cantidadFrames);
-            BufferedImage recorte = hoja.getSubimage(inicioX, y, finX - inicioX, altoRegion);
-            BufferedImage sinFondo = quitarFondo(recorte, obtenerColoresFondo(recorte), 24);
-            frames[0][i] = sinFondo;
-            contornos[0][i] = generarContorno(sinFondo, GROSOR_CONTORNO, COLOR_CONTORNO);
+        int[] limites = new int[cantidadFrames + 1];
+        for (int i = 0; i <= cantidadFrames; i++) {
+            limites[i] = x + (int) ((long) i * anchoRegion / cantidadFrames);
         }
+        return limites;
     }
 
     public SpriteSheet(BufferedImage hoja, int[] limitesFilas, int[] cantidadesPorFila,
