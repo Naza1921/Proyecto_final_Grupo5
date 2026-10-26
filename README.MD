@@ -12,52 +12,48 @@
 ## 2. Dominio y Alcance del Sistema 
 
 ### Descripción del Problema
-Se busca desarrollar un video juego del genero de "plataformas" donde Eres una rata que se encuentra en el piso 4 de un edificio y tenés que llegar al piso -2 donde está la cocina, donde se encuentra el queso que queremos comer.
+Se busca desarrollar un video juego del genero de "plataformas" donde el jugador controla una rata busca atravesar varios niveles llenos de enemigos  hasta llegar a donde se encuentra el queso que queremos comer.
 
 ### Objetivo del Sistema
-El sistema será un juego funcional y extensible que permitirá al jugador experimentar las mecánicas básicas del género. El diseño debe ser modular para facilitar la adición de nuevos tipos de ratas, enemigos o mapas en el futuro, aplicando rigurosamente los conceptos del paradigma orientado a objetos.
+El sistema será un juego funcional y extensible que permitirá al jugador experimentar las mecánicas básicas del género. El diseño debe ser modular para facilitar la adición de nuevos tipo de power-ups, enemigos o mapas en el futuro, aplicando rigurosamente los conceptos del paradigma orientado a objetos.
 
 ## Funcionalidades Principales (Features)
 Desplazamiento: Las/las ratas se desplazan entre los pisos, esquivando las amenazas de nivel, como distintos fantasmas o baldes de agua con lavandina tirados, porque si las ratas hacen contacto con estos reciben daño.
 
-Comida: Por los niveles hay comida tirada en buen y mal estado, que pueden darle power ups o power downs temporales a las ratitas.
+- Comida: Por los niveles hay comida tirada en buen y mal estado, que pueden darle power ups o power downs temporales a las ratitas.
 
-Game Over: Puede ocurrir de 2 maneras posibles:Perdiste vida por un fantasma y ellos te llevaron para tenerte de mascota.
+- Game Over: Puede ocurrir de 2 maneras posibles:Perdiste vida por un fantasma y ellos te llevaron para tenerte de mascota.
 Se hicieron las 6 am y llegaron los encargados de limpiar el edificio con vos incluido.
 
-Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nuestro tiempo de juego y nuestro puntaje, que se calcula según: tiempo que se tardó en terminar el juego, puntaje por comer comida o se nos resta por comer comida en mal estado o haber recibido daño en el nivel.
+- Fin del juego: Una vez tengamos el queso terminamos el juego y se nos muestra nuestro tiempo de juego y nuestro puntaje, que se calcula según: tiempo que se tardó en terminar el juego, puntaje por comer comida o se nos resta por comer comida en mal estado o haber recibido daño en el nivel.
 
 #### Mecánicas de Juego
+  **teclas**
+- Movimiento básico: izquierda / derecha, salto.
+- Acciones especiales: interactuar (comer).
+- Configuración de controles (teclado).
+- Pausa: presionar ESC abre un menú desde el que se puede reanudar la partida o volver al menú principal.
 
-Movimiento y Controles
-Movimiento básico: izquierda / derecha, salto.
-Acciones especiales: agacharse, interactuar (comer).
-Configuración de controles (teclado).
-Pausa: presionar ESC abre un menú desde el que se puede reanudar la partida o volver al menú principal.
-
-Sistema de Daño y Vida
-Puntos de vida (HP) y visualización (corazones, iconos de queso, etc.).
-Fuentes de daño: fantasmas, baldes de lavandina, trampas eléctricas, pinchos, etc.
-
-Efecto de daño: reducción de HP, posible aturdimiento o retroceso.
+**Sistema de Daño y Vida**
+- Puntos de vida (HP) y visualización (corazones, iconos de queso, etc.).
+- Fuentes de daño: fantasmas, baldes de lavandina, trampas eléctricas, pinchos, etc.
+- Efecto de daño: reducción de HP, posible aturdimiento o retroceso.
 
 #### Objetos Interactables
-Comida buena: otorga power‑ups temporales (velocidad, salto alto, invulnerabilidad, etc.).
-Comida mala: provoca power‑downs (lentos, visión borrosa, controles invertidos, pérdida de HP).
-Otros objetos: plataformas móviles , trampas activables.
+- Comida buena: otorga power‑ups temporales (velocidad, salto alto, invulnerabilidad, etc.).
+- Comida mala: provoca power‑downs (lentos, visión borrosa, controles invertidos, pérdida de HP).
+- Otros objetos:trampas activables.
 
 #### Enemigos y Obstáculos por Nivel
 
-Fantasmas: patrullas estáticas o rutas predefinidas; 
-contacto = daño.
-Trampas de piso: pinchos, láminas eléctricas, superficies resbaladizas.
+- Fantasmas: patrullas estáticas o rutas predefinidas; contacto = daño.
+- Trampas de piso: pinchos, láminas eléctricas, superficies resbaladizas.
 
 #### Sistema de Power‑Ups / Power‑Downs
-Duración: temporizador visible (icono + cuenta regresiva).
-Ejemplos de efectos:
-Velocidad++, salto triple, invisibilidad (comida buena).
-Lentos, controles invertidos (comida mala).
-Condiciones de Game Over
+- Duración: temporizador visible (icono + cuenta regresiva).
+- Ejemplos de efectos:
+- Velocidad++, salto triple, invisibilidad (comida buena).
+- Lentos, controles invertidos (comida mala).
 
 Daño por fantasma → Secuestro: la rata es capturada y se muestra una escena de “mascota”.
 Comer comida en mal estado → Intoxicación: animación de enfermedad y pérdida de vida.
@@ -77,16 +73,6 @@ Puntuación final:
 Score = (Puntos comida buena) – (Puntos comida mala) – (Penalizaciones daño) – (Factor tiempo opcional)
 Visualización: tiempo y puntuación mostrados al final y opcionalmente durante la partida (HUD).Estructura de Niveles Pisos
 Piso	Descripción	Enemigos Principales	Obstáculos	Comida Disponible
-
-## Estructura de Niveles Pisos
-| Piso | Descripción | Enemigos Principales | Obstáculos | Comida Disponible |
-|------|-------------|----------------------|------------|-------------------|
-| 4    | Piso de partida (apartamento) | Fantasmas de baja intensidad | Cajas, alfombras | Migas, queso rallado |
-| 3    | Pasillo de servicio | Fantasmas patrullando | Tubos con fugas | Restos de pizza, fruta |
-| 2    | Área de lavandería | Baldes de lavandina | Máquinas de lavar en movimiento | Detergente (mala), sobras |
-| 1    | Lobby / Recepción | Fantasmas + trampas de suelo | Puertas giratorias, alfombras móviles | Golosinas, sándwiches |
-| 0    | Planta baja / Garage | Fantasmas + peligros de aceite | Coches estacionados, neumáticos | Aceite (mala), hot‑dogs |
-| -1   | Bodega | Fantasmas + ratas enemigas | Estanterías inestables | Conservas (buenas/malas) | Queso (objetivo final) |
 
 ####  Arte y Estilo Visual
 Paleta de colores: tonos oscuros y sucios con acentos amarillos/verdes para power‑ups y rojos para peligros.
@@ -139,7 +125,7 @@ Build y pruebas en plataformas objetivo.
 
 
 
-## Patrones de diseño aplicados
+## Arquitectura y di
 
 ### En el juego utilizamos varios tipos de `Patrones de Diseño` 
 
