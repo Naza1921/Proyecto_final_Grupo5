@@ -6,76 +6,72 @@ import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 
 import controlador.levelmanager;
 import controlador.GestorAnimacionSprite;
 import controlador.utilz.loadsave;
 import modelos.enemigos.fantasma;
+import modelos.partida.ConfiguracionPartida;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
-import modelos.personajes.Hitbox;
 import modelos.items.PowerUp;
-import controlador.ColisionNivel;
-import controlador.ColisionNivel;
-import controlador.GestorSecciones;
 
 //aqui nosotros estamos definimos el panel visual del juego
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
 public class PanelJuego extends JPanel {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
     private static final double ZOOM_CAMARA = 2.0;
+    private static final double ZOOM_CAMARA_PANTALLA_COMPLETA = 2.5;
     private static final double SUAVIZADO_CAMARA_SEGUNDOS = 0.12;
 
     private final Personaje jugador;
     private final fantasma enemigo;
+    private final levelmanager manejadornivel;
     private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
-    private final Hitbox hitboxJugador;
     private final PanelHUD hud;
     private List<PowerUp> powerUps = Collections.emptyList();
     private long tiempoPartidaMillis;
     private int puntajePresentado;
-    private levelmanager manejadornivel = new levelmanager(); // Inicializar sin parámetros   
-    private static final int TAM_TILE = 30;
-    private static final int COLS_NIVEL = 42;
-    private static final int FILAS_NIVEL = 23;
-    private static final int ANCHO_RATA = 25;
-    private static final int ALTO_RATA = 20;
-    private ColisionNivel colision;
-    private final GestorSecciones secciones;
+    private static final double AJUSTE_BASE_RATA_VERDE = 1.0;
     private boolean nivelCompletado;
 
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
     private Image fondoImagen;
 
     // El gestor mantiene el ritmo de la animación y entrega frames con un anclaje común.
-    private final GestorAnimacionSprite animacionRata;
+    private final Map<SpritesRatas.Accion, GestorAnimacionSprite> animacionesRata =
+        new EnumMap<>(SpritesRatas.Accion.class);
+    private SpritesRatas.Accion accionAnimacionRata = SpritesRatas.Accion.QUIETA;
+    private double ultimaXPresentada;
+    private boolean mirandoIzquierda;
+    private BufferedImage frameBaseCalculada;
+    private int ultimaFilaVisibleRata;
     private final GestorAnimacionSprite animacionFantasmaDerecha;
     private final GestorAnimacionSprite animacionFantasmaIzquierda;
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo) {
-    if (jugador == null || modeloPuntaje == null || enemigo == null) {
-        throw new IllegalArgumentException("Se requieren un personaje, puntaje y enemigo");
+public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
+                  levelmanager manejadornivel) {
+    if (jugador == null || modeloPuntaje == null || enemigo == null || manejadornivel == null) {
+        throw new IllegalArgumentException("Se requieren el estado de partida y el nivel");
     }
     this.jugador = jugador;
     this.enemigo = enemigo;
+    this.manejadornivel = manejadornivel;
     this.puntajePresentado = modeloPuntaje.getTotal();
 
-    // Posición inicial primero (esa celda debe ser aire en el PNG de la sección 1)
-    jugador.setX(2 * TAM_TILE);
-    jugador.setY(1 * TAM_TILE);
-
-    this.hitboxJugador = new Hitbox(
-        (float) jugador.getX(), (float) jugador.getY(), ANCHO_RATA, ALTO_RATA);
-
     this.hud = new PanelHUD();
-    SpriteSheet spriteRata = SpritesRatas.cargar(jugador.getTipoRata());
-    this.animacionRata = new GestorAnimacionSprite(
-        SpritesRatas.crearFramesAlineados(spriteRata, 0), DURACION_FRAME_NANOS
-    );
+    for (SpritesRatas.Accion accion : SpritesRatas.Accion.values()) {
+        this.animacionesRata.put(accion, new GestorAnimacionSprite(
+            SpritesRatas.cargarFrames(jugador.getTipoRata(), accion), DURACION_FRAME_NANOS
+        ));
+    }
+    this.ultimaXPresentada = jugador.getX();
     this.animacionFantasmaDerecha = new GestorAnimacionSprite(
         SpritesFantasma.cargarPatrulla(true), 180_000_000L
     );
@@ -83,12 +79,10 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo) {
         SpritesFantasma.cargarPatrulla(false), 180_000_000L
     );
 
-    this.colision = new ColisionNivel(
-        manejadornivel.getNivel(), TAM_TILE, ANCHO_RATA, ALTO_RATA);
-    this.secciones = new GestorSecciones(
-        manejadornivel, colision, TAM_TILE, ANCHO_RATA, ALTO_RATA);
-
-    setPreferredSize(new Dimension(COLS_NIVEL * TAM_TILE, FILAS_NIVEL * TAM_TILE));
+    setPreferredSize(new Dimension(
+        ConfiguracionPartida.COLS_NIVEL * ConfiguracionPartida.TAM_TILE,
+        ConfiguracionPartida.FILAS_NIVEL * ConfiguracionPartida.TAM_TILE
+    ));
     setBackground(Color.DARK_GRAY);
     setFocusable(true);
 
@@ -103,18 +97,43 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo) {
     }
 
     public double getAnchoSprite() {
-        return animacionRata.getAncho();
+        return animacionesRata.get(accionAnimacionRata).getAncho();
     }
 
     public double getAltoSprite() {
-        return animacionRata.getAlto();
+        return animacionesRata.get(accionAnimacionRata).getAlto();
     }
 
     public void actualizarPresentacion() {
-        animacionRata.actualizar();
+        double xActual = jugador.getX();
+        double desplazamientoX = xActual - ultimaXPresentada;
+        if (Math.abs(desplazamientoX) > 0.01) {
+            mirandoIzquierda = desplazamientoX < 0;
+        }
+        ultimaXPresentada = xActual;
+
+        SpritesRatas.Accion accionActual = obtenerAccionAnimacion(desplazamientoX);
+        if (accionActual != accionAnimacionRata) {
+            accionAnimacionRata = accionActual;
+            animacionesRata.get(accionAnimacionRata).reiniciar();
+        }
+        animacionesRata.get(accionAnimacionRata).actualizar();
         animacionFantasmaDerecha.actualizar();
         animacionFantasmaIzquierda.actualizar();
         repaint();
+    }
+
+    private SpritesRatas.Accion obtenerAccionAnimacion(double desplazamientoX) {
+        if (jugador.estaEnElAire()) {
+            return SpritesRatas.Accion.SALTAR;
+        }
+        if (jugador.estaAgachada()) {
+            return SpritesRatas.Accion.AGACHADA;
+        }
+        if (Math.abs(desplazamientoX) > 0.01) {
+            return SpritesRatas.Accion.CAMINAR;
+        }
+        return SpritesRatas.Accion.QUIETA;
     }
 
     public void actualizarPowerUps(List<PowerUp> powerUps) {
@@ -164,11 +183,14 @@ super.paintComponent(g);
 Graphics2D g2 = (Graphics2D) g;
 
 AffineTransform transformacionPantalla = g2.getTransform();
-double anchoMundo = manejadornivel.getNivel().getAncho() * TAM_TILE;
-double altoMundo = manejadornivel.getNivel().getAlto() * TAM_TILE;
+double anchoMundo = manejadornivel.getNivel().getAncho() * ConfiguracionPartida.TAM_TILE;
+double altoMundo = manejadornivel.getNivel().getAlto() * ConfiguracionPartida.TAM_TILE;
+java.awt.Window ventana = SwingUtilities.getWindowAncestor(this);
+boolean pantallaCompleta = ventana instanceof JFrame && ((JFrame) ventana).isUndecorated();
+camara.setZoom(pantallaCompleta ? ZOOM_CAMARA_PANTALLA_COMPLETA : ZOOM_CAMARA);
 g2.transform(camara.actualizar(
-    jugador.getX() + ANCHO_RATA / 2.0,
-    jugador.getY() + ALTO_RATA / 2.0,
+    jugador.getX() + ConfiguracionPartida.ANCHO_JUGADOR / 2.0,
+    jugador.getY() + ConfiguracionPartida.ALTO_JUGADOR / 2.0,
     getWidth(),
     getHeight(),
     anchoMundo,
@@ -178,7 +200,7 @@ g2.transform(camara.actualizar(
 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, (int) anchoMundo, (int) altoMundo, this);
-manejadornivel.draw(g2, TAM_TILE);
+manejadornivel.draw(g2, ConfiguracionPartida.TAM_TILE);
 dibujarPowerUps(g2);
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
 
@@ -189,7 +211,7 @@ BufferedImage cuadroFantasma = animacionFantasma.getFrameActual();
 g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
     (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
 
-BufferedImage cuadroRata = animacionRata.getFrameActual();
+BufferedImage cuadroRata = animacionesRata.get(accionAnimacionRata).getFrameActual();
 
 if (cuadroRata != null) {
     g2.setRenderingHint(
@@ -198,28 +220,36 @@ if (cuadroRata != null) {
     );
 
     double escala = Math.min(
-        (double) ANCHO_RATA / cuadroRata.getWidth(),
-        (double) ALTO_RATA / cuadroRata.getHeight()
+        (double) ConfiguracionPartida.ANCHO_JUGADOR / cuadroRata.getWidth(),
+        (double) ConfiguracionPartida.ALTO_JUGADOR / cuadroRata.getHeight()
     );
 
     int anchoDibujo = (int) Math.round(cuadroRata.getWidth() * escala);
     int altoDibujo = (int) Math.round(cuadroRata.getHeight() * escala);
 
-    g2.drawImage(
-        cuadroRata,
-        (int) jugador.getX(),
-        (int) jugador.getY() + (ALTO_RATA - altoDibujo),
-        anchoDibujo,
-        altoDibujo,
-        this
+    if (cuadroRata != frameBaseCalculada) {
+        ultimaFilaVisibleRata = obtenerUltimaFilaVisible(cuadroRata);
+        frameBaseCalculada = cuadroRata;
+    }
+
+    int xDibujo = (int) jugador.getX();
+    double ajusteBase = jugador.getTipoRata() == Personaje.TipoRata.VERDE
+        ? AJUSTE_BASE_RATA_VERDE
+        : 0;
+    int yDibujo = (int) Math.round(
+        jugador.getY() + ConfiguracionPartida.ALTO_JUGADOR
+            - (ultimaFilaVisibleRata + 1) * (double) altoDibujo / cuadroRata.getHeight()
+            + ajusteBase
     );
-    // Actualizamos la posición de la hitbox con la del personaje.
-    hitboxJugador.actualizar(
-    (float) jugador.getX(),
-    (float) jugador.getY()
-    );
-    // Dibujamos el rectángulo rosa encima del escenario y la rata.
-    //hitboxJugador.dibujar(g2);
+    if (mirandoIzquierda) {
+        AffineTransform transformacionRata = g2.getTransform();
+        g2.translate(xDibujo + anchoDibujo, yDibujo);
+        g2.scale(-1, 1);
+        g2.drawImage(cuadroRata, 0, 0, anchoDibujo, altoDibujo, this);
+        g2.setTransform(transformacionRata);
+    } else {
+        g2.drawImage(cuadroRata, xDibujo, yDibujo, anchoDibujo, altoDibujo, this);
+    }
     }
 
 
@@ -237,11 +267,16 @@ if (cuadroRata != null) {
     g2.drawString(texto, (getWidth() - fm.stringWidth(texto)) / 2, getHeight() / 2);
 }
     }
-    public GestorSecciones getGestorSecciones() { return secciones; }
-    public int getAnchoHitbox() { return ANCHO_RATA; }
-    public int getAltoHitbox() { return ALTO_RATA; }
-    public double getAnchoNivelPx() {
-    return manejadornivel.getNivel().getAncho() * TAM_TILE;
+
+    private int obtenerUltimaFilaVisible(BufferedImage imagen) {
+        for (int y = imagen.getHeight() - 1; y >= 0; y--) {
+            for (int x = 0; x < imagen.getWidth(); x++) {
+                if ((imagen.getRGB(x, y) >>> 24) != 0) {
+                    return y;
+                }
+            }
+        }
+        throw new IllegalStateException("El frame de la rata no contiene píxeles visibles");
     }
 
     public void mostrarNivelCompletado() {
@@ -263,9 +298,4 @@ if (cuadroRata != null) {
         }
     }
 
-    public void resolverColisiones() {
-    colision.resolver(jugador);
-    secciones.actualizar(jugador);
-    hitboxJugador.actualizar((float) jugador.getX(), (float) jugador.getY());
-    }
 }

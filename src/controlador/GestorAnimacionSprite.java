@@ -42,6 +42,11 @@ public final class GestorAnimacionSprite {
         }
     }
 
+    public void reiniciar() {
+        indiceActual = 0;
+        inicioFrameNanos = System.nanoTime();
+    }
+
     public BufferedImage getFrameActual() {
         return frames[indiceActual];
     }

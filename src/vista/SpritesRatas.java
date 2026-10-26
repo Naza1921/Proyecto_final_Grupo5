@@ -5,9 +5,13 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import modelos.personajes.Personaje.TipoRata;
 
-// Relacionamos cada tipo de rata con su hoja organizada y preparamos su secuencia idle.
+// Relacionamos cada tipo y acción con las hojas de sprites de la rata.
 public final class SpritesRatas {
     private static final int FILA_IDLE = 0;
+
+    public enum Accion {
+        QUIETA, CAMINAR, SALTAR, AGACHADA
+    }
 
     private SpritesRatas() {
     }
@@ -16,29 +20,111 @@ public final class SpritesRatas {
         if (tipo == null) {
             throw new IllegalArgumentException("Se requiere el tipo de rata para cargar sus sprites");
         }
-        // Cada fuente tiene su propia grilla; cargamos la secuencia idle que usa actualmente el juego.
-        switch (tipo) {
-            case BLANCA:
-                return cargarSecuenciaIdle("/assets/rata_blanca/rata_blanca.png", 122, 4, 8);
-            case GRIS:
-                return cargarSecuenciaIdle(
-                    "/assets/rata_sprites_gris/rata_idle_quieto.png", 108, 4, 4
-                );
-            case NEGRA:
-                return cargarSecuenciaIdle("/assets/rata_negra/rata_negra.png", 169, 3, 3);
-            case VERDE:
-                return cargarSecuenciaIdle("/assets/rata_verde/rata_verde.png", 105, 6, 8);
-            default:
-                throw new IllegalArgumentException("Tipo de rata sin hoja de sprites: " + tipo);
-        }
+        return cargarHoja(tipo, Accion.QUIETA);
     }
 
-    // Los recursos organizados conservan las hojas fuente; el juego solo anima la secuencia idle.
-    private static SpriteSheet cargarSecuenciaIdle(String ruta, int altoFila,
-                                                   int cantidadFrames, int columnas) {
-        // Cargamos la franja idle del atlas sin interpretar como frame el resto de la hoja.
-        return new SpriteSheet(ruta, new int[] {0, altoFila},
-            new int[] {cantidadFrames}, new int[] {columnas});
+    public static BufferedImage[] cargarFrames(TipoRata tipo, Accion accion) {
+        return crearFramesAlineados(cargarHoja(tipo, accion), FILA_IDLE);
+    }
+
+    private static SpriteSheet cargarHoja(TipoRata tipo, Accion accion) {
+        if (tipo == null || accion == null) {
+            throw new IllegalArgumentException("Se requieren la rata y la acción de animación");
+        }
+
+        String ruta;
+        int cantidadFrames;
+        switch (tipo) {
+            case BLANCA:
+                switch (accion) {
+                    case QUIETA:
+                        ruta = "/assets/rata_blanca/rata_blanca_v2_quieta.jpg";
+                        cantidadFrames = 4;
+                        break;
+                    case CAMINAR:
+                        ruta = "/assets/rata_blanca/rata_blanca_v2_caminar.jpg";
+                        cantidadFrames = 6;
+                        break;
+                    case SALTAR:
+                        ruta = "/assets/rata_blanca/rata_blanca_v2_salta.jpg";
+                        cantidadFrames = 7;
+                        break;
+                    case AGACHADA:
+                        ruta = "/assets/rata_blanca/rata_blanca_v2_agache.jpg";
+                        cantidadFrames = 6;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Acción de rata blanca no reconocida");
+                }
+                break;
+            case NEGRA:
+                switch (accion) {
+                    case QUIETA:
+                    case AGACHADA:
+                        ruta = "/assets/rata_negra/rata_negra_v2_quieta.jpg";
+                        cantidadFrames = 1;
+                        break;
+                    case CAMINAR:
+                        ruta = "/assets/rata_negra/rata_negra_v2_caminar.jpg";
+                        cantidadFrames = 8;
+                        break;
+                    case SALTAR:
+                        ruta = "/assets/rata_negra/rata_negra_v2_salta.jpg";
+                        cantidadFrames = 10;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Acción de rata negra no reconocida");
+                }
+                break;
+            case GRIS:
+                switch (accion) {
+                    case QUIETA:
+                        ruta = "/assets/rata_sprites_gris/rata_gris_v2_quieta.jpg";
+                        cantidadFrames = 4;
+                        break;
+                    case CAMINAR:
+                        ruta = "/assets/rata_sprites_gris/rata_gris_v2_camina.jpg";
+                        cantidadFrames = 6;
+                        break;
+                    case SALTAR:
+                        ruta = "/assets/rata_sprites_gris/rata_gris_v2_salta.jpg";
+                        cantidadFrames = 6;
+                        break;
+                    case AGACHADA:
+                        ruta = "/assets/rata_sprites_gris/rata_gris_v2_agache.jpg";
+                        cantidadFrames = 6;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Acción de rata gris no reconocida");
+                }
+                break;
+            case VERDE:
+                switch (accion) {
+                    case QUIETA:
+                        ruta = "/assets/rata_verde/rata_verde_v2_quieta.jpg";
+                        cantidadFrames = 4;
+                        break;
+                    case CAMINAR:
+                        ruta = "/assets/rata_verde/rata_verde_v2_corre.jpg";
+                        cantidadFrames = 6;
+                        break;
+                    case SALTAR:
+                        ruta = "/assets/rata_verde/rata_verde_v2_salta.jpg";
+                        cantidadFrames = 7;
+                        break;
+                    case AGACHADA:
+                        ruta = "/assets/rata_verde/rata_verde_v2_agacha.jpg";
+                        cantidadFrames = 6;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Acción de rata verde no reconocida");
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Tipo de rata sin animaciones: " + tipo);
+        }
+
+        return new SpriteSheet(ruta, cantidadFrames);
     }
 
     // Devuelve el primer cuadro de la fila de reposo, ajustado sin deformar el sprite.

@@ -12,6 +12,7 @@ import modelos.items.EfectoInvulnerabilidad;
 import modelos.items.EfectoLento;
 import modelos.items.EfectoVelocidad;
 import modelos.items.PowerUp;
+import modelos.partida.ConfiguracionPartida;
 import modelos.personajes.Personaje;
 import vista.PanelJuego;
 
@@ -32,6 +33,9 @@ public class ControladorPartida implements SeccionListener {
     private final GestorEfectosTemporales gestorEfectos;
     private final ControladorPuntaje controladorPuntaje;
     private final PanelJuego panelJuego;
+    private final levelmanager niveles;
+    private final ColisionNivel colisionNivel;
+    private final GestorSecciones gestorSecciones;
     private final Personaje jugador;
     private final fantasma enemigo;
     private final Map<Integer, List<PowerUp>> powerUpsPorSeccion;
@@ -45,36 +49,19 @@ public class ControladorPartida implements SeccionListener {
     private int seccionPowerUpsPresentada = -1;
 
     public ControladorPartida(ControladorRata controladorRata,
-                            GestorControlesRatas gestorControles,
-                              GestorEfectosTemporales gestorEfectos,
-                              ControladorPuntaje controladorPuntaje,
-                              PanelJuego panelJuego) {
-        this(controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, Map.of(), null, null, () -> { });
-    }
-
-    public ControladorPartida(ControladorRata controladorRata,
                               GestorControlesRatas gestorControles,
                               GestorEfectosTemporales gestorEfectos,
                               ControladorPuntaje controladorPuntaje,
                               PanelJuego panelJuego,
-                              Map<Integer, List<PowerUp>> powerUpsPorSeccion) {
-        this(controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, powerUpsPorSeccion, null, null, () -> { });
-    }
-
-    public ControladorPartida(ControladorRata controladorRata,
-                              GestorControlesRatas gestorControles,
-                              GestorEfectosTemporales gestorEfectos,
-                              ControladorPuntaje controladorPuntaje,
-                              PanelJuego panelJuego,
+                              levelmanager niveles,
                               Map<Integer, List<PowerUp>> powerUpsPorSeccion,
                               Personaje jugador,
                               fantasma enemigo,
                               Runnable alCompletarNivel) {
         if (controladorRata == null || gestorControles == null
                 || gestorEfectos == null || controladorPuntaje == null || panelJuego == null
-                || powerUpsPorSeccion == null || (jugador == null) != (enemigo == null)
+                || niveles == null
+                || powerUpsPorSeccion == null || jugador == null || enemigo == null
                 || alCompletarNivel == null) {
             throw new IllegalArgumentException(
                 "Se requieren controladores, puntaje, vista e inventario válidos"
@@ -85,12 +72,26 @@ public class ControladorPartida implements SeccionListener {
         this.gestorEfectos = gestorEfectos;
         this.controladorPuntaje = controladorPuntaje;
         this.panelJuego = panelJuego;
+        this.niveles = niveles;
         this.jugador = jugador;
         this.enemigo = enemigo;
         this.powerUpsPorSeccion = copiarPowerUpsPorSeccion(powerUpsPorSeccion);
         this.alCompletarNivel = alCompletarNivel;
+        this.colisionNivel = new ColisionNivel(
+            niveles.getNivel(),
+            ConfiguracionPartida.TAM_TILE,
+            ConfiguracionPartida.ANCHO_JUGADOR,
+            ConfiguracionPartida.ALTO_JUGADOR
+        );
+        this.gestorSecciones = new GestorSecciones(
+            niveles,
+            colisionNivel,
+            ConfiguracionPartida.TAM_TILE,
+            ConfiguracionPartida.ANCHO_JUGADOR,
+            ConfiguracionPartida.ALTO_JUGADOR
+        );
         this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, evento -> actualizar());
-        panelJuego.getGestorSecciones().setListener(this);
+        gestorSecciones.setListener(this);
         actualizarPowerUpsVisibles();
     }
 
@@ -99,7 +100,7 @@ public class ControladorPartida implements SeccionListener {
             throw new IllegalArgumentException("Se requiere un power-up");
         }
         List<PowerUp> disponibles = powerUpsPorSeccion.get(
-            panelJuego.getGestorSecciones().getSeccionActual()
+            gestorSecciones.getSeccionActual()
         );
         if (disponibles == null || !disponibles.contains(powerUp)
                 || !recogerPowerUpSiColisiona(powerUp)) {
@@ -132,7 +133,7 @@ public class ControladorPartida implements SeccionListener {
     }
 
     private void actualizarPowerUpsVisibles() {
-        int seccionActual = panelJuego.getGestorSecciones().getSeccionActual();
+        int seccionActual = gestorSecciones.getSeccionActual();
         if (seccionActual != seccionPowerUpsPresentada) {
             panelJuego.actualizarPowerUps(
                 powerUpsPorSeccion.getOrDefault(seccionActual, List.of())
@@ -267,16 +268,22 @@ private void actualizar() {
     }
 
     double xMinimo = 0;
-    double xMaximo = Math.max(0, panelJuego.getAnchoNivelPx() - panelJuego.getAnchoHitbox());
+    double anchoNivel = niveles.getNivel().getAncho() * ConfiguracionPartida.TAM_TILE;
+    double xMaximo = Math.max(0, anchoNivel - ConfiguracionPartida.ANCHO_JUGADOR);
     gestorControles.actualizarMovimiento(xMinimo, xMaximo);
 
     gestorEfectos.actualizar();
     controladorRata.actualizar(Double.POSITIVE_INFINITY);
-    panelJuego.resolverColisiones();
+    colisionNivel.resolver(jugador);
+    gestorSecciones.actualizar(jugador);
     if (enemigo != null) {
         enemigo.actualizarPatrulla(POSICION_Y_FANTASMA);
         int vidaAntesDelGolpe = jugador.getVida();
-        enemigo.atacar(jugador, panelJuego.getAnchoHitbox(), panelJuego.getAltoHitbox());
+        enemigo.atacar(
+            jugador,
+            ConfiguracionPartida.ANCHO_JUGADOR,
+            ConfiguracionPartida.ALTO_JUGADOR
+        );
         if (jugador.getVida() < vidaAntesDelGolpe) {
             controladorPuntaje.penalizar(PENALIZACION_GOLPE_FANTASMA);
         }
