@@ -266,7 +266,7 @@ La consulta guarda el mejor resultado de cada jugador: reemplaza el anterior si 
 ```
 - Lenguaje: Java.
 - IDE: Visual Studio Code.
-- Framework de IGU: Java Swing.
+- Framework de IGU: Java Swing y AWT.
 - Control de Versiones: Git y GitHub.
 - Base de datos: SQLite
 - Framework de gestor de musica :JavaFX
