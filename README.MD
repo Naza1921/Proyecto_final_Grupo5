@@ -86,25 +86,6 @@ tema de la pantalla de ajustes y alternar pantalla completa. Las preferencias
 pueden guardarse o restaurarse a sus valores estandar; la musica se reproduce
 en bucle mediante JavaFX Media. Los audios estan en `src/assets/audio/`.
 
-### Plan de Desarrollo
-Roadmap sugerido por fases
-
-#### Pre‑producción
-Documento de diseño (este README).
-Prototipo de mecánicas básicas (movimiento, salto, colisión).
-Definición de arte .
-#### Producción
-Implementación de sistemas de vida, daño y enemigos.
-Creación de niveles/pisos con sus amenazas y objetos.
-Desarrollo de power‑ups/power‑downs.Programación del jefe final y su lógica.
-Integración de HUD, cronómetro y puntuación.Implementación de pantalla de inicio, pausa y game over.
-#### Post‑producción
-Pulido de arte y animaciones.
-Balanceo de dificultad (tiempo, frecuencia de enemigos).
-Pruebas de juego y ajuste de controles.
-Integración de audio y música.
-Build y pruebas en plataformas objetivo.
-
 
 //Esta la portada de el juego
 ![Portada del Juego](src/assets/Portada_rata.png)
@@ -225,8 +206,6 @@ public void activar(PowerUp powerUp) {
     efectosActivos.put(categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos));
 }
 ```
-
-
 **Por qué es útil para el juego:**
 
 - Cada efecto tiene su propia implementación y puede cambiarse sin añadir una cadena de condiciones a `Personaje` o al controlador de partida.
@@ -237,28 +216,46 @@ public void activar(PowerUp powerUp) {
 [Patrones de diseño STRATEGY](https://refactoring.guru/es/design-patterns/strategy)
 
 ### Persistencia SQLite: DAO y Singleton
+Persistencia de puntajes: Singleton y DAO
 
-La aplicación guarda el mejor resultado de cada jugador en `Score.db`, en la
-tabla `score` (`Nombre`, `Puntuacion` y `Tiempo`). Al completar el
-nivel se solicita el nombre del jugador; el tiempo se almacena en segundos.
-Para un mismo nombre se conserva la puntuación más alta y, en caso de empate,
-el menor tiempo. El jugador puede consultar los resultados ordenados a través
-de `PuntajeDAO.listarMejoresPuntajes()`; todavía no hay una pantalla de ranking.
-Al recoger Velocidad se suman 475 puntos, Invulnerabilidad suma 1000 y Lento
-resta 300, sin permitir que el puntaje baje de cero. El HUD refleja estos cambios
-durante la partida. Además, cada 30 segundos completos se descuentan 10 puntos
-del puntaje presentado, con un mínimo de cero; ese mismo puntaje ajustado se
-guarda al completar el nivel. Cada golpe efectivo del fantasma descuenta 125
-puntos, también con un mínimo de cero.
+Para guardar y consultar los puntajes del juego se utilizan dos patrones de diseño: Singleton y DAO. En conjunto, permiten centralizar el acceso a la base de datos SQLite y mantener las consultas SQL separadas del resto de la aplicación.
 
-`ConexionSQLite` aplica Singleton y mantiene la conexión compartida. `PuntajeDAO`
-define las operaciones de persistencia y `SQLitePuntajeDAO` las implementa con
-sentencias preparadas. `ServicioPuntajes` recibe el DAO y coordina la creación
-del resultado y su guardado; el controlador conserva únicamente la interacción
-visual (solicitud del nombre y notificación al jugador). La aplicación utiliza
-la ubicación `Score.db` en el directorio de ejecución por defecto. Si no existe
-la tabla `score`, se crea al abrir la base. Se puede
-indicar otra ruta absoluta con la propiedad Java
-`-Dghostsrats.db.path=C:\ruta\Score.db` o con la variable
-de entorno `GHOSTSRATS_DB_PATH`. Si la base configurada no existe, la aplicación
-notifica el error en lugar de crear silenciosamente otra base vacía.
+Singleton: acceso compartido a la conexión
+La clase ConexionSQLite administra la conexión con la base de datos. Su constructor es privado, por lo que no se pueden crear instancias desde otras clases. En cambio, se obtiene la instancia única mediante el método obtenerInstancia():
+
+```java
+private ConexionSQLite() { }
+
+private static class Instancia {
+    private static final ConexionSQLite UNICA = new ConexionSQLite();
+}
+
+public static ConexionSQLite obtenerInstancia() {
+    return Instancia.UNICA;
+}
+```
+Este mecanismo crea la instancia cuando se solicita por primera vez y asegura que las distintas partes de la aplicación accedan al mismo gestor de conexión. El método obtenerConexion() abre la conexión cuando es necesario y la reutiliza mientras permanezca disponible. También prepara la tabla score si todavía no existe.
+
+DAO: operaciones de persistencia encapsuladas
+El patrón DAO (Data Access Object) se utiliza para aislar las operaciones de base de datos. La interfaz PuntajeDAO declara las acciones que se pueden realizar con los puntajes, sin incluir detalles específicos de SQLite:
+```java
+public interface PuntajeDAO {
+    boolean guardarMejorPuntaje(ResultadoPuntaje resultado) throws SQLException;
+
+    List<ResultadoPuntaje> listarMejoresPuntajes() throws SQLException;
+}
+```
+
+La clase SQLitePuntajeDAO implementa esa interfaz y contiene las consultas SQL. Por ejemplo, para guardar un puntaje obtiene la conexión y utiliza un PreparedStatement:
+
+```java
+Connection conexion = conexionSQLite.obtenerConexion();
+try (PreparedStatement sentencia =
+         conexion.prepareStatement(INSERTAR_PUNTAJE)) {
+    sentencia.setString(1, resultado.getNombre());
+    sentencia.setInt(2, resultado.getPuntuacion());
+    sentencia.setLong(3, resultado.getTiempoSegundos());
+    return sentencia.executeUpdate() > 0;
+}
+```
+La consulta guarda el mejor resultado de cada jugador: reemplaza el anterior si la nueva puntuación es más alta o, en caso de empate, si se obtuvo en menos tiempo. La otra operación recupera los puntajes ordenados para mostrarlos en el tablero.
