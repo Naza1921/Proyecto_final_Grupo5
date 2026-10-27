@@ -11,10 +11,10 @@ import javax.swing.JPanel;
 import controlador.utilz.loadsave;
 
 public final class MenuGameOver extends JPanel {
-    private static final int ANCHO_BOTON = 300;
-    private static final int ALTO_BOTON = 112;
-    private static final int SEPARACION_BOTONES = 12;
-    private static final int MARGEN_INFERIOR = 22;
+    private static final int ANCHO_BOTON = 252;
+    private static final int ALTO_BOTON = 104;
+    private static final int SEPARACION_BOTONES = 4;
+    private static final int MARGEN_INFERIOR = 18;
 
     private final BufferedImage fondo;
     private final BotonImagen btnVolver;

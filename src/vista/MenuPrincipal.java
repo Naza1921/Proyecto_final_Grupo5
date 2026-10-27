@@ -5,10 +5,10 @@ import java.awt.*;
 import controlador.utilz.loadsave;
 
 public class MenuPrincipal extends JPanel {
-    private static final int ANCHO_BOTON = 300;
-    private static final int ALTO_BOTON = 112;
-    private static final int ANCHO_TITULO = 760;
-    private static final int ALTO_TITULO = 445;
+    private static final int ANCHO_BOTON = 252;
+    private static final int ALTO_BOTON = 104;
+    private static final int ANCHO_TITULO = 640;
+    private static final int ALTO_TITULO = 320;
 
     private final BotonImagen btnJugar;
     private final BotonImagen btnOpciones;
@@ -29,7 +29,7 @@ public class MenuPrincipal extends JPanel {
         btnRanking = crearBoton("Ranking", "boton_ranking.png");
         btnSalir = crearBoton("Salir", "boton_salir.png");
 
-        JPanel botonera = new JPanel(new GridLayout(2, 2, 8, 8));
+        JPanel botonera = new JPanel(new GridLayout(2, 2, 10, 4));
         botonera.setOpaque(false);
         botonera.add(btnJugar);
         botonera.add(btnOpciones);
@@ -41,7 +41,7 @@ public class MenuPrincipal extends JPanel {
         restricciones.gridy = 0;
         restricciones.weighty = 1;
         restricciones.anchor = GridBagConstraints.SOUTH;
-        restricciones.insets = new Insets(0, 0, 20, 0);
+        restricciones.insets = new Insets(0, 0, 16, 0);
         add(botonera, restricciones);
     }
 
