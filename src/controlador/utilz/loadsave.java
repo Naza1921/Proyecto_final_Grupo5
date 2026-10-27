@@ -67,11 +67,20 @@ public class loadsave {
         }
     }
 public static int[][] obtenerdatonivel(String ruta) {
-    BufferedImage img = GetSpriteatlas(ruta);
-    int[][] nivdato = new int[img.getWidth()][img.getHeight()];
-    for (int j = 0; j < img.getHeight(); j++)
-        for (int i = 0; i < img.getWidth(); i++)
-            nivdato[i][j] = (img.getRGB(i, j) >> 16) & 0xFF;   // si exportás con ×8: / 8
-    return nivdato;
+    return obtenerCanalesNivel(ruta)[0];
+}
+
+public static int[][][] obtenerCanalesNivel(String ruta) {
+    BufferedImage imagen = GetSpriteatlas(ruta);
+    int[][][] canales = new int[3][imagen.getWidth()][imagen.getHeight()];
+    for (int y = 0; y < imagen.getHeight(); y++) {
+        for (int x = 0; x < imagen.getWidth(); x++) {
+            int pixel = imagen.getRGB(x, y);
+            canales[0][x][y] = (pixel >>> 16) & 0xFF;
+            canales[1][x][y] = (pixel >>> 8) & 0xFF;
+            canales[2][x][y] = pixel & 0xFF;
+        }
+    }
+    return canales;
 }
 }

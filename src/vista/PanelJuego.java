@@ -7,6 +7,7 @@ import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
@@ -30,7 +31,7 @@ import modelos.items.Moneda;
 
 //aqui nosotros estamos definimos el panel visual del juego
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
-public class PanelJuego extends JPanel {
+public final class PanelJuego extends JPanel {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
     private static final double ZOOM_CAMARA = 2.0;
     private static final double ZOOM_CAMARA_PANTALLA_COMPLETA = 2.5;
@@ -38,10 +39,10 @@ public class PanelJuego extends JPanel {
     private static final long DURACION_ANIMACION_PREPARACION_NANOS = 1_500_000_000L;
 
     private final Personaje jugador;
-    private final fantasma enemigo;
-    private final ratainfestada rataInfestada;
-    private boolean fantasmaVisible = true;
-    private boolean rataInfestadaVisible = true;
+    private List<fantasma> fantasmas = List.of();
+    private List<ratainfestada> ratasInfestadas = List.of();
+    private final Map<fantasma, Long> iniciosMuerteFantasmaNanos = new IdentityHashMap<>();
+    private final Map<ratainfestada, EstadoSpriteRata> estadosSpriteRata = new IdentityHashMap<>();
     private final levelmanager manejadornivel;
     private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
     private final PanelHUD hud;
@@ -70,45 +71,54 @@ public class PanelJuego extends JPanel {
     private int indiceFrameMuerte;
     private final BufferedImage[] framesDanio;
     private final Timer temporizadorAnimacionDanio;
+    private boolean listenersAnimacionConfigurados;
     private int indiceFrameDanio;
     private final GestorAnimacionSprite animacionFantasmaDerecha;
     private final GestorAnimacionSprite animacionFantasmaIzquierda;
     private final BufferedImage[] framesMuerteFantasma;
-    private final SpriteRataInfestada spriteRataInfestada;
     private final SpriteProyectilStun spriteProyectilStun;
     private final SpriteAcidoCharco spriteAcidoCharco;
     private final SpriteLamparaFuego spriteLamparaFuego;
     private final Runnable alTerminarAnimacionMuerte;
     private SpriteAcido spriteAcido;
-    private double ultimaXRataInfestada;
-    private long ultimaActualizacionSpriteRataNanos;
     private long finAnimacionHabilidadNanos;
-    private long inicioMuerteFantasmaNanos;
+
+    private static final class EstadoSpriteRata {
+        private final SpriteRataInfestada sprite = new SpriteRataInfestada();
+        private double ultimaX;
+        private long ultimaActualizacionNanos = System.nanoTime();
+
+        private EstadoSpriteRata(double ultimaX) {
+            this.ultimaX = ultimaX;
+        }
+    }
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
-public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
-                  ratainfestada rataInfestada, levelmanager manejadornivel,
+public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fantasmas,
+                  List<ratainfestada> ratasInfestadas, levelmanager manejadornivel,
                   Runnable alTerminarAnimacionMuerte) {
-    if (jugador == null || modeloPuntaje == null || enemigo == null
-            || rataInfestada == null || manejadornivel == null
+    if (jugador == null || modeloPuntaje == null || fantasmas == null
+            || ratasInfestadas == null
+            || fantasmas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
+            || ratasInfestadas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
+            || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
+            || ratasInfestadas.stream().anyMatch(rata -> rata == null)
+            || manejadornivel == null
             || alTerminarAnimacionMuerte == null) {
         throw new IllegalArgumentException("Se requieren el estado de partida y el nivel");
     }
     this.jugador = jugador;
-    this.enemigo = enemigo;
-    this.rataInfestada = rataInfestada;
+    this.fantasmas = List.copyOf(fantasmas);
+    this.ratasInfestadas = List.copyOf(ratasInfestadas);
     this.manejadornivel = manejadornivel;
     this.alTerminarAnimacionMuerte = alTerminarAnimacionMuerte;
     this.puntajePresentado = modeloPuntaje.getTotal();
-    this.spriteRataInfestada = new SpriteRataInfestada();
     this.spriteProyectilStun = new SpriteProyectilStun();
     this.spriteAcidoCharco = new SpriteAcidoCharco();
     this.spriteLamparaFuego = new SpriteLamparaFuego();
     this.spriteMoneda = new SpriteMoneda();
     this.spriteAcido = new SpriteAcido();
-    this.ultimaXRataInfestada = rataInfestada.getX();
-    this.ultimaActualizacionSpriteRataNanos = System.nanoTime();
 
     this.hud = new PanelHUD();
     for (SpritesRatas.Accion accion : SpritesRatas.Accion.values()) {
@@ -129,14 +139,14 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         jugador.getTipoRata(), SpritesRatas.Accion.MUERTE
     );
     this.temporizadorAnimacionMuerte = new Timer(
-        (int) (DURACION_FRAME_NANOS / 1_000_000L), evento -> avanzarAnimacionMuerte()
+        (int) (DURACION_FRAME_NANOS / 1_000_000L), null
     );
     this.temporizadorAnimacionMuerte.setCoalesce(true);
     this.framesDanio = SpritesRatas.cargarFrames(
         jugador.getTipoRata(), SpritesRatas.Accion.RECIBIR_DANIO
     );
     this.temporizadorAnimacionDanio = new Timer(
-        (int) (DURACION_FRAME_NANOS / 1_000_000L), evento -> avanzarAnimacionDanio()
+        (int) (DURACION_FRAME_NANOS / 1_000_000L), null
     );
     this.temporizadorAnimacionDanio.setCoalesce(true);
     this.ultimaXPresentada = jugador.getX();
@@ -214,7 +224,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
                 && rataVerde.getCharcoAcido() != null) {
             spriteAcidoCharco.actualizar(rataVerde.getCharcoAcido());
         }
-        actualizarSpriteRataInfestada();
+        actualizarSpritesRatasInfestadas();
         if (accionAnimacionRata == SpritesRatas.Accion.MUERTE
                 || accionAnimacionRata == SpritesRatas.Accion.RECIBIR_DANIO) {
             animacionFantasmaDerecha.actualizar();
@@ -269,6 +279,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
             return;
         }
+        configurarListenersAnimacion();
         temporizadorAnimacionDanio.stop();
         accionAnimacionRata = SpritesRatas.Accion.MUERTE;
         indiceFrameMuerte = 0;
@@ -281,11 +292,21 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
             return;
         }
+        configurarListenersAnimacion();
         accionAnimacionRata = SpritesRatas.Accion.RECIBIR_DANIO;
         indiceFrameDanio = 0;
         frameBaseCalculada = null;
         temporizadorAnimacionDanio.restart();
         repaint();
+    }
+
+    private void configurarListenersAnimacion() {
+        if (listenersAnimacionConfigurados) {
+            return;
+        }
+        temporizadorAnimacionMuerte.addActionListener(evento -> avanzarAnimacionMuerte());
+        temporizadorAnimacionDanio.addActionListener(evento -> avanzarAnimacionDanio());
+        listenersAnimacionConfigurados = true;
     }
 
     private void avanzarAnimacionMuerte() {
@@ -310,25 +331,27 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         repaint();
     }
 
-    private void actualizarSpriteRataInfestada() {
-        double desplazamientoX = rataInfestada.getX() - ultimaXRataInfestada;
-        SpriteRataInfestada.Animacion animacion;
-        if (!rataInfestada.estavivo()) {
-            animacion = SpriteRataInfestada.Animacion.MUERTE;
-        } else if (Math.abs(desplazamientoX) > 0.01) {
-            animacion = desplazamientoX < 0
-                ? SpriteRataInfestada.Animacion.CAMINAR_IZQUIERDA
-                : SpriteRataInfestada.Animacion.CAMINAR_DERECHA;
-        } else {
-            animacion = SpriteRataInfestada.Animacion.QUIETA;
-        }
-        spriteRataInfestada.setAnimacion(animacion);
-
+    private void actualizarSpritesRatasInfestadas() {
         long ahora = System.nanoTime();
-        long deltaMilisegundos = (ahora - ultimaActualizacionSpriteRataNanos) / 1_000_000L;
-        spriteRataInfestada.actualizar(deltaMilisegundos);
-        ultimaActualizacionSpriteRataNanos = ahora;
-        ultimaXRataInfestada = rataInfestada.getX();
+        for (ratainfestada rata : ratasInfestadas) {
+            EstadoSpriteRata estado = estadosSpriteRata.get(rata);
+            double desplazamientoX = rata.getX() - estado.ultimaX;
+            SpriteRataInfestada.Animacion animacion;
+            if (!rata.estavivo()) {
+                animacion = SpriteRataInfestada.Animacion.MUERTE;
+            } else if (Math.abs(desplazamientoX) > 0.01) {
+                animacion = desplazamientoX < 0
+                    ? SpriteRataInfestada.Animacion.CAMINAR_IZQUIERDA
+                    : SpriteRataInfestada.Animacion.CAMINAR_DERECHA;
+            } else {
+                animacion = SpriteRataInfestada.Animacion.QUIETA;
+            }
+            estado.sprite.setAnimacion(animacion);
+            long deltaMilisegundos = (ahora - estado.ultimaActualizacionNanos) / 1_000_000L;
+            estado.sprite.actualizar(deltaMilisegundos);
+            estado.ultimaActualizacionNanos = ahora;
+            estado.ultimaX = rata.getX();
+        }
     }
 
     private SpritesRatas.Accion obtenerAccionAnimacion(double desplazamientoX) {
@@ -365,28 +388,39 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         repaint();
     }
 
-    public void actualizarEnemigosVisibles(boolean fantasmaVisible, boolean rataInfestadaVisible) {
-        this.fantasmaVisible = fantasmaVisible;
-        this.rataInfestadaVisible = rataInfestadaVisible;
-        if (fantasmaVisible) {
-            inicioMuerteFantasmaNanos = 0;
+    public void actualizarEnemigosVisibles(
+            List<fantasma> fantasmas, List<ratainfestada> ratasInfestadas) {
+        if (fantasmas == null || ratasInfestadas == null
+                || fantasmas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
+                || ratasInfestadas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
+                || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
+                || ratasInfestadas.stream().anyMatch(rata -> rata == null)) {
+            throw new IllegalArgumentException("Las listas de enemigos deben ser válidas");
         }
-        if (rataInfestadaVisible) {
-            spriteRataInfestada.setAnimacion(SpriteRataInfestada.Animacion.QUIETA);
-            ultimaXRataInfestada = rataInfestada.getX();
+        this.fantasmas = List.copyOf(fantasmas);
+        this.ratasInfestadas = List.copyOf(ratasInfestadas);
+        iniciosMuerteFantasmaNanos.clear();
+        estadosSpriteRata.clear();
+        for (ratainfestada rata : this.ratasInfestadas) {
+            estadosSpriteRata.put(rata, new EstadoSpriteRata(rata.getX()));
         }
         repaint();
     }
 
-    public void mostrarMuerteFantasma() {
-        if (inicioMuerteFantasmaNanos == 0) {
-            inicioMuerteFantasmaNanos = System.nanoTime();
+    public void mostrarMuerteFantasma(fantasma enemigo) {
+        if (enemigo == null || !fantasmas.contains(enemigo)) {
+            throw new IllegalArgumentException("Se requiere un fantasma visible");
         }
+        iniciosMuerteFantasmaNanos.putIfAbsent(enemigo, System.nanoTime());
         repaint();
     }
 
-    public void mostrarMuerteRataInfestada() {
-        spriteRataInfestada.setAnimacion(SpriteRataInfestada.Animacion.MUERTE);
+    public void mostrarMuerteRataInfestada(ratainfestada rata) {
+        EstadoSpriteRata estado = estadosSpriteRata.get(rata);
+        if (estado == null) {
+            throw new IllegalArgumentException("Se requiere una rata infestada visible");
+        }
+        estado.sprite.setAnimacion(SpriteRataInfestada.Animacion.MUERTE);
         repaint();
     }
 
@@ -456,7 +490,7 @@ if (jugador instanceof rata_negra rataNegra && rataNegra.getLamparaFuego() != nu
     spriteLamparaFuego.dibujar(g2, rataNegra.getLamparaFuego());
 }
 
-if (fantasmaVisible) {
+for (fantasma enemigo : fantasmas) {
     BufferedImage cuadroFantasma;
     if (enemigo.estavivo()) {
         GestorAnimacionSprite animacionFantasma = enemigo.estaMoviendoseDerecha()
@@ -464,10 +498,10 @@ if (fantasmaVisible) {
             : animacionFantasmaIzquierda;
         cuadroFantasma = animacionFantasma.getFrameActual();
     } else {
-        if (inicioMuerteFantasmaNanos == 0) {
-            inicioMuerteFantasmaNanos = System.nanoTime();
-        }
-        long transcurrido = System.nanoTime() - inicioMuerteFantasmaNanos;
+        long inicioMuerte = iniciosMuerteFantasmaNanos.computeIfAbsent(
+            enemigo, fantasma -> System.nanoTime()
+        );
+        long transcurrido = System.nanoTime() - inicioMuerte;
         int indice = (int) Math.min(
             framesMuerteFantasma.length - 1,
             transcurrido / DURACION_FRAME_NANOS
@@ -477,8 +511,9 @@ if (fantasmaVisible) {
     g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
         (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
 }
-if (rataInfestadaVisible) {
-    spriteRataInfestada.dibujar(
+for (ratainfestada rataInfestada : ratasInfestadas) {
+    EstadoSpriteRata estado = estadosSpriteRata.get(rataInfestada);
+    estado.sprite.dibujar(
         g2,
         (int) Math.round(rataInfestada.getX()),
         (int) Math.round(rataInfestada.getY()),

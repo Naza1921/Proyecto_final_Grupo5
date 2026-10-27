@@ -8,7 +8,7 @@ public class rata_gris extends Personaje {
     // Pasamos sus valores iniciales al padre para no duplicar estado en esta subclase.
     public rata_gris(String nombre) {
         // Tiene estadísticas equilibradas y recupera estamina más rápido.
-        super(nombre, TipoRata.GRIS, 120, 2.5, 9, 100);
+        super(nombre, TipoRata.GRIS, 120, 5, 8, 100);
     }
 
     @Override

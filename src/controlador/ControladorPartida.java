@@ -1,10 +1,13 @@
 package controlador;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.Timer;
 import modelos.enemigos.enemigo;
 import modelos.enemigos.fantasma;
@@ -15,13 +18,14 @@ import modelos.items.EfectoVelocidad;
 import modelos.items.Moneda;
 import modelos.items.PowerUp;
 import modelos.partida.ConfiguracionPartida;
+import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import modelos.personajes.rata_negra;
 import modelos.personajes.rata_verde;
 import vista.PanelJuego;
 
 // Coordina el ciclo temporal de la partida y solicita el repintado de la vista.
-public class ControladorPartida implements SeccionListener {
+public final class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
     private static final int PUNTOS_VELOCIDAD = 475;
@@ -33,36 +37,6 @@ public class ControladorPartida implements SeccionListener {
     private static final int PUNTOS_MONEDA = 100;
     private static final long INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS = 30;
     private static final int PENALIZACION_TIEMPO_PUNTOS = 10;
-    private static final List<ConfiguracionEnemigosSeccion> ENEMIGOS_POR_SECCION = List.of(
-        new ConfiguracionEnemigosSeccion(
-            new PosicionFantasma(190, 420, 390),
-            new PosicionRataInfestada(600, 640)
-        ),
-        new ConfiguracionEnemigosSeccion(
-            new PosicionFantasma(500, 760, 310),
-            null
-        ),
-        new ConfiguracionEnemigosSeccion(
-            null,
-            new PosicionRataInfestada(900, 640)
-        ),
-        new ConfiguracionEnemigosSeccion(
-            new PosicionFantasma(700, 1000, 290),
-            new PosicionRataInfestada(300, 640)
-        ),
-        new ConfiguracionEnemigosSeccion(
-            new PosicionFantasma(820, 1120, 350),
-            null
-        )
-    );
-
-    private record PosicionFantasma(double xMinimo, double xMaximo, double y) { }
-    private record PosicionRataInfestada(double x, double y) { }
-    private record ConfiguracionEnemigosSeccion(
-        PosicionFantasma fantasma,
-        PosicionRataInfestada rataInfestada
-    ) { }
-
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
     private final GestorEfectosTemporales gestorEfectos;
@@ -73,22 +47,25 @@ public class ControladorPartida implements SeccionListener {
     private final ColisionNivel colisionNivel;
     private final GestorSecciones gestorSecciones;
     private final Personaje jugador;
-    private final fantasma enemigo;
-    private final ratainfestada rataInfestada;
-    private boolean fantasmaVisible;
-    private boolean rataInfestadaVisible;
-    private boolean fantasmaPremiado;
-    private boolean rataInfestadaPremiada;
-    private final Map<Integer, List<PowerUp>> powerUpsPorSeccion;
+    private final List<fantasma> fantasmas;
+    private final List<ratainfestada> ratasInfestadas;
+    private List<fantasma> fantasmasVisibles = List.of();
+    private List<ratainfestada> ratasInfestadasVisibles = List.of();
+    private final Set<fantasma> fantasmasPremiados =
+        Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<ratainfestada> ratasInfestadasPremiadas =
+        Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Map<Integer, List<PowerUp>> powerUpsPorNivel;
     private final Map<Integer, List<Moneda>> monedasPorSeccion;
     private final Timer temporizador;
+    private boolean listenerTemporizadorConfigurado;
     private final Runnable alCompletarNivel;
     private long ultimaRecargaEstaminaNanos = System.nanoTime();
     private long inicioPartidaNanos;
     private long tiempoAcumuladoNanos;
     private boolean partidaEnCurso;
     private boolean pausada;
-    private int seccionPowerUpsPresentada = -1;
+    private int nivelPowerUpsPresentado = -1;
     private int seccionMonedasPresentada = -1;
     private boolean sonidoMuerteReproducido;
 
@@ -99,18 +76,21 @@ public class ControladorPartida implements SeccionListener {
                               ControladorPuntaje controladorPuntaje,
                               PanelJuego panelJuego,
                               levelmanager niveles,
-                              Map<Integer, List<PowerUp>> powerUpsPorSeccion,
+                              Map<Integer, List<PowerUp>> powerUpsPorNivel,
                               Map<Integer, List<Moneda>> monedasPorSeccion,
                               Personaje jugador,
-                              fantasma enemigo,
-                              ratainfestada rataInfestada,
+                              List<fantasma> fantasmas,
+                              List<ratainfestada> ratasInfestadas,
                               Runnable alCompletarNivel) {
         if (controladorRata == null || gestorControles == null
                 || gestorEfectos == null || efectosSonido == null
                 || controladorPuntaje == null || panelJuego == null || niveles == null
-                || powerUpsPorSeccion == null || monedasPorSeccion == null
-                || jugador == null || enemigo == null
-                || rataInfestada == null
+                || powerUpsPorNivel == null || monedasPorSeccion == null
+                || jugador == null || fantasmas == null || ratasInfestadas == null
+                || fantasmas.size() > level.MAX_ENEMIGOS_POR_TIPO
+                || ratasInfestadas.size() > level.MAX_ENEMIGOS_POR_TIPO
+                || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
+                || ratasInfestadas.stream().anyMatch(rata -> rata == null)
                 || alCompletarNivel == null) {
             throw new IllegalArgumentException(
                 "Se requieren controladores, puntaje, vista e inventario válidos"
@@ -124,9 +104,9 @@ public class ControladorPartida implements SeccionListener {
         this.panelJuego = panelJuego;
         this.niveles = niveles;
         this.jugador = jugador;
-        this.enemigo = enemigo;
-        this.rataInfestada = rataInfestada;
-        this.powerUpsPorSeccion = copiarPowerUpsPorSeccion(powerUpsPorSeccion);
+        this.fantasmas = List.copyOf(fantasmas);
+        this.ratasInfestadas = List.copyOf(ratasInfestadas);
+        this.powerUpsPorNivel = copiarPowerUpsPorNivel(powerUpsPorNivel);
         this.monedasPorSeccion = copiarMonedasPorSeccion(monedasPorSeccion);
         this.alCompletarNivel = alCompletarNivel;
         this.colisionNivel = new ColisionNivel(
@@ -142,9 +122,8 @@ public class ControladorPartida implements SeccionListener {
             ConfiguracionPartida.ANCHO_JUGADOR,
             ConfiguracionPartida.ALTO_JUGADOR
         );
-        this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, evento -> actualizar());
-        gestorSecciones.setListener(this);
-        alCambiarSeccion(niveles.getSeccion());
+        this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, null);
+        configurarEnemigosVisibles(niveles.getSeccion());
         actualizarPowerUpsVisibles();
         actualizarMonedasVisibles();
     }
@@ -198,9 +177,7 @@ public class ControladorPartida implements SeccionListener {
         if (powerUp == null) {
             throw new IllegalArgumentException("Se requiere un power-up");
         }
-        List<PowerUp> disponibles = powerUpsPorSeccion.get(
-            gestorSecciones.getSeccionActual()
-        );
+        List<PowerUp> disponibles = powerUpsPorNivel.get(niveles.getIndiceNivelActual());
         if (disponibles == null || !disponibles.contains(powerUp)
                 || !recogerPowerUpSiColisiona(powerUp)) {
             return false;
@@ -211,36 +188,37 @@ public class ControladorPartida implements SeccionListener {
         return true;
     }
 
-    private Map<Integer, List<PowerUp>> copiarPowerUpsPorSeccion( Map<Integer, List<PowerUp>> powerUpsPorSeccion) {
+    private Map<Integer, List<PowerUp>> copiarPowerUpsPorNivel(
+            Map<Integer, List<PowerUp>> powerUpsPorNivel) {
         Map<Integer, List<PowerUp>> copia = new HashMap<>();
-        for (Map.Entry<Integer, List<PowerUp>> entrada : powerUpsPorSeccion.entrySet()) {
-            Integer seccion = entrada.getKey();
+        for (Map.Entry<Integer, List<PowerUp>> entrada : powerUpsPorNivel.entrySet()) {
+            Integer indiceNivel = entrada.getKey();
             List<PowerUp> powerUps = entrada.getValue();
-            if (seccion == null || seccion < 0 || powerUps == null) {
-                throw new IllegalArgumentException("Cada sección debe tener una lista válida de power-ups");
+            if (indiceNivel == null || indiceNivel < 0 || powerUps == null) {
+                throw new IllegalArgumentException("Cada nivel debe tener una lista válida de power-ups");
             }
             for (PowerUp powerUp : powerUps) {
                 if (powerUp == null) {
                     throw new IllegalArgumentException(
-                        "Cada sección debe tener una lista válida de power-ups"
+                        "Cada nivel debe tener una lista válida de power-ups"
                     );
                 }
             }
-            copia.put(seccion, new ArrayList<>(powerUps));
+            copia.put(indiceNivel, new ArrayList<>(powerUps));
         }
         return copia;
     }
 
     private void actualizarPowerUpsVisibles() {
-        int seccionActual = gestorSecciones.getSeccionActual();
-        if (seccionActual != seccionPowerUpsPresentada) {
+        int indiceNivel = niveles.getIndiceNivelActual();
+        if (indiceNivel != nivelPowerUpsPresentado) {
             panelJuego.actualizarPowerUps(
-                powerUpsPorSeccion.getOrDefault(seccionActual, List.of())
+                powerUpsPorNivel.getOrDefault(indiceNivel, List.of())
             );
-            seccionPowerUpsPresentada = seccionActual;
+            nivelPowerUpsPresentado = indiceNivel;
         }
 
-        List<PowerUp> powerUps = powerUpsPorSeccion.get(seccionActual);
+        List<PowerUp> powerUps = powerUpsPorNivel.get(indiceNivel);
         if (powerUps == null) {
             return;
         }
@@ -320,6 +298,11 @@ public class ControladorPartida implements SeccionListener {
             reproducirSonidoMuerte();
             return;
         }
+        if (!listenerTemporizadorConfigurado) {
+            temporizador.addActionListener(evento -> actualizar());
+            listenerTemporizadorConfigurado = true;
+        }
+        gestorSecciones.setListener(this);
         inicioPartidaNanos = System.nanoTime();
         partidaEnCurso = true;
         pausada = false;
@@ -384,7 +367,9 @@ public class ControladorPartida implements SeccionListener {
 private void actualizar() {
     long ahora = System.nanoTime();
     int vidaAntesDeActualizar = jugador.getVida();
-    List<enemigo> enemigosActivos = new ArrayList<>(2);
+    List<enemigo> enemigosActivos = new ArrayList<>(
+        fantasmasVisibles.size() + ratasInfestadasVisibles.size()
+    );
     if (ahora - ultimaRecargaEstaminaNanos >= INTERVALO_RECARGA_ESTAMINA_NANOS) {
         controladorRata.recargarEstamina();
         ultimaRecargaEstaminaNanos = ahora;
@@ -399,7 +384,7 @@ private void actualizar() {
     controladorRata.actualizar(Double.POSITIVE_INFINITY);
     colisionNivel.resolver(jugador);
     gestorSecciones.actualizar(jugador);
-    if (fantasmaVisible) {
+    for (fantasma enemigo : fantasmasVisibles) {
         enemigosActivos.add(enemigo);
         enemigo.actualizarPatrulla(enemigo.getY());
         int vidaAntesDelGolpe = jugador.getVida();
@@ -412,7 +397,7 @@ private void actualizar() {
             controladorPuntaje.penalizar(PENALIZACION_GOLPE_FANTASMA);
         }
     }
-    if (rataInfestadaVisible) {
+    for (ratainfestada rataInfestada : ratasInfestadasVisibles) {
         enemigosActivos.add(rataInfestada);
         rataInfestada.atacar(jugador);
         rataInfestada.actualizar(
@@ -452,22 +437,28 @@ private void actualizarTiempoPartida() {
 }
 
 private void registrarEnemigosDerrotados() {
-    if (fantasmaVisible && !enemigo.estavivo() && !fantasmaPremiado) {
-        fantasmaPremiado = true;
-        agregarPuntos(PUNTOS_DERROTAR_FANTASMA);
-        panelJuego.mostrarMuerteFantasma();
+    for (fantasma enemigo : fantasmasVisibles) {
+        if (!enemigo.estavivo() && fantasmasPremiados.add(enemigo)) {
+            agregarPuntos(PUNTOS_DERROTAR_FANTASMA);
+            panelJuego.mostrarMuerteFantasma(enemigo);
+        }
     }
-    if (rataInfestadaVisible && !rataInfestada.estavivo() && !rataInfestadaPremiada) {
-        rataInfestadaPremiada = true;
-        agregarPuntos(PUNTOS_DERROTAR_RATA_INFESTADA);
-        panelJuego.mostrarMuerteRataInfestada();
+    for (ratainfestada rataInfestada : ratasInfestadasVisibles) {
+        if (!rataInfestada.estavivo() && ratasInfestadasPremiadas.add(rataInfestada)) {
+            agregarPuntos(PUNTOS_DERROTAR_RATA_INFESTADA);
+            panelJuego.mostrarMuerteRataInfestada(rataInfestada);
+        }
     }
 }
 
 @Override
 public void alCambiarSeccion(int seccion) {
-    if (seccion < 0 || seccion >= ENEMIGOS_POR_SECCION.size()) {
-        throw new IllegalArgumentException("La sección no tiene una configuración de enemigos");
+    configurarEnemigosVisibles(seccion);
+}
+
+private void configurarEnemigosVisibles(int seccion) {
+    if (seccion < 0 || seccion != niveles.getSeccion()) {
+        throw new IllegalArgumentException("La sección de enemigos debe coincidir con el nivel actual");
     }
     if (jugador instanceof rata_verde rataVerde) {
         rataVerde.limpiarCharcoAcido();
@@ -476,25 +467,52 @@ public void alCambiarSeccion(int seccion) {
         rataNegra.limpiarLamparaFuego();
     }
 
-    ConfiguracionEnemigosSeccion configuracion = ENEMIGOS_POR_SECCION.get(seccion);
-    PosicionFantasma posicionFantasma = configuracion.fantasma();
-    fantasmaVisible = posicionFantasma != null;
-    if (fantasmaVisible) {
-        fantasmaPremiado = false;
-        enemigo.reiniciarPatrulla(
-            posicionFantasma.xMinimo(),
-            posicionFantasma.xMaximo(),
-            posicionFantasma.y()
-        );
+    level nivel = niveles.getNivel();
+    List<fantasma> fantasmasActivos = new ArrayList<>();
+    List<level.PatrullaFantasma> patrullas = nivel.getPatrullasFantasma();
+    if (patrullas.size() > fantasmas.size()) {
+        throw new IllegalStateException("No hay suficientes instancias para las patrullas del nivel");
+    }
+    for (int indice = 0; indice < fantasmas.size(); indice++) {
+        fantasma enemigo = fantasmas.get(indice);
+        if (indice < patrullas.size()) {
+            level.PatrullaFantasma patrulla = patrullas.get(indice);
+            enemigo.reiniciarPatrulla(
+                patrulla.inicio().columna() * (double) ConfiguracionPartida.TAM_TILE,
+                patrulla.fin().columna() * (double) ConfiguracionPartida.TAM_TILE,
+                patrulla.inicio().fila() * (double) ConfiguracionPartida.TAM_TILE
+            );
+            fantasmasActivos.add(enemigo);
+        } else {
+            enemigo.reiniciarPatrulla(0, ConfiguracionPartida.TAM_TILE, 0);
+        }
     }
 
-    PosicionRataInfestada posicionRata = configuracion.rataInfestada();
-    rataInfestadaVisible = posicionRata != null;
-    if (rataInfestadaVisible) {
-        rataInfestadaPremiada = false;
-        rataInfestada.reiniciar(posicionRata.x(), posicionRata.y());
+    List<ratainfestada> ratasActivas = new ArrayList<>();
+    List<level.MarcadorEnemigo> marcadoresRatas = nivel.getMarcadoresEnemigos().stream()
+        .filter(marcador -> marcador.tipo() == level.TipoEnemigoMapa.RATA_INFESTADA)
+        .toList();
+    if (marcadoresRatas.size() > ratasInfestadas.size()) {
+        throw new IllegalStateException("No hay suficientes instancias para las ratas del nivel");
     }
-    panelJuego.actualizarEnemigosVisibles(fantasmaVisible, rataInfestadaVisible);
+    for (int indice = 0; indice < ratasInfestadas.size(); indice++) {
+        ratainfestada rata = ratasInfestadas.get(indice);
+        if (indice < marcadoresRatas.size()) {
+            level.MarcadorEnemigo marcador = marcadoresRatas.get(indice);
+            rata.reiniciar(
+                marcador.columna() * (double) ConfiguracionPartida.TAM_TILE,
+                marcador.fila() * (double) ConfiguracionPartida.TAM_TILE
+            );
+            ratasActivas.add(rata);
+        } else {
+            rata.reiniciar(0, 0);
+        }
+    }
+    fantasmasVisibles = List.copyOf(fantasmasActivos);
+    ratasInfestadasVisibles = List.copyOf(ratasActivas);
+    fantasmasPremiados.clear();
+    ratasInfestadasPremiadas.clear();
+    panelJuego.actualizarEnemigosVisibles(fantasmasVisibles, ratasInfestadasVisibles);
 }
 
 @Override
@@ -516,7 +534,7 @@ private void continuarConSiguientePiso() {
     jugador.setX(ConfiguracionPartida.POSICION_INICIAL_X);
     jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
     gestorSecciones.reiniciar(jugador);
-    seccionPowerUpsPresentada = -1;
+    nivelPowerUpsPresentado = -1;
     seccionMonedasPresentada = -1;
     iniciar();
 }

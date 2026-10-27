@@ -12,7 +12,7 @@ public class rata_verde extends Personaje {
 
     public rata_verde(String nombre) {
         // Es algo más lenta, pero tiene una reserva de estamina amplia.
-        super(nombre, TipoRata.VERDE, 100, 1.5, 9, 130);
+        super(nombre, TipoRata.VERDE, 80, 5, 11, 130);
     }
 
     @Override

@@ -2,6 +2,8 @@ package controlador;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 import controlador.utilz.loadsave;
 import modelos.escenario.levels.level;
@@ -32,7 +34,7 @@ public class levelmanager {
             niveles[p] = new level[RUTAS[p].length];
             for (int s = 0; s < RUTAS[p].length; s++)
                 if (RUTAS[p][s] != null)
-                    niveles[p][s] = new level(loadsave.obtenerdatonivel(RUTAS[p][s]));
+                    niveles[p][s] = new level(loadsave.obtenerCanalesNivel(RUTAS[p][s]));
         }
     }
 
@@ -48,6 +50,26 @@ public class levelmanager {
 
     public level getNivel() { return niveles[piso][seccion]; }
     public int getSeccion() { return seccion; }
+
+    public int getIndiceNivelActual() {
+        int indice = seccion;
+        for (int p = 0; p < piso; p++) {
+            indice += niveles[p].length;
+        }
+        return indice;
+    }
+
+    public List<level> getNiveles() {
+        List<level> resultado = new ArrayList<>();
+        for (level[] nivelesPiso : niveles) {
+            for (level nivel : nivelesPiso) {
+                if (nivel != null) {
+                    resultado.add(nivel);
+                }
+            }
+        }
+        return List.copyOf(resultado);
+    }
 
     private boolean existe(int p, int s) {
         return p >= 0 && p < niveles.length && s >= 0 && s < niveles[p].length && niveles[p][s] != null;

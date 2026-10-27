@@ -3,8 +3,11 @@ package controlador;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.*;
 import modelos.enemigos.fantasma;
 import modelos.enemigos.ratainfestada;
@@ -16,6 +19,7 @@ import modelos.items.PowerUpVelocidad;
 import modelos.items.Moneda;
 import modelos.partida.ConfiguracionPartida;
 import modelos.partida.Puntaje;
+import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
 import persistencia.SQLitePuntajeDAO;
@@ -254,24 +258,23 @@ public class PrincipalControlador {
         gestorEfectos = new GestorEfectosTemporales(jugador);
         Puntaje puntaje = new Puntaje();
         ControladorPuntaje controladorPuntaje = new ControladorPuntaje(puntaje);
-        fantasma enemigo = new fantasma(
-            "Fantasma", 2.0, 0, 190, 420, ANCHO_FANTASMA, ALTO_FANTASMA
-        );
-        ratainfestada rataInfestada = new ratainfestada("Rata Infestada", 2.0, 0);
-        rataInfestada.setPosicion(600, 640);
+        List<fantasma> fantasmas = new ArrayList<>();
+        List<ratainfestada> ratasInfestadas = new ArrayList<>();
+        for (int indice = 0; indice < level.MAX_ENEMIGOS_POR_TIPO; indice++) {
+            fantasmas.add(new fantasma(
+                "Fantasma " + (indice + 1), 2.0, 0, 0,
+                ConfiguracionPartida.TAM_TILE, ANCHO_FANTASMA, ALTO_FANTASMA
+            ));
+            ratasInfestadas.add(
+                new ratainfestada("Rata Infestada " + (indice + 1), 2.0, 0)
+            );
+        }
         levelmanager niveles = new levelmanager();
         panelJuego = new PanelJuego(
-            jugador, puntaje, enemigo, rataInfestada, niveles,
+            jugador, puntaje, fantasmas, ratasInfestadas, niveles,
             this::mostrarMenuGameOver
         );
-        Map<Integer, List<PowerUp>> powerUpsPorSeccion = Map.of(
-            0, List.of(
-                new PowerUpVelocidad(DURACION_VELOCIDAD_MS, 180, 640),
-                new PowerUpPizza(DURACION_INVULNERABILIDAD_MS, 900, 640)
-            ),
-            1, List.of(new PowerUpLento(DURACION_LENTO_MS, 600, 640)),
-            2, List.of(new PowerUpInvulnerabilidad(DURACION_INVULNERABILIDAD_MS, 1020, 640))
-        );
+        Map<Integer, List<PowerUp>> powerUpsPorNivel = crearPowerUpsPorNivel(niveles);
         Map<Integer, List<Moneda>> monedasPorSeccion = Map.of(
             0, List.of(
                 new Moneda(330, 640), new Moneda(480, 640), new Moneda(720, 640)
@@ -283,8 +286,8 @@ public class PrincipalControlador {
         );
         controladorPartida = new ControladorPartida(
             controladorRata, gestorControles, gestorEfectos, efectosSonido,
-            controladorPuntaje, panelJuego, niveles, powerUpsPorSeccion,
-            monedasPorSeccion, jugador, enemigo, rataInfestada,
+            controladorPuntaje, panelJuego, niveles, powerUpsPorNivel,
+            monedasPorSeccion, jugador, fantasmas, ratasInfestadas,
             this::guardarResultadoPartida
         );
         controladorTecladoRata = new ControladorTecladoRata(
@@ -298,6 +301,33 @@ public class PrincipalControlador {
 
         panelJuego.requestFocusInWindow();
         controladorPartida.iniciar();
+    }
+
+    private Map<Integer, List<PowerUp>> crearPowerUpsPorNivel(levelmanager niveles) {
+        Map<Integer, List<PowerUp>> powerUpsPorNivel = new HashMap<>();
+        List<level> todosLosNiveles = niveles.getNiveles();
+        for (int indiceNivel = 0; indiceNivel < todosLosNiveles.size(); indiceNivel++) {
+            level nivel = todosLosNiveles.get(indiceNivel);
+            List<PowerUp> powerUps = new ArrayList<>();
+            for (level.MarcadorPowerUp marcador : nivel.getMarcadoresPowerUps()) {
+                double x = marcador.columna() * (double) ConfiguracionPartida.TAM_TILE;
+                double y = marcador.fila() * (double) ConfiguracionPartida.TAM_TILE;
+                powerUps.add(switch (marcador.tipo()) {
+                    case VELOCIDAD -> new PowerUpVelocidad(DURACION_VELOCIDAD_MS, x, y);
+                    case LENTO -> new PowerUpLento(DURACION_LENTO_MS, x, y);
+                    case INVULNERABILIDAD -> crearPowerUpInvulnerabilidad(x, y);
+                });
+            }
+            powerUpsPorNivel.put(indiceNivel, powerUps);
+        }
+        return powerUpsPorNivel;
+    }
+
+    private PowerUp crearPowerUpInvulnerabilidad(double x, double y) {
+        if (ThreadLocalRandom.current().nextBoolean()) {
+            return new PowerUpPizza(DURACION_INVULNERABILIDAD_MS, x, y);
+        }
+        return new PowerUpInvulnerabilidad(DURACION_INVULNERABILIDAD_MS, x, y);
     }
 
     private void guardarResultadoPartida() {
