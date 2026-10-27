@@ -67,6 +67,21 @@ public class levelmanager {
         return true;
     }
 
+    public int getPiso() {
+        return piso;
+    }
+
+    public boolean hayPisoSiguiente() {
+        return existe(piso + 1, 0);
+    }
+
+    public boolean avanzarPiso() {
+        if (!hayPisoSiguiente()) return false;
+        piso++;
+        seccion = 0;
+        return true;
+    }
+
     public void draw(Graphics g, int tile) {
         level nivel = getNivel();
         for (int j = 0; j < nivel.getAlto(); j++) {

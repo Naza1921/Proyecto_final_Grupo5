@@ -384,7 +384,22 @@ public void alCambiarSeccion(int seccion) {
 @Override
 public void alTerminarNivel() {
     detener();
-    panelJuego.mostrarNivelCompletado();
-    alCompletarNivel.run();
+    if (niveles.hayPisoSiguiente()) {
+        panelJuego.mostrarNivelCompletado(this::continuarConSiguientePiso);
+    } else {
+        panelJuego.mostrarNivelCompletado();
+        alCompletarNivel.run();
+    }
+}
+
+private void continuarConSiguientePiso() {
+    if (!niveles.avanzarPiso()) {
+        throw new IllegalStateException("No hay un piso siguiente para continuar");
+    }
+    jugador.setX(ConfiguracionPartida.POSICION_INICIAL_X);
+    jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
+    gestorSecciones.reiniciar(jugador);
+    seccionPowerUpsPresentada = -1;
+    iniciar();
 }
 }

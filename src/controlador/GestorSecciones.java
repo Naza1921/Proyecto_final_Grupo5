@@ -75,4 +75,26 @@ public class GestorSecciones {
             && p.getY() < zonaBloqueadaInferior
             && p.getY() + alto > zonaBloqueadaSuperior;
     }
+
+    public void reiniciar(Personaje p) {
+        if (p == null) {
+            throw new IllegalArgumentException("Se requiere el personaje para reiniciar la sección");
+        }
+
+        terminado = false;
+        puertaBloqueada = false;
+        level nivel = niveles.getNivel();
+        colision.setNivel(nivel);
+        int[] coordenadas = nivel.buscar(level.AGUJERO_ANTERIOR);
+        if (coordenadas != null) {
+            p.corregirPosicion(
+                coordenadas[0] * tile + (tile - ancho) / 2.0,
+                (coordenadas[1] + 1) * tile - alto
+            );
+            p.setVelocidadY(0);
+        }
+        if (listener != null) {
+            listener.alCambiarSeccion(niveles.getSeccion());
+        }
+    }
 }

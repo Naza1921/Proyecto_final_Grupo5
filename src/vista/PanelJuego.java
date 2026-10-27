@@ -43,6 +43,7 @@ public class PanelJuego extends JPanel {
     private int puntajePresentado;
     private static final double AJUSTE_BASE_RATA_VERDE = 1.0;
     private boolean nivelCompletado;
+    private Runnable alCerrarNivelCompletado;
 
     // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
     private Image fondoImagen;
@@ -129,6 +130,19 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
     setFocusable(true);
 
     cargarFondo("/assets/escenarios/Nivel_1_Top_Floor X.png");
+    getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "continuarNivel");
+    getActionMap().put("continuarNivel", new AbstractAction() {
+        @Override
+        public void actionPerformed(java.awt.event.ActionEvent evento) {
+            cerrarNivelCompletado();
+        }
+    });
+    addMouseListener(new java.awt.event.MouseAdapter() {
+        @Override
+        public void mouseClicked(java.awt.event.MouseEvent evento) {
+            cerrarNivelCompletado();
+        }
+    });
 }
     public double getAnchoAreaVisual() {
         return getWidth();
@@ -429,6 +443,16 @@ if (cuadroRata != null) {
     String texto = "¡Nivel completado!";
     FontMetrics fm = g2.getFontMetrics();
     g2.drawString(texto, (getWidth() - fm.stringWidth(texto)) / 2, getHeight() / 2);
+    if (alCerrarNivelCompletado != null) {
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20f));
+        String aviso = "Enter o click para continuar";
+        FontMetrics fmAviso = g2.getFontMetrics();
+        g2.drawString(
+            aviso,
+            (getWidth() - fmAviso.stringWidth(aviso)) / 2,
+            getHeight() / 2 + 40
+        );
+    }
 }
     }
 
@@ -447,6 +471,26 @@ if (cuadroRata != null) {
     nivelCompletado = true;
     repaint();
     }  
+
+    public void mostrarNivelCompletado(Runnable alCerrar) {
+        if (alCerrar == null) {
+            throw new IllegalArgumentException("Se requiere la acción para cerrar el aviso");
+        }
+        alCerrarNivelCompletado = alCerrar;
+        mostrarNivelCompletado();
+    }
+
+    private void cerrarNivelCompletado() {
+        if (!nivelCompletado || alCerrarNivelCompletado == null) {
+            return;
+        }
+        Runnable accion = alCerrarNivelCompletado;
+        alCerrarNivelCompletado = null;
+        nivelCompletado = false;
+        repaint();
+        requestFocusInWindow();
+        accion.run();
+    }
 
     private void dibujarPowerUps(Graphics2D g2) {
         for (PowerUp powerUp : powerUps) {
