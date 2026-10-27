@@ -259,3 +259,13 @@ try (PreparedStatement sentencia =
 }
 ```
 La consulta guarda el mejor resultado de cada jugador: reemplaza el anterior si la nueva puntuación es más alta o, en caso de empate, si se obtuvo en menos tiempo. La otra operación recupera los puntajes ordenados para mostrarlos en el tablero.
+
+
+## Tecnologías 
+```
+- Lenguaje: Java.
+- IDE: Visual Studio Code.
+- Framework de IGU: Java Swing.
+- Control de Versiones: Git y GitHub.
+- Persistencia: A definir durante las siguientes etapas del proyecto.
+```
