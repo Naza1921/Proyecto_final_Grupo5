@@ -40,7 +40,8 @@ public abstract class enemigo {
     ACIDO,
     STUN,
     NORMAL,
-    SAL
+    SAL,
+    FUEGO
     }
 
 
@@ -56,7 +57,20 @@ public abstract class enemigo {
             case ACIDO -> aplicarRelantizacion(0.5, DURACION_RALENTIZACION_MS);
             case STUN -> aturdir(DURACION_ATURDIMIENTO_MS);
             case NORMAL -> aplicarRelantizacion(0.7, 1500);
-            case SAL -> { }
+            case SAL, FUEGO -> { }
+        }
+    }
+
+    public void recibirDanioYAturdir(int danio, long duracionMs) {
+        if (danio < 0 || duracionMs <= 0) {
+            throw new IllegalArgumentException("El daño y la duración del aturdimiento deben ser válidos");
+        }
+        if (!estavivo()) {
+            return;
+        }
+        vida = Math.max(0, vida - danio);
+        if (estavivo()) {
+            aturdir(duracionMs);
         }
     }
 
@@ -163,6 +177,8 @@ public abstract class enemigo {
     }
     public double getX () { return x;}
     public double getY() {return y;}
+    public double getAnchoColision() { return 25.0; }
+    public double getAltoColision() { return 20.0; }
     public int getPuntaje() {return puntaje;}
     public boolean isRalentizado () {
         actualizarEstados();

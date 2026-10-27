@@ -17,6 +17,7 @@ public class SpriteRataInfestada {
         CORRER_IZQUIERDA,
         MORDER,
         HERIDA,
+        MUERTE,
         SALTAR
     }
 
@@ -35,6 +36,7 @@ public class SpriteRataInfestada {
     private static final int[] LIMITES_CAMINAR_IZQUIERDA = {
         25, 188, 343, 487, 633, 778, 926, 1070, 1217, 1359, 1515
     };
+    private static final int[] LIMITES_MUERTE = {0, 155, 270, 408, 560};
 
     private final Map<Animacion, SpriteSheet> animaciones = new EnumMap<>(Animacion.class);
     private Animacion animacionActual = Animacion.QUIETA;
@@ -52,6 +54,7 @@ public class SpriteRataInfestada {
         agregarAnimacion(hoja, Animacion.CORRER_IZQUIERDA, 9, 25, 620, 1490, 88);
         agregarAnimacion(hoja, Animacion.MORDER, 9, 25, 755, 1490, 90);
         agregarAnimacion(hoja, Animacion.HERIDA, 2, 585, 900, 270, 110);
+        agregarAnimacion(hoja, Animacion.MUERTE, LIMITES_MUERTE, 885, 120);
     }
 
     public void setAnimacion(Animacion nuevaAnimacion) {
@@ -85,6 +88,10 @@ public class SpriteRataInfestada {
             tiempoAcumuladoMs -= duracionFrame;
             if (esAnimacionDeUnaSolaEjecucion()
                     && frameActual == sprite.getCantidadFrames() - 1) {
+                if (animacionActual == Animacion.MUERTE) {
+                    tiempoAcumuladoMs = 0;
+                    return;
+                }
                 setAnimacion(Animacion.QUIETA);
                 return;
             }
@@ -170,6 +177,8 @@ public class SpriteRataInfestada {
     }
 
     private boolean esAnimacionDeUnaSolaEjecucion() {
-        return animacionActual == Animacion.MORDER || animacionActual == Animacion.HERIDA;
+        return animacionActual == Animacion.MORDER
+            || animacionActual == Animacion.HERIDA
+            || animacionActual == Animacion.MUERTE;
     }
 }

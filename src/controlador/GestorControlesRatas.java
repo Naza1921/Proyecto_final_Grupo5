@@ -33,11 +33,12 @@ public class GestorControlesRatas {
         derechaPresionada = false;
     }
 
-    public void presionarSalto() {
+    public boolean presionarSalto() {
         if (!saltoPresionado) {
             saltoPresionado = true;
-            controladorRata.saltar();
+            return controladorRata.saltar();
         }
+        return false;
     }
 
     public void soltarSalto() {

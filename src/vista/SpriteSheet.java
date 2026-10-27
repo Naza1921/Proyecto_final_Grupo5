@@ -291,8 +291,14 @@ public class SpriteSheet {
     }
 
     private static boolean esColorDeFondo(int color, int[] coloresFondo, int tolerancia) {
+        if ((color >>> 24) == 0) {
+            return true;
+        }
         // Las esquinas pueden tener tonos distintos; aceptamos una pequeña variación por canal.
         for (int fondo : coloresFondo) {
+            if ((fondo >>> 24) == 0) {
+                continue;
+            }
             int diferenciaRojo = Math.abs(((color >> 16) & 0xFF) - ((fondo >> 16) & 0xFF));
             int diferenciaVerde = Math.abs(((color >> 8) & 0xFF) - ((fondo >> 8) & 0xFF));
             int diferenciaAzul = Math.abs((color & 0xFF) - (fondo & 0xFF));

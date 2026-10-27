@@ -30,8 +30,8 @@ public class ratacontroller implements ControladorRata {
 
     // Delegamos el salto al modelo, que impide iniciarlo si la rata ya está en el aire.
     @Override
-    public void saltar() {
-        rata.saltar();
+    public boolean saltar() {
+        return rata.saltar();
     }
 
     // El panel proporciona el ancho disponible y el modelo mantiene la rata dentro del escenario.

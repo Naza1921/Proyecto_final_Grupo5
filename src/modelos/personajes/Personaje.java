@@ -1,6 +1,7 @@
 package modelos.personajes;
 
 import modelos.enemigos.enemigo;
+import java.util.List;
 
 // Acá concentramos lo que todas las ratas tienen en común: estadísticas, posición
 // y acciones básicas. Cada tipo concreto hereda de esta clase y aporta sus diferencias.
@@ -22,6 +23,7 @@ public abstract class Personaje {
     private double multiplicadorVelocidadTemporal = 1.0;
     private final double fuerzaSalto;
     private boolean enElAire;
+    private boolean mirandoIzquierda;
     private boolean agachada;
     private boolean invulnerable;
     private double estamina;
@@ -60,8 +62,8 @@ public abstract class Personaje {
     }
 
     // El movimiento horizontal usa la velocidad actual del personaje.
-    public void moverIzquierda() { x -= getVelocidad(); }
-    public void moverDerecha() { x += getVelocidad(); }
+    public void moverIzquierda() { x -= getVelocidad(); mirandoIzquierda = true; }
+    public void moverDerecha() { x += getVelocidad(); mirandoIzquierda = false; }
 
     // Mantiene la posición horizontal dentro del área que el nivel permite recorrer.
     public void limitarPosicionHorizontal(double xMinimo, double xMaximo) {
@@ -71,12 +73,14 @@ public abstract class Personaje {
         x = Math.max(xMinimo, Math.min(x, xMaximo));
     }
 
-    public void saltar() {
+    public boolean saltar() {
         // Solo se puede iniciar un salto si el personaje está en el suelo.
         if (!enElAire) {
             enElAire = true;
             velocidadY = -fuerzaSalto;
+            return true;
         }
+        return false;
     }
     // Mantenemos la postura como parte del modelo porque también puede cambiar la recarga.
     public void agacharse() { agachada = true; }
@@ -161,6 +165,7 @@ public abstract class Personaje {
     public TipoRata getTipoRata() { return tipoRata; }
     public boolean estaEnElAire() { return enElAire; }
     public boolean estaAgachada() { return agachada; }
+    public boolean estaMirandoIzquierda() { return mirandoIzquierda; }
     public double getEstamina() { return estamina; }
     public double getEstaminaMaxima() { return estaminaMaxima; }
     public double getVelocidad() { return velocidad * multiplicadorVelocidadTemporal; }
@@ -194,6 +199,16 @@ public abstract class Personaje {
 
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
         return false;
+    }
+
+    public void actualizarHabilidad(List<enemigo> objetivos) {
+        if (objetivos == null || objetivos.stream().anyMatch(objetivo -> objetivo == null)) {
+            throw new IllegalArgumentException("Los objetivos de la habilidad deben ser válidos");
+        }
+    }
+
+    public List<ProyectilEspecial> getProyectilesEspeciales() {
+        return List.of();
     }
 
     protected final boolean objetivoEnRango(enemigo objetivo, double rango) {

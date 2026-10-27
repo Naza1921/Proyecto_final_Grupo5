@@ -20,7 +20,13 @@ import modelos.enemigos.ratainfestada;
 import modelos.partida.ConfiguracionPartida;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
+import modelos.personajes.ProyectilEspecial;
+import modelos.personajes.CharcoAcido;
+import modelos.personajes.LamparaFuego;
+import modelos.personajes.rata_negra;
+import modelos.personajes.rata_verde;
 import modelos.items.PowerUp;
+import modelos.items.Moneda;
 
 //aqui nosotros estamos definimos el panel visual del juego
 //mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
@@ -29,6 +35,7 @@ public class PanelJuego extends JPanel {
     private static final double ZOOM_CAMARA = 2.0;
     private static final double ZOOM_CAMARA_PANTALLA_COMPLETA = 2.5;
     private static final double SUAVIZADO_CAMARA_SEGUNDOS = 0.12;
+    private static final long DURACION_ANIMACION_PREPARACION_NANOS = 1_500_000_000L;
 
     private final Personaje jugador;
     private final fantasma enemigo;
@@ -39,6 +46,8 @@ public class PanelJuego extends JPanel {
     private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
     private final PanelHUD hud;
     private List<PowerUp> powerUps = Collections.emptyList();
+    private List<Moneda> monedas = Collections.emptyList();
+    private final SpriteMoneda spriteMoneda;
     private long tiempoPartidaMillis;
     private int puntajePresentado;
     private static final double AJUSTE_BASE_RATA_VERDE = 1.0;
@@ -64,11 +73,17 @@ public class PanelJuego extends JPanel {
     private int indiceFrameDanio;
     private final GestorAnimacionSprite animacionFantasmaDerecha;
     private final GestorAnimacionSprite animacionFantasmaIzquierda;
+    private final BufferedImage[] framesMuerteFantasma;
     private final SpriteRataInfestada spriteRataInfestada;
+    private final SpriteProyectilStun spriteProyectilStun;
+    private final SpriteAcidoCharco spriteAcidoCharco;
+    private final SpriteLamparaFuego spriteLamparaFuego;
     private final Runnable alTerminarAnimacionMuerte;
     private SpriteAcido spriteAcido;
     private double ultimaXRataInfestada;
     private long ultimaActualizacionSpriteRataNanos;
+    private long finAnimacionHabilidadNanos;
+    private long inicioMuerteFantasmaNanos;
 
     //definimos el panel de juego, con un personaje
     // y un panel de hud, ademas de un timer para actualizar el juego
@@ -87,18 +102,28 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
     this.alTerminarAnimacionMuerte = alTerminarAnimacionMuerte;
     this.puntajePresentado = modeloPuntaje.getTotal();
     this.spriteRataInfestada = new SpriteRataInfestada();
+    this.spriteProyectilStun = new SpriteProyectilStun();
+    this.spriteAcidoCharco = new SpriteAcidoCharco();
+    this.spriteLamparaFuego = new SpriteLamparaFuego();
+    this.spriteMoneda = new SpriteMoneda();
+    this.spriteAcido = new SpriteAcido();
     this.ultimaXRataInfestada = rataInfestada.getX();
     this.ultimaActualizacionSpriteRataNanos = System.nanoTime();
 
     this.hud = new PanelHUD();
     for (SpritesRatas.Accion accion : SpritesRatas.Accion.values()) {
         if (accion == SpritesRatas.Accion.MUERTE
-                || accion == SpritesRatas.Accion.RECIBIR_DANIO) {
+                || accion == SpritesRatas.Accion.RECIBIR_DANIO
+                || !CatalogoSpritesRatas.tiene(jugador.getTipoRata(), accion)) {
             continue;
         }
-        this.animacionesRata.put(accion, new GestorAnimacionSprite(
-            SpritesRatas.cargarFrames(jugador.getTipoRata(), accion), DURACION_FRAME_NANOS
-        ));
+        BufferedImage[] frames = SpritesRatas.cargarFrames(jugador.getTipoRata(), accion);
+        long duracionFrame = accion == SpritesRatas.Accion.HAB_ESPECIAL
+                && (jugador.getTipoRata() == Personaje.TipoRata.VERDE
+                    || jugador.getTipoRata() == Personaje.TipoRata.NEGRA)
+            ? DURACION_ANIMACION_PREPARACION_NANOS / frames.length
+            : DURACION_FRAME_NANOS;
+        this.animacionesRata.put(accion, new GestorAnimacionSprite(frames, duracionFrame));
     }
     this.framesMuerte = SpritesRatas.cargarFrames(
         jugador.getTipoRata(), SpritesRatas.Accion.MUERTE
@@ -121,6 +146,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
     this.animacionFantasmaIzquierda = new GestorAnimacionSprite(
         SpritesFantasma.cargarPatrulla(false), 180_000_000L
     );
+    this.framesMuerteFantasma = SpritesFantasma.cargarMuerte();
 
     setPreferredSize(new Dimension(
         ConfiguracionPartida.COLS_NIVEL * ConfiguracionPartida.TAM_TILE,
@@ -180,10 +206,34 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         }
         ultimaXPresentada = xActual;
 
+        spriteAcido.actualizar();
+        spriteMoneda.actualizar();
+        spriteProyectilStun.actualizar();
+        spriteLamparaFuego.actualizar();
+        if (jugador instanceof rata_verde rataVerde
+                && rataVerde.getCharcoAcido() != null) {
+            spriteAcidoCharco.actualizar(rataVerde.getCharcoAcido());
+        }
+        actualizarSpriteRataInfestada();
         if (accionAnimacionRata == SpritesRatas.Accion.MUERTE
                 || accionAnimacionRata == SpritesRatas.Accion.RECIBIR_DANIO) {
             animacionFantasmaDerecha.actualizar();
             animacionFantasmaIzquierda.actualizar();
+            repaint();
+            return;
+        }
+
+        if (accionAnimacionRata == SpritesRatas.Accion.HAB_ESPECIAL) {
+            GestorAnimacionSprite animacionHabilidad =
+                animacionesRata.get(SpritesRatas.Accion.HAB_ESPECIAL);
+            animacionHabilidad.actualizar();
+            animacionFantasmaDerecha.actualizar();
+            animacionFantasmaIzquierda.actualizar();
+            if (System.nanoTime() >= finAnimacionHabilidadNanos) {
+                accionAnimacionRata = obtenerAccionAnimacion(desplazamientoX);
+                animacionesRata.get(accionAnimacionRata).reiniciar();
+                frameBaseCalculada = null;
+            }
             repaint();
             return;
         }
@@ -196,7 +246,22 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         animacionesRata.get(accionAnimacionRata).actualizar();
         animacionFantasmaDerecha.actualizar();
         animacionFantasmaIzquierda.actualizar();
-        actualizarSpriteRataInfestada();
+        repaint();
+    }
+
+    public void mostrarAnimacionHabilidad() {
+        GestorAnimacionSprite animacion = animacionesRata.get(SpritesRatas.Accion.HAB_ESPECIAL);
+        if (animacion == null) {
+            return;
+        }
+        accionAnimacionRata = SpritesRatas.Accion.HAB_ESPECIAL;
+        animacion.reiniciar();
+        long duracionAnimacion = jugador.getTipoRata() == Personaje.TipoRata.VERDE
+                || jugador.getTipoRata() == Personaje.TipoRata.NEGRA
+            ? DURACION_ANIMACION_PREPARACION_NANOS
+            : DURACION_FRAME_NANOS * animacion.getCantidadFrames();
+        finAnimacionHabilidadNanos = System.nanoTime() + duracionAnimacion;
+        frameBaseCalculada = null;
         repaint();
     }
 
@@ -248,7 +313,9 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
     private void actualizarSpriteRataInfestada() {
         double desplazamientoX = rataInfestada.getX() - ultimaXRataInfestada;
         SpriteRataInfestada.Animacion animacion;
-        if (Math.abs(desplazamientoX) > 0.01) {
+        if (!rataInfestada.estavivo()) {
+            animacion = SpriteRataInfestada.Animacion.MUERTE;
+        } else if (Math.abs(desplazamientoX) > 0.01) {
             animacion = desplazamientoX < 0
                 ? SpriteRataInfestada.Animacion.CAMINAR_IZQUIERDA
                 : SpriteRataInfestada.Animacion.CAMINAR_DERECHA;
@@ -290,9 +357,36 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
         repaint();
     }
 
+    public void actualizarMonedas(List<Moneda> monedas) {
+        if (monedas == null || monedas.stream().anyMatch(moneda -> moneda == null)) {
+            throw new IllegalArgumentException("La lista de monedas debe ser válida");
+        }
+        this.monedas = List.copyOf(monedas);
+        repaint();
+    }
+
     public void actualizarEnemigosVisibles(boolean fantasmaVisible, boolean rataInfestadaVisible) {
         this.fantasmaVisible = fantasmaVisible;
         this.rataInfestadaVisible = rataInfestadaVisible;
+        if (fantasmaVisible) {
+            inicioMuerteFantasmaNanos = 0;
+        }
+        if (rataInfestadaVisible) {
+            spriteRataInfestada.setAnimacion(SpriteRataInfestada.Animacion.QUIETA);
+            ultimaXRataInfestada = rataInfestada.getX();
+        }
+        repaint();
+    }
+
+    public void mostrarMuerteFantasma() {
+        if (inicioMuerteFantasmaNanos == 0) {
+            inicioMuerteFantasmaNanos = System.nanoTime();
+        }
+        repaint();
+    }
+
+    public void mostrarMuerteRataInfestada() {
+        spriteRataInfestada.setAnimacion(SpriteRataInfestada.Animacion.MUERTE);
         repaint();
     }
 
@@ -309,14 +403,6 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, fantasma enemigo,
             throw new IllegalArgumentException("El puntaje presentado no puede ser negativo");
         }
         puntajePresentado = puntaje;
-        repaint();
-    }
-
-    public void establecerImagenAcido(BufferedImage imagen) {
-        if (imagen == null) {
-            throw new IllegalArgumentException("Se requiere la imagen del ácido");
-        }
-        spriteAcido = new SpriteAcido(imagen);
         repaint();
     }
 
@@ -357,13 +443,37 @@ g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, (int) anchoMundo, (int) altoMundo, this);
 manejadornivel.draw(g2, ConfiguracionPartida.TAM_TILE);
 dibujarPowerUps(g2);
+dibujarMonedas(g2);
         // Dibujamos el frame original; el contorno amarillo se reserva como halo de estamina del HUD.
 
+if (jugador instanceof rata_verde rataVerde) {
+    CharcoAcido charcoAcido = rataVerde.getCharcoAcido();
+    if (charcoAcido != null) {
+        spriteAcidoCharco.dibujar(g2, charcoAcido);
+    }
+}
+if (jugador instanceof rata_negra rataNegra && rataNegra.getLamparaFuego() != null) {
+    spriteLamparaFuego.dibujar(g2, rataNegra.getLamparaFuego());
+}
+
 if (fantasmaVisible) {
-    GestorAnimacionSprite animacionFantasma = enemigo.estaMoviendoseDerecha()
-        ? animacionFantasmaDerecha
-        : animacionFantasmaIzquierda;
-    BufferedImage cuadroFantasma = animacionFantasma.getFrameActual();
+    BufferedImage cuadroFantasma;
+    if (enemigo.estavivo()) {
+        GestorAnimacionSprite animacionFantasma = enemigo.estaMoviendoseDerecha()
+            ? animacionFantasmaDerecha
+            : animacionFantasmaIzquierda;
+        cuadroFantasma = animacionFantasma.getFrameActual();
+    } else {
+        if (inicioMuerteFantasmaNanos == 0) {
+            inicioMuerteFantasmaNanos = System.nanoTime();
+        }
+        long transcurrido = System.nanoTime() - inicioMuerteFantasmaNanos;
+        int indice = (int) Math.min(
+            framesMuerteFantasma.length - 1,
+            transcurrido / DURACION_FRAME_NANOS
+        );
+        cuadroFantasma = framesMuerteFantasma[indice];
+    }
     g2.drawImage(cuadroFantasma, (int) enemigo.getX(), (int) enemigo.getY(),
         (int) enemigo.getAncho(), (int) enemigo.getAlto(), this);
 }
@@ -375,13 +485,12 @@ if (rataInfestadaVisible) {
         ConfiguracionPartida.ANCHO_JUGADOR,
         ConfiguracionPartida.ALTO_JUGADOR
     );
-    if (spriteAcido != null) {
+    if (rataInfestada.estavivo() && spriteAcido != null) {
         for (ProyectilAcido proyectil : rataInfestada.getProyectilesAcido()) {
             spriteAcido.dibujar(g2, proyectil);
         }
     }
 }
-
 BufferedImage cuadroRata;
 if (accionAnimacionRata == SpritesRatas.Accion.MUERTE) {
     cuadroRata = framesMuerte[indiceFrameMuerte];
@@ -397,10 +506,14 @@ if (cuadroRata != null) {
         RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR
     );
 
+    boolean mostrandoHabilidad = accionAnimacionRata == SpritesRatas.Accion.HAB_ESPECIAL;
     double escala = Math.min(
         (double) ConfiguracionPartida.ANCHO_JUGADOR / cuadroRata.getWidth(),
         (double) ConfiguracionPartida.ALTO_JUGADOR / cuadroRata.getHeight()
     );
+    if (mostrandoHabilidad) {
+        escala *= 1.25;
+    }
 
     int anchoDibujo = (int) Math.round(cuadroRata.getWidth() * escala);
     int altoDibujo = (int) Math.round(cuadroRata.getHeight() * escala);
@@ -411,6 +524,11 @@ if (cuadroRata != null) {
     }
 
     int xDibujo = (int) jugador.getX();
+    if (mostrandoHabilidad) {
+        xDibujo = (int) Math.round(
+            jugador.getX() - (anchoDibujo - ConfiguracionPartida.ANCHO_JUGADOR) / 2.0
+        );
+    }
     double ajusteBase = jugador.getTipoRata() == Personaje.TipoRata.VERDE
         ? AJUSTE_BASE_RATA_VERDE
         : 0;
@@ -430,6 +548,9 @@ if (cuadroRata != null) {
     }
     }
 
+for (ProyectilEspecial proyectil : jugador.getProyectilesEspeciales()) {
+    spriteProyectilStun.dibujar(g2, proyectil);
+}
 
 
         // Dibujar el HUD en las esquinas superiores de la pantalla.
@@ -503,6 +624,12 @@ if (cuadroRata != null) {
                 30,
                 this
             );
+        }
+    }
+
+    private void dibujarMonedas(Graphics2D g2) {
+        for (Moneda moneda : monedas) {
+            spriteMoneda.dibujar(g2, moneda);
         }
     }
 

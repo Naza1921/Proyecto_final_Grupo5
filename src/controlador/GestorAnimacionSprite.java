@@ -58,4 +58,8 @@ public final class GestorAnimacionSprite {
     public int getAlto() {
         return frames[0].getHeight();
     }
+
+    public int getCantidadFrames() {
+        return frames.length;
+    }
 }

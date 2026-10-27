@@ -8,17 +8,17 @@ import modelos.items.EfectoLento;
 import modelos.items.EfectoTemporal;
 import modelos.items.EfectoVelocidad;
 import modelos.items.PowerUp;
+import modelos.items.PowerUpPizza;
 
 public final class SpritesPowerUps {
     private static final int TAMANO_SPRITE = 30;
     private static final Map<Class<? extends EfectoTemporal>, BufferedImage> SPRITES = Map.of(
-        EfectoVelocidad.class, cargar("/assets/powerUp/LataRedBull(powerUpvelocidad).jpeg"),
+        EfectoVelocidad.class, cargar("/assets/powerUp/cafe.png"),
         EfectoLento.class, cargar("/assets/powerUp/QuesoconMoho(powerUplento).jpeg"),
-        EfectoInvulnerabilidad.class,cargar("/assets/powerUp/Queso(powerupinvulnerabilidad).jpeg")
-        //EfectoInvulnerabilidad.class,cargar("/assets/powerUp/Queso(powerupinvulnerabilidad).jpeg"),
-        //EfectoLento.class, cargar("/assets/powerUp/HamburgesaconMoho(powerUplento).png"),
-        //EfectoInvulnerabilidad.class,cargar("/assets/powerUp/Pizza(powerupinvulnerabilidad).png")
+        EfectoInvulnerabilidad.class, cargar("/assets/powerUp/Queso(powerupinvulnerabilidad).jpeg")
     );
+    private static final BufferedImage SPRITE_PIZZA =
+        cargar("/assets/powerUp/Pizza(powerupinvulnerabilidad).png");
 
     private SpritesPowerUps() {
     }
@@ -26,6 +26,9 @@ public final class SpritesPowerUps {
     public static BufferedImage cargar(PowerUp powerUp) {
         if (powerUp == null || powerUp.getEfecto() == null) {
             throw new IllegalArgumentException("Se requiere un power-up con efecto");
+        }
+        if (powerUp instanceof PowerUpPizza) {
+            return SPRITE_PIZZA;
         }
         BufferedImage sprite = SPRITES.get(powerUp.getEfecto().getClass());
         if (sprite == null) {

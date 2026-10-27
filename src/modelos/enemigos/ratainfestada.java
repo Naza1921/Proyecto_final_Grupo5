@@ -31,7 +31,7 @@ public class ratainfestada  extends enemigo{
 
     @Override 
     public void atacar(Personaje objetivo) {
-        if (objetivo == null || !objetivo.estaViva() || estaAturdido()) {
+        if (!estavivo() || objetivo == null || !objetivo.estaViva() || estaAturdido()) {
             return;
         }
 
@@ -63,6 +63,10 @@ public class ratainfestada  extends enemigo{
         if (objetivo == null) {
             throw new IllegalArgumentException("Se requiere un personaje objetivo");
         }
+        if (!estavivo()) {
+            proyectilesAcido.clear();
+            return;
+        }
 
         Iterator<ProyectilAcido> iterador = proyectilesAcido.iterator();
         while (iterador.hasNext()) {
@@ -83,7 +87,7 @@ public class ratainfestada  extends enemigo{
         if (objetivo == null || nivel == null || tile <= 0) {
             throw new IllegalArgumentException("Se requieren el objetivo y un nivel válido");
         }
-        if (estaAturdido()) {
+        if (!estavivo() || estaAturdido()) {
             return;
         }
 

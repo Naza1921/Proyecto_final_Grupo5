@@ -43,6 +43,9 @@ public class fantasma extends enemigo {
     }
 
     public void actualizarPatrulla(double posicionY) {
+        if (!estavivo()) {
+            return;
+        }
         if (!Double.isFinite(posicionY) || posicionY < 0) {
             throw new IllegalArgumentException("La posición vertical del fantasma debe ser válida");
         }
@@ -72,7 +75,7 @@ public class fantasma extends enemigo {
             throw new IllegalArgumentException("El objetivo y su hitbox deben ser válidos");
         }
 
-        boolean contactoActual = objetivo.estaViva()
+        boolean contactoActual = estavivo() && objetivo.estaViva()
             && objetivo.getX() < x + ancho
             && objetivo.getX() + anchoObjetivo > x
             && objetivo.getY() < y + alto
@@ -89,6 +92,16 @@ public class fantasma extends enemigo {
     }
 
     public double getAlto() {
+        return alto;
+    }
+
+    @Override
+    public double getAnchoColision() {
+        return ancho;
+    }
+
+    @Override
+    public double getAltoColision() {
         return alto;
     }
 

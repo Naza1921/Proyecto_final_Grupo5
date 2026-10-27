@@ -11,7 +11,9 @@ import modelos.enemigos.ratainfestada;
 import modelos.items.PowerUp;
 import modelos.items.PowerUpInvulnerabilidad;
 import modelos.items.PowerUpLento;
+import modelos.items.PowerUpPizza;
 import modelos.items.PowerUpVelocidad;
+import modelos.items.Moneda;
 import modelos.partida.ConfiguracionPartida;
 import modelos.partida.Puntaje;
 import modelos.personajes.Personaje;
@@ -58,6 +60,7 @@ public class PrincipalControlador {
     private MenuAjustesVista panelAjustes;
     private ControladorMenuAjustes controladorMenuAjustes;
     private final ServicioPuntajes servicioPuntajes;
+    private final GestorEfectosSonido efectosSonido;
     private CardLayout cardLayout;
     private JPanel contenedor;
 
@@ -72,6 +75,7 @@ public class PrincipalControlador {
             throw new IllegalArgumentException("Se requiere el servicio de puntajes");
         }
         this.servicioPuntajes = servicioPuntajes;
+        this.efectosSonido = new GestorEfectosSonido(this::mostrarErrorAjustes);
         iniciarVentana();
     }
 
@@ -124,6 +128,12 @@ public class PrincipalControlador {
         ventana.pack();
         ventana.setLocationRelativeTo(null);
         controladorMenuAjustes.iniciar();
+        ventana.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent evento) {
+                efectosSonido.close();
+            }
+        });
         ventana.setVisible(true);
     }
 
@@ -254,18 +264,33 @@ public class PrincipalControlador {
             jugador, puntaje, enemigo, rataInfestada, niveles,
             this::mostrarMenuGameOver
         );
-        controladorTecladoRata = new ControladorTecladoRata(
-            panelJuego, gestorControles, this::pausarJuego
-        );
         Map<Integer, List<PowerUp>> powerUpsPorSeccion = Map.of(
-            0, List.of(new PowerUpVelocidad(DURACION_VELOCIDAD_MS, 180, 640)),
+            0, List.of(
+                new PowerUpVelocidad(DURACION_VELOCIDAD_MS, 180, 640),
+                new PowerUpPizza(DURACION_INVULNERABILIDAD_MS, 900, 640)
+            ),
             1, List.of(new PowerUpLento(DURACION_LENTO_MS, 600, 640)),
             2, List.of(new PowerUpInvulnerabilidad(DURACION_INVULNERABILIDAD_MS, 1020, 640))
         );
+        Map<Integer, List<Moneda>> monedasPorSeccion = Map.of(
+            0, List.of(
+                new Moneda(330, 640), new Moneda(480, 640), new Moneda(720, 640)
+            ),
+            1, List.of(new Moneda(450, 640), new Moneda(780, 640)),
+            2, List.of(new Moneda(300, 640), new Moneda(660, 640)),
+            3, List.of(new Moneda(510, 640), new Moneda(900, 640)),
+            4, List.of(new Moneda(360, 640), new Moneda(750, 640))
+        );
         controladorPartida = new ControladorPartida(
-            controladorRata, gestorControles, gestorEfectos, controladorPuntaje,
-            panelJuego, niveles, powerUpsPorSeccion, jugador, enemigo, rataInfestada,
+            controladorRata, gestorControles, gestorEfectos, efectosSonido,
+            controladorPuntaje, panelJuego, niveles, powerUpsPorSeccion,
+            monedasPorSeccion, jugador, enemigo, rataInfestada,
             this::guardarResultadoPartida
+        );
+        controladorTecladoRata = new ControladorTecladoRata(
+            panelJuego, gestorControles, this::pausarJuego,
+            () -> efectosSonido.reproducir(GestorEfectosSonido.Efecto.SALTO),
+            controladorPartida::activarHabilidad
         );
 
         contenedor.add(panelJuego, VISTA_JUEGO);

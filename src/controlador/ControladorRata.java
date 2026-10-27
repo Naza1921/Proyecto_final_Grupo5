@@ -5,7 +5,7 @@ import modelos.enemigos.enemigo;
 public interface ControladorRata {
     void moverIzquierda();
     void moverDerecha();
-    void saltar();
+    boolean saltar();
     void agacharse();
     void levantarse();
     void limitarPosicionHorizontal(double xMinimo, double xMaximo);
