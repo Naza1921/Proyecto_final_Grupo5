@@ -9,12 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.Timer;
+import aplicacion.VistaPartida;
 import modelos.enemigos.enemigo;
 import modelos.enemigos.fantasma;
 import modelos.enemigos.ratainfestada;
-import modelos.items.EfectoInvulnerabilidad;
-import modelos.items.EfectoLento;
-import modelos.items.EfectoVelocidad;
 import modelos.items.Moneda;
 import modelos.items.PowerUp;
 import modelos.partida.ConfiguracionPartida;
@@ -22,30 +20,29 @@ import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import modelos.personajes.rata_negra;
 import modelos.personajes.rata_verde;
-import vista.PanelJuego;
 
 // Coordina el ciclo temporal de la partida y solicita el repintado de la vista.
 public final class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
-    private static final int PUNTOS_VELOCIDAD = 475;
-    private static final int PUNTOS_INVULNERABILIDAD = 1_000;
-    private static final int PENALIZACION_LENTO = 300;
     private static final int PENALIZACION_GOLPE_FANTASMA = 125;
     private static final int PUNTOS_DERROTAR_FANTASMA = 300;
     private static final int PUNTOS_DERROTAR_RATA_INFESTADA = 500;
     private static final int PUNTOS_MONEDA = 100;
     private static final long INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS = 30;
     private static final int PENALIZACION_TIEMPO_PUNTOS = 10;
+
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
     private final GestorEfectosTemporales gestorEfectos;
     private final GestorEfectosSonido efectosSonido;
     private final ControladorPuntaje controladorPuntaje;
-    private final PanelJuego panelJuego;
+    private final VistaPartida panelJuego;
     private final levelmanager niveles;
     private final ColisionNivel colisionNivel;
     private final GestorSecciones gestorSecciones;
+    private final ConfiguradorEnemigosSeccion configuradorEnemigos;
+    private final GestorRecogidaPowerUps gestorRecogidaPowerUps;
     private final Personaje jugador;
     private final List<fantasma> fantasmas;
     private final List<ratainfestada> ratasInfestadas;
@@ -55,7 +52,6 @@ public final class ControladorPartida implements SeccionListener {
         Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<ratainfestada> ratasInfestadasPremiadas =
         Collections.newSetFromMap(new IdentityHashMap<>());
-    private final Map<Integer, List<PowerUp>> powerUpsPorNivel;
     private final Map<Integer, List<Moneda>> monedasPorSeccion;
     private final Timer temporizador;
     private boolean listenerTemporizadorConfigurado;
@@ -65,7 +61,6 @@ public final class ControladorPartida implements SeccionListener {
     private long tiempoAcumuladoNanos;
     private boolean partidaEnCurso;
     private boolean pausada;
-    private int nivelPowerUpsPresentado = -1;
     private int seccionMonedasPresentada = -1;
     private boolean sonidoMuerteReproducido;
 
@@ -74,7 +69,7 @@ public final class ControladorPartida implements SeccionListener {
                               GestorEfectosTemporales gestorEfectos,
                               GestorEfectosSonido efectosSonido,
                               ControladorPuntaje controladorPuntaje,
-                              PanelJuego panelJuego,
+                              VistaPartida panelJuego,
                               levelmanager niveles,
                               Map<Integer, List<PowerUp>> powerUpsPorNivel,
                               Map<Integer, List<Moneda>> monedasPorSeccion,
@@ -106,7 +101,9 @@ public final class ControladorPartida implements SeccionListener {
         this.jugador = jugador;
         this.fantasmas = List.copyOf(fantasmas);
         this.ratasInfestadas = List.copyOf(ratasInfestadas);
-        this.powerUpsPorNivel = copiarPowerUpsPorNivel(powerUpsPorNivel);
+        this.configuradorEnemigos = new ConfiguradorEnemigosSeccion(
+            this.fantasmas, this.ratasInfestadas
+        );
         this.monedasPorSeccion = copiarMonedasPorSeccion(monedasPorSeccion);
         this.alCompletarNivel = alCompletarNivel;
         this.colisionNivel = new ColisionNivel(
@@ -123,6 +120,15 @@ public final class ControladorPartida implements SeccionListener {
             ConfiguracionPartida.ALTO_JUGADOR
         );
         this.temporizador = new Timer(INTERVALO_ACTUALIZACION_MS, null);
+        this.gestorRecogidaPowerUps = new GestorRecogidaPowerUps(
+            powerUpsPorNivel,
+            gestorEfectos,
+            controladorPuntaje::agregarPuntos,
+            controladorPuntaje::penalizar,
+            efectosSonido::reproducir,
+            panelJuego::actualizarPowerUps,
+            this::actualizarPuntajePresentado
+        );
         configurarEnemigosVisibles(niveles.getSeccion());
         actualizarPowerUpsVisibles();
         actualizarMonedasVisibles();
@@ -173,99 +179,8 @@ public final class ControladorPartida implements SeccionListener {
         }
     }
 
-    public boolean recogerPowerUp(PowerUp powerUp) {
-        if (powerUp == null) {
-            throw new IllegalArgumentException("Se requiere un power-up");
-        }
-        List<PowerUp> disponibles = powerUpsPorNivel.get(niveles.getIndiceNivelActual());
-        if (disponibles == null || !disponibles.contains(powerUp)
-                || !recogerPowerUpSiColisiona(powerUp)) {
-            return false;
-        }
-        disponibles.remove(powerUp);
-        panelJuego.actualizarPowerUps(disponibles);
-        actualizarPuntajePresentado();
-        return true;
-    }
-
-    private Map<Integer, List<PowerUp>> copiarPowerUpsPorNivel(
-            Map<Integer, List<PowerUp>> powerUpsPorNivel) {
-        Map<Integer, List<PowerUp>> copia = new HashMap<>();
-        for (Map.Entry<Integer, List<PowerUp>> entrada : powerUpsPorNivel.entrySet()) {
-            Integer indiceNivel = entrada.getKey();
-            List<PowerUp> powerUps = entrada.getValue();
-            if (indiceNivel == null || indiceNivel < 0 || powerUps == null) {
-                throw new IllegalArgumentException("Cada nivel debe tener una lista válida de power-ups");
-            }
-            for (PowerUp powerUp : powerUps) {
-                if (powerUp == null) {
-                    throw new IllegalArgumentException(
-                        "Cada nivel debe tener una lista válida de power-ups"
-                    );
-                }
-            }
-            copia.put(indiceNivel, new ArrayList<>(powerUps));
-        }
-        return copia;
-    }
-
     private void actualizarPowerUpsVisibles() {
-        int indiceNivel = niveles.getIndiceNivelActual();
-        if (indiceNivel != nivelPowerUpsPresentado) {
-            panelJuego.actualizarPowerUps(
-                powerUpsPorNivel.getOrDefault(indiceNivel, List.of())
-            );
-            nivelPowerUpsPresentado = indiceNivel;
-        }
-
-        List<PowerUp> powerUps = powerUpsPorNivel.get(indiceNivel);
-        if (powerUps == null) {
-            return;
-        }
-
-        boolean cambioInventario = false;
-        Iterator<PowerUp> iterador = powerUps.iterator();
-        while (iterador.hasNext()) {
-            if (recogerPowerUpSiColisiona(iterador.next())) {
-                iterador.remove();
-                cambioInventario = true;
-            }
-        }
-        if (cambioInventario) {
-            panelJuego.actualizarPowerUps(powerUps);
-        }
-    }
-
-    private boolean recogerPowerUpSiColisiona(PowerUp powerUp) {
-        int puntos;
-        boolean penalizacion;
-        if (powerUp.getEfecto() instanceof EfectoVelocidad) {
-            puntos = PUNTOS_VELOCIDAD;
-            penalizacion = false;
-        } else if (powerUp.getEfecto() instanceof EfectoInvulnerabilidad) {
-            puntos = PUNTOS_INVULNERABILIDAD;
-            penalizacion = false;
-        } else if (powerUp.getEfecto() instanceof EfectoLento) {
-            puntos = PENALIZACION_LENTO;
-            penalizacion = true;
-        } else {
-            throw new IllegalArgumentException("No hay una regla de puntaje para este power-up");
-        }
-
-        if (!gestorEfectos.recogerSiColisiona(powerUp)) {
-            return false;
-        }
-        efectosSonido.reproducir(
-            penalizacion
-                ? GestorEfectosSonido.Efecto.POWER_DOWN
-                : GestorEfectosSonido.Efecto.POWER_UP
-        );
-        if (penalizacion) {
-            controladorPuntaje.penalizar(puntos);
-        } else {
-            controladorPuntaje.agregarPuntos(puntos);
-        }
-        return true;
+        gestorRecogidaPowerUps.actualizar(niveles.getIndiceNivelActual());
     }
 
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
@@ -467,49 +382,10 @@ private void configurarEnemigosVisibles(int seccion) {
         rataNegra.limpiarLamparaFuego();
     }
 
-    level nivel = niveles.getNivel();
-    List<fantasma> fantasmasActivos = new ArrayList<>();
-    List<level.PatrullaFantasma> patrullas = nivel.getPatrullasFantasma();
-    if (patrullas.size() > fantasmas.size()) {
-        throw new IllegalStateException("No hay suficientes instancias para las patrullas del nivel");
-    }
-    for (int indice = 0; indice < fantasmas.size(); indice++) {
-        fantasma enemigo = fantasmas.get(indice);
-        if (indice < patrullas.size()) {
-            level.PatrullaFantasma patrulla = patrullas.get(indice);
-            enemigo.reiniciarPatrulla(
-                patrulla.inicio().columna() * (double) ConfiguracionPartida.TAM_TILE,
-                patrulla.fin().columna() * (double) ConfiguracionPartida.TAM_TILE,
-                patrulla.inicio().fila() * (double) ConfiguracionPartida.TAM_TILE
-            );
-            fantasmasActivos.add(enemigo);
-        } else {
-            enemigo.reiniciarPatrulla(0, ConfiguracionPartida.TAM_TILE, 0);
-        }
-    }
-
-    List<ratainfestada> ratasActivas = new ArrayList<>();
-    List<level.MarcadorEnemigo> marcadoresRatas = nivel.getMarcadoresEnemigos().stream()
-        .filter(marcador -> marcador.tipo() == level.TipoEnemigoMapa.RATA_INFESTADA)
-        .toList();
-    if (marcadoresRatas.size() > ratasInfestadas.size()) {
-        throw new IllegalStateException("No hay suficientes instancias para las ratas del nivel");
-    }
-    for (int indice = 0; indice < ratasInfestadas.size(); indice++) {
-        ratainfestada rata = ratasInfestadas.get(indice);
-        if (indice < marcadoresRatas.size()) {
-            level.MarcadorEnemigo marcador = marcadoresRatas.get(indice);
-            rata.reiniciar(
-                marcador.columna() * (double) ConfiguracionPartida.TAM_TILE,
-                marcador.fila() * (double) ConfiguracionPartida.TAM_TILE
-            );
-            ratasActivas.add(rata);
-        } else {
-            rata.reiniciar(0, 0);
-        }
-    }
-    fantasmasVisibles = List.copyOf(fantasmasActivos);
-    ratasInfestadasVisibles = List.copyOf(ratasActivas);
+    ConfiguradorEnemigosSeccion.EnemigosVisibles enemigos =
+        configuradorEnemigos.configurar(niveles.getNivel(), seccion);
+    fantasmasVisibles = enemigos.fantasmas();
+    ratasInfestadasVisibles = enemigos.ratasInfestadas();
     fantasmasPremiados.clear();
     ratasInfestadasPremiadas.clear();
     panelJuego.actualizarEnemigosVisibles(fantasmasVisibles, ratasInfestadasVisibles);
@@ -534,7 +410,7 @@ private void continuarConSiguientePiso() {
     jugador.setX(ConfiguracionPartida.POSICION_INICIAL_X);
     jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
     gestorSecciones.reiniciar(jugador);
-    nivelPowerUpsPresentado = -1;
+    gestorRecogidaPowerUps.reiniciarPresentacion();
     seccionMonedasPresentada = -1;
     iniciar();
 }

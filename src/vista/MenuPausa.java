@@ -13,7 +13,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 public class MenuPausa extends JPanel {
     private static final int ANCHO_BOTON = 252;
@@ -31,7 +31,7 @@ public class MenuPausa extends JPanel {
     );
 
     public MenuPausa() {
-        fondo = loadsave.GetSpriteatlas("assets/menu_pausa.png");
+        fondo = CargadorRecursos.cargarImagen("assets/menu_pausa.png");
         setPreferredSize(new Dimension(800, 600));
         setBackground(new Color(35, 35, 45));
         setOpaque(true);

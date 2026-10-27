@@ -36,7 +36,10 @@ public final class GestorEfectosTemporales {
     }
 
     public void activar(PowerUp powerUp) {
-        if (powerUp == null || powerUp.getEfecto() == null || powerUp.getDuracion() <= 0) {
+        if (powerUp == null || powerUp.getEfecto() == null
+                || powerUp.getDuracion() < 0
+                || (powerUp.getDuracion() == 0 && !powerUp.getEfecto().esInstantaneo())
+                || (powerUp.getDuracion() > 0 && powerUp.getEfecto().esInstantaneo())) {
             throw new IllegalArgumentException("El power-up debe tener efecto y duración válidos");
         }
 
@@ -44,6 +47,11 @@ public final class GestorEfectosTemporales {
         CategoriaEfectoTemporal categoria = nuevoEfecto.getCategoria();
         if (categoria == null) {
             throw new IllegalArgumentException("El efecto debe pertenecer a una categoría");
+        }
+
+        if (nuevoEfecto.esInstantaneo()) {
+            nuevoEfecto.aplicar(personaje);
+            return;
         }
 
         long ahora = System.nanoTime();

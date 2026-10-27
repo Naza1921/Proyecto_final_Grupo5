@@ -3,8 +3,8 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import modelos.personajes.CharcoAcido;
-import controlador.GestorAnimacionSprite;
-import controlador.utilz.loadsave;
+import animacion.GestorAnimacionSprite;
+import recursos.CargadorRecursos;
 
 public final class SpriteAcidoCharco {
     private static final String RUTA_HOJA = "assets/rata_verde/acido_5frames_transparente.png";
@@ -52,7 +52,7 @@ public final class SpriteAcidoCharco {
     }
 
     private BufferedImage[] cargarFrames() {
-        BufferedImage hoja = loadsave.GetSpriteatlas(RUTA_HOJA);
+        BufferedImage hoja = CargadorRecursos.cargarImagen(RUTA_HOJA);
         if (hoja.getWidth() % CANTIDAD_FRAMES != 0) {
             throw new IllegalArgumentException("La hoja del charco debe tener cinco frames iguales");
         }

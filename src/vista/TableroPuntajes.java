@@ -18,7 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 import persistencia.ResultadoPuntaje;
 
 public final class TableroPuntajes extends JPanel {
@@ -209,11 +209,11 @@ public final class TableroPuntajes extends JPanel {
 
     private static java.awt.image.BufferedImage cargarImagen(String recurso) {
         String rutaRecurso = recurso.startsWith("/") ? recurso.substring(1) : recurso;
-        return loadsave.GetSpriteatlas(rutaRecurso);
+        return CargadorRecursos.cargarImagen(rutaRecurso);
     }
 
     private static Font cargarFuente(String recurso) {
-        try (InputStream entrada = loadsave.obtenerURLRecurso(recurso).openStream()) {
+        try (InputStream entrada = CargadorRecursos.obtenerUrlRecurso(recurso).openStream()) {
             return Font.createFont(Font.TRUETYPE_FONT, entrada);
         } catch (FontFormatException | IOException excepcion) {
             throw new IllegalStateException("No se pudo cargar la fuente " + recurso, excepcion);

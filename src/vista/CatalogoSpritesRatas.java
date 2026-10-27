@@ -2,7 +2,7 @@ package vista;
 
 import java.util.EnumMap;
 import java.util.Map;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 import modelos.personajes.Personaje.TipoRata;
 
 final class CatalogoSpritesRatas {
@@ -85,7 +85,7 @@ final class CatalogoSpritesRatas {
         }
         if (definicion.limitesX != null) {
             return new SpriteSheet(
-                loadsave.GetSpriteatlas(definicion.ruta),
+                CargadorRecursos.cargarImagen(definicion.ruta),
                 definicion.limitesX,
                 definicion.y,
                 definicion.altoRegion
@@ -93,7 +93,7 @@ final class CatalogoSpritesRatas {
         }
         if (definicion.anchoRegion > 0) {
             return new SpriteSheet(
-                loadsave.GetSpriteatlas(definicion.ruta),
+                CargadorRecursos.cargarImagen(definicion.ruta),
                 definicion.cantidadFrames,
                 definicion.x,
                 definicion.y,

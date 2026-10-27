@@ -79,7 +79,9 @@ public class PanelSeleccionPersonaje extends JPanel {
     private JButton crearBoton(String nombre, Personaje.TipoRata tipo,
                     Supplier<Personaje> fabrica) {
         JButton boton = new JButton(
-            "<html><center>" + nombre + "</center></html>",
+            "<html><center>" + nombre
+                + "<br><font size='3' color='#FFD685'>HAB. ESPECIAL</font>"
+                + "<br>" + obtenerHabilidadEspecial(tipo) + "</center></html>",
             new ImageIcon(SpritesRatas.crearVistaIdle(tipo, 170, 112))
         ) {
             @Override
@@ -116,5 +118,14 @@ public class PanelSeleccionPersonaje extends JPanel {
         boton.getAccessibleContext().setAccessibleName(nombre);
         boton.addActionListener(evento -> onPersonajeSelected.accept(fabrica.get()));
         return boton;
+    }
+
+    private String obtenerHabilidadEspecial(Personaje.TipoRata tipo) {
+        return switch (tipo) {
+            case GRIS -> "DOBLE SALTO";
+            case BLANCA -> "HADOUKEN";
+            case NEGRA -> "LÁMPARA DE FUEGO";
+            case VERDE -> "CHARCO DE ÁCIDO";
+        };
     }
 }

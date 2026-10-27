@@ -9,7 +9,8 @@ public abstract class PowerUpBase implements PowerUp {
     private final EfectoTemporal efecto;
 
     protected PowerUpBase(long duracion, double x, double y, EfectoTemporal efecto) {
-        if (duracion <= 0 || !Double.isFinite(x) || !Double.isFinite(y) || efecto == null) {
+        if (duracion < 0 || (duracion == 0 && (efecto == null || !efecto.esInstantaneo()))
+                || !Double.isFinite(x) || !Double.isFinite(y) || efecto == null) {
             throw new IllegalArgumentException("El power-up requiere duración, posición y efecto válidos");
         }
         this.duracion = duracion;

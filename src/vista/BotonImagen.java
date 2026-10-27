@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayDeque;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 public final class BotonImagen extends JButton {
     public BotonImagen(String nombreAccesible, String rutaImagen, int ancho, int alto) {
@@ -17,7 +17,9 @@ public final class BotonImagen extends JButton {
             throw new IllegalArgumentException("Se requieren un nombre, una imagen y dimensiones válidas");
         }
 
-        BufferedImage original = quitarFondoClaro(loadsave.GetSpriteatlas(rutaImagen));
+        BufferedImage original = quitarFondoClaro(
+            CargadorRecursos.cargarImagen(rutaImagen)
+        );
         double escala = Math.min(
             (double) ancho / original.getWidth(),
             (double) alto / original.getHeight()

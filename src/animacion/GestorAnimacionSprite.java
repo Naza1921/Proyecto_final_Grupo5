@@ -1,4 +1,4 @@
-package controlador;
+package animacion;
 
 import java.awt.image.BufferedImage;
 

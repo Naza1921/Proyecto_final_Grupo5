@@ -5,7 +5,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 import modelos.personajes.Personaje.TipoRata;
 
 // Relacionamos cada tipo y acción con las hojas de sprites de la rata.
@@ -40,7 +40,7 @@ public final class SpritesRatas {
     }
 
     private static BufferedImage[] cargarFramesHabilidadBlanca() {
-        BufferedImage hoja = loadsave.GetSpriteatlas(
+        BufferedImage hoja = CargadorRecursos.cargarImagen(
             "assets/rata_blanca/Animacion_de_ataque_energetico_del_raton.png"
         );
         int[][] limitesX = {
@@ -62,7 +62,7 @@ public final class SpritesRatas {
     }
 
     private static BufferedImage[] cargarFramesHabilidadVerde() {
-        BufferedImage hoja = loadsave.GetSpriteatlas(
+        BufferedImage hoja = CargadorRecursos.cargarImagen(
             "assets/rata_verde/rata_lanzando_veneno_6x2_transparente.png"
         );
         SpriteSheet spriteSheet = new SpriteSheet(
@@ -81,7 +81,7 @@ public final class SpritesRatas {
     }
 
     private static BufferedImage[] cargarFramesHabilidadNegra() {
-        BufferedImage hoja = loadsave.GetSpriteatlas(
+        BufferedImage hoja = CargadorRecursos.cargarImagen(
             "assets/rata_negra/rata_peste_lanzando_lampara_8x2_transparente.png"
         );
         SpriteSheet spriteSheet = new SpriteSheet(

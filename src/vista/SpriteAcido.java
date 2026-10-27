@@ -3,7 +3,7 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import modelos.enemigos.ProyectilAcido;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 public final class SpriteAcido {
     private static final String RUTA_HOJA = "assets/arte_enemigos/acido_volando_5frames_transparente.png";
@@ -47,7 +47,7 @@ public final class SpriteAcido {
     }
 
     private BufferedImage[] cargarFrames() {
-        BufferedImage hoja = loadsave.GetSpriteatlas(RUTA_HOJA);
+        BufferedImage hoja = CargadorRecursos.cargarImagen(RUTA_HOJA);
         if (hoja.getWidth() % CANTIDAD_FRAMES != 0) {
             throw new IllegalArgumentException(
                 "La hoja de ácido debe dividirse en cinco frames iguales"

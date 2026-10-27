@@ -68,10 +68,6 @@ public class SpriteRataInfestada {
         }
     }
 
-    public Animacion getAnimacion() {
-        return animacionActual;
-    }
-
     public void actualizar(long deltaMilisegundos) {
         if (deltaMilisegundos < 0) {
             throw new IllegalArgumentException("El tiempo transcurrido no puede ser negativo.");

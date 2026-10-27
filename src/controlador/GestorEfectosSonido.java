@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import javax.swing.SwingUtilities;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
@@ -17,14 +17,20 @@ public final class GestorEfectosSonido implements AutoCloseable {
         HABILIDAD("assets/audio/hadoken.mp3"),
         POWER_UP("assets/audio/POWER_UP.mp3"),
         POWER_DOWN("assets/audio/power_down.mp3"),
-        SALTO("assets/audio/salto.mp3"),
+        SALTO("assets/audio/salto.mp3", 0.5),
         MONEDA("assets/audio/sonido_moneda.wav"),
         NIVEL_COMPLETADO("assets/audio/win_level.mp3");
 
         private final String ruta;
+        private final double volumen;
 
         Efecto(String ruta) {
+            this(ruta, 1.0);
+        }
+
+        Efecto(String ruta, double volumen) {
             this.ruta = ruta;
+            this.volumen = volumen;
         }
     }
 
@@ -53,9 +59,10 @@ public final class GestorEfectosSonido implements AutoCloseable {
             return;
         }
         try {
-            URL recurso = loadsave.obtenerURLRecurso(efecto.ruta);
+            URL recurso = CargadorRecursos.obtenerUrlRecurso(efecto.ruta);
             Media media = new Media(recurso.toExternalForm());
             MediaPlayer reproductor = new MediaPlayer(media);
+            reproductor.setVolume(efecto.volumen);
             reproductoresActivos.add(reproductor);
             media.setOnError(() -> notificarError(efecto, media.getError()));
             reproductor.setOnError(() -> notificarError(efecto, reproductor.getError()));

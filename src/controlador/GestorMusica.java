@@ -19,6 +19,7 @@ public final class GestorMusica implements ReproductorMusica {
 
     private volatile MediaPlayer reproductorActual;
     private volatile boolean musicaActivada = true;
+    private volatile boolean reproduccionHabilitada;
     private volatile boolean cerrado;
     private double volumen = 0.5;
 
@@ -37,6 +38,17 @@ public final class GestorMusica implements ReproductorMusica {
         }
 
         Platform.runLater(() -> iniciarReproduccion(ruta));
+    }
+
+    @Override
+    public void habilitarReproduccion() {
+        reproduccionHabilitada = true;
+        Platform.runLater(() -> {
+            MediaPlayer reproductor = reproductorActual;
+            if (reproductor != null && musicaActivada) {
+                reproductor.play();
+            }
+        });
     }
 
     @Override
@@ -59,7 +71,7 @@ public final class GestorMusica implements ReproductorMusica {
                 return;
             }
 
-            if (musicaActivada) {
+            if (musicaActivada && reproduccionHabilitada) {
                 reproductor.play();
             } else {
                 reproductor.pause();
@@ -94,7 +106,8 @@ public final class GestorMusica implements ReproductorMusica {
             media.setOnError(() -> notificarError(ruta, media.getError()));
             nuevoReproductor.setOnError(() -> notificarError(ruta, nuevoReproductor.getError()));
             nuevoReproductor.setOnReady(() -> {
-                if (reproductorActual == nuevoReproductor && musicaActivada) {
+                if (reproductorActual == nuevoReproductor && musicaActivada
+                        && reproduccionHabilitada) {
                     nuevoReproductor.play();
                 }
             });
@@ -106,7 +119,7 @@ public final class GestorMusica implements ReproductorMusica {
                 reproductorAnterior.dispose();
             }
 
-            if (musicaActivada) {
+            if (musicaActivada && reproduccionHabilitada) {
                 nuevoReproductor.play();
             }
         } catch (RuntimeException error) {

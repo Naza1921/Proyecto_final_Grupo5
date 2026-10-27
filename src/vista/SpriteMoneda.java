@@ -2,8 +2,8 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import controlador.GestorAnimacionSprite;
-import controlador.utilz.loadsave;
+import animacion.GestorAnimacionSprite;
+import recursos.CargadorRecursos;
 import modelos.items.Moneda;
 
 public final class SpriteMoneda {
@@ -26,7 +26,7 @@ public final class SpriteMoneda {
     private final GestorAnimacionSprite animacion;
 
     public SpriteMoneda() {
-        BufferedImage hoja = loadsave.GetSpriteatlas(RUTA_HOJA);
+        BufferedImage hoja = CargadorRecursos.cargarImagen(RUTA_HOJA);
         BufferedImage[] frames = new BufferedImage[LIMITES_FRAMES.length];
         for (int indice = 0; indice < LIMITES_FRAMES.length; indice++) {
             int[] limites = LIMITES_FRAMES[indice];

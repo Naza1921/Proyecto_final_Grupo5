@@ -7,6 +7,8 @@ public interface ReproductorMusica extends AutoCloseable {
 
     void seleccionarCancion(Path archivo) throws IOException;
 
+    void habilitarReproduccion();
+
     void detener();
 
     void setMusicaActivada(boolean activada);

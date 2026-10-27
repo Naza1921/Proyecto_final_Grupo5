@@ -2,8 +2,8 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import controlador.GestorAnimacionSprite;
-import controlador.utilz.loadsave;
+import animacion.GestorAnimacionSprite;
+import recursos.CargadorRecursos;
 import modelos.personajes.ProyectilEspecial;
 
 public final class SpriteProyectilStun {
@@ -16,7 +16,7 @@ public final class SpriteProyectilStun {
     private final GestorAnimacionSprite animacion;
 
     public SpriteProyectilStun() {
-        BufferedImage hoja = loadsave.GetSpriteatlas(RUTA_HOJA);
+        BufferedImage hoja = CargadorRecursos.cargarImagen(RUTA_HOJA);
         if (hoja.getWidth() < CANTIDAD_FRAMES || hoja.getHeight() < ALTO_REGION) {
             throw new IllegalArgumentException("La hoja del proyectil STUN no tiene cuatro frames válidos");
         }

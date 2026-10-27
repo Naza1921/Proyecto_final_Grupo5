@@ -101,22 +101,6 @@ public abstract class enemigo {
         actualizarVelocidad();
     }
 
-    public void distraer(double x, double y, long duracionMs) {
-        if (!Double.isFinite(x) || !Double.isFinite(y) || duracionMs <= 0) {
-            throw new IllegalArgumentException("La distracción requiere una posición y duración válidas");
-        }
-        distraccionX = x;
-        distraccionY = y;
-        distraccionHastaNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(duracionMs);
-    }
-
-    public void restaurarVelocidad() {
-        ralentizado = false;
-        factorRalentizacion = 1.0;
-        ralentizacionHastaNanos = 0;
-        actualizarVelocidad();
-    }
-
     private void actualizarEstados() {
         long ahora = System.nanoTime();
         if (ralentizacionHastaNanos != 0 && ahora >= ralentizacionHastaNanos) {
@@ -179,12 +163,6 @@ public abstract class enemigo {
     public double getY() {return y;}
     public double getAnchoColision() { return 25.0; }
     public double getAltoColision() { return 20.0; }
-    public int getPuntaje() {return puntaje;}
-    public boolean isRalentizado () {
-        actualizarEstados();
-        return ralentizado;
-    }
-
     //setter
 
     public void setPosicion(double x, double y) {

@@ -2,8 +2,8 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import controlador.GestorAnimacionSprite;
-import controlador.utilz.loadsave;
+import animacion.GestorAnimacionSprite;
+import recursos.CargadorRecursos;
 import modelos.personajes.LamparaFuego;
 
 public final class SpriteLamparaFuego {
@@ -21,7 +21,7 @@ public final class SpriteLamparaFuego {
     private final GestorAnimacionSprite animacionFuego;
 
     public SpriteLamparaFuego() {
-        BufferedImage hojaLampara = loadsave.GetSpriteatlas(RUTA_LAMPARA);
+        BufferedImage hojaLampara = CargadorRecursos.cargarImagen(RUTA_LAMPARA);
         int anchoRegionLampara = hojaLampara.getWidth() * CANTIDAD_FRAMES_LAMPARA / 8;
         SpriteSheet spritesLampara = new SpriteSheet(
             hojaLampara, CANTIDAD_FRAMES_LAMPARA, 0, 0,
@@ -32,7 +32,7 @@ public final class SpriteLamparaFuego {
             DURACION_FRAME_LAMPARA_NANOS
         );
 
-        BufferedImage hojaFuego = loadsave.GetSpriteatlas(RUTA_FUEGO);
+        BufferedImage hojaFuego = CargadorRecursos.cargarImagen(RUTA_FUEGO);
         SpriteSheet spritesFuego = new SpriteSheet(hojaFuego, 6);
         animacionFuego = new GestorAnimacionSprite(
             SpritesRatas.crearFramesAlineados(spritesFuego, 0),

@@ -2,20 +2,16 @@ package controlador;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.*;
 import modelos.enemigos.fantasma;
 import modelos.enemigos.ratainfestada;
 import modelos.items.PowerUp;
-import modelos.items.PowerUpInvulnerabilidad;
-import modelos.items.PowerUpLento;
-import modelos.items.PowerUpPizza;
-import modelos.items.PowerUpVelocidad;
+import modelos.items.FabricaPowerUps;
 import modelos.items.Moneda;
 import modelos.partida.ConfiguracionPartida;
 import modelos.partida.Puntaje;
@@ -23,6 +19,7 @@ import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
 import persistencia.SQLitePuntajeDAO;
+import recursos.CargadorRecursos;
 import servicios.ServicioPuntajes;
 import vista.MenuPrincipal;
 import vista.MenuAjustesVista;
@@ -43,9 +40,6 @@ public class PrincipalControlador {
     private static final String VISTA_PAUSA = "pausa";
     private static final String VISTA_GAME_OVER = "gameOver";
     private static final String VISTA_TABLERO = "tablero";
-    private static final long DURACION_VELOCIDAD_MS = 5_000;
-    private static final long DURACION_LENTO_MS = 5_000;
-    private static final long DURACION_INVULNERABILIDAD_MS = 3_000;
     private static final double ANCHO_FANTASMA = 36;
     private static final double ALTO_FANTASMA = 41;
 
@@ -63,6 +57,7 @@ public class PrincipalControlador {
     private PantallaIntro pantallaIntro;
     private MenuAjustesVista panelAjustes;
     private ControladorMenuAjustes controladorMenuAjustes;
+    private ReproductorMusica reproductorMusica;
     private final ServicioPuntajes servicioPuntajes;
     private final GestorEfectosSonido efectosSonido;
     private CardLayout cardLayout;
@@ -112,10 +107,11 @@ public class PrincipalControlador {
         contenedor.add(panelSeleccion, VISTA_SELECCION);
         contenedor.add(menuPausa, VISTA_PAUSA);
         contenedor.add(menuGameOver, VISTA_GAME_OVER);
+        reproductorMusica = new GestorMusica(this::mostrarErrorAjustes);
         controladorMenuAjustes = new ControladorMenuAjustes(
             ventana,
             panelAjustes,
-            new GestorMusica(this::mostrarErrorAjustes),
+            reproductorMusica,
             new RepositorioAjustes(),
             this::mostrarErrorAjustes,
             this::mostrarConfirmacionAjustes,
@@ -270,11 +266,16 @@ public class PrincipalControlador {
             );
         }
         levelmanager niveles = new levelmanager();
+        BufferedImage fondoJuego = cargarFondoJuego();
+        BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
+            "assets/tutorial_controles.png"
+        );
         panelJuego = new PanelJuego(
             jugador, puntaje, fantasmas, ratasInfestadas, niveles,
-            this::mostrarMenuGameOver
+            this::mostrarMenuGameOver, fondoJuego, tutorialControles
         );
-        Map<Integer, List<PowerUp>> powerUpsPorNivel = crearPowerUpsPorNivel(niveles);
+        Map<Integer, List<PowerUp>> powerUpsPorNivel =
+            FabricaPowerUps.crearPorNivel(niveles.getNiveles());
         Map<Integer, List<Moneda>> monedasPorSeccion = Map.of(
             0, List.of(
                 new Moneda(330, 640), new Moneda(480, 640), new Moneda(720, 640)
@@ -301,33 +302,17 @@ public class PrincipalControlador {
 
         panelJuego.requestFocusInWindow();
         controladorPartida.iniciar();
+        reproductorMusica.habilitarReproduccion();
     }
 
-    private Map<Integer, List<PowerUp>> crearPowerUpsPorNivel(levelmanager niveles) {
-        Map<Integer, List<PowerUp>> powerUpsPorNivel = new HashMap<>();
-        List<level> todosLosNiveles = niveles.getNiveles();
-        for (int indiceNivel = 0; indiceNivel < todosLosNiveles.size(); indiceNivel++) {
-            level nivel = todosLosNiveles.get(indiceNivel);
-            List<PowerUp> powerUps = new ArrayList<>();
-            for (level.MarcadorPowerUp marcador : nivel.getMarcadoresPowerUps()) {
-                double x = marcador.columna() * (double) ConfiguracionPartida.TAM_TILE;
-                double y = marcador.fila() * (double) ConfiguracionPartida.TAM_TILE;
-                powerUps.add(switch (marcador.tipo()) {
-                    case VELOCIDAD -> new PowerUpVelocidad(DURACION_VELOCIDAD_MS, x, y);
-                    case LENTO -> new PowerUpLento(DURACION_LENTO_MS, x, y);
-                    case INVULNERABILIDAD -> crearPowerUpInvulnerabilidad(x, y);
-                });
-            }
-            powerUpsPorNivel.put(indiceNivel, powerUps);
+    private BufferedImage cargarFondoJuego() {
+        String ruta = "/assets/escenarios/Nivel_1_Top_Floor X.png";
+        try {
+            return CargadorRecursos.cargarImagen(ruta.substring(1));
+        } catch (IllegalArgumentException error) {
+            System.err.println("No se pudo cargar el fondo " + ruta + ": " + error.getMessage());
+            return null;
         }
-        return powerUpsPorNivel;
-    }
-
-    private PowerUp crearPowerUpInvulnerabilidad(double x, double y) {
-        if (ThreadLocalRandom.current().nextBoolean()) {
-            return new PowerUpPizza(DURACION_INVULNERABILIDAD_MS, x, y);
-        }
-        return new PowerUpInvulnerabilidad(DURACION_INVULNERABILIDAD_MS, x, y);
     }
 
     private void guardarResultadoPartida() {

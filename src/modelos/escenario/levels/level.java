@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 public class level {
@@ -207,15 +206,6 @@ public class level {
     public List<MarcadorEnemigo> getMarcadoresEnemigos() { return marcadoresEnemigos; }
     public List<MarcadorPowerUp> getMarcadoresPowerUps() { return marcadoresPowerUps; }
     public List<PatrullaFantasma> getPatrullasFantasma() { return patrullasFantasma; }
-
-    public Optional<MarcadorEnemigo> getMarcadorEnemigo(TipoEnemigoMapa tipo) {
-        if (tipo == null) {
-            throw new IllegalArgumentException("Se requiere el tipo de enemigo");
-        }
-        return marcadoresEnemigos.stream()
-            .filter(marcador -> marcador.tipo() == tipo)
-            .findFirst();
-    }
 
     private boolean dentro(int x, int y) {
         return x >= 0 && y >= 0 && x < getAncho() && y < getAlto();

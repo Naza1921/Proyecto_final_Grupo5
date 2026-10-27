@@ -8,7 +8,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 public final class MenuGameOver extends JPanel {
     private static final int ANCHO_BOTON = 252;
@@ -21,7 +21,7 @@ public final class MenuGameOver extends JPanel {
     private final BotonImagen btnSalir;
 
     public MenuGameOver() {
-        fondo = loadsave.GetSpriteatlas("assets/GAME_OVER.png");
+        fondo = CargadorRecursos.cargarImagen("assets/GAME_OVER.png");
         btnVolver = new BotonImagen(
             "Volver al menú", "assets/botones/boton_volver.png",
             ANCHO_BOTON, ALTO_BOTON

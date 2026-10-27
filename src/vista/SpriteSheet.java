@@ -2,7 +2,7 @@ package vista;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 // Leemos hojas de sprites y guardamos cada cuadro por fila para que la vista pida
 // una animación concreta sin mezclarla con los cuadros de otra acción.
@@ -132,7 +132,7 @@ public class SpriteSheet {
     private static BufferedImage cargarHoja(String path) {
         try {
             String rutaRecurso = path.startsWith("/") ? path.substring(1) : path;
-            return loadsave.GetSpriteatlas(rutaRecurso);
+            return CargadorRecursos.cargarImagen(rutaRecurso);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("No se pudo cargar la hoja de sprites: " + path, e);
         }
@@ -210,10 +210,6 @@ public class SpriteSheet {
         return contornos[0][Math.max(0, Math.min(indice, contornos[0].length - 1))];
     }
 
-    public BufferedImage[] getFrames() {
-        return frames[0].clone();
-    }
-
     public int getCantidadFrames() {
         return frames[0].length;
     }
@@ -221,10 +217,6 @@ public class SpriteSheet {
     public int getCantidadFrames(int fila) {
         validarFila(fila);
         return frames[fila].length;
-    }
-
-    public int getCantidadFilas() {
-        return frames.length;
     }
 
     private void validarFila(int fila) {

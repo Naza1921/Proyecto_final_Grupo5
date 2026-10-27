@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Locale;
 
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 import modelos.personajes.Personaje;
 
 public class PanelHUD {
@@ -36,9 +36,9 @@ public class PanelHUD {
     // la barra de vida y estamina del personaje, en este caso en la carpeta assets
     //se definio que la cantidad que tiene que leer los frames10
     public PanelHUD() {
-        barraVidaSprite = new SpriteSheet("/assets/Hud/sprite_barra_vida.jpeg", 10);
-        spritePuntaje = loadsave.GetSpriteatlas("assets/Hud/puntaje_proyecto.png");
-        spriteTemporizador = loadsave.GetSpriteatlas("assets/temporizador.png");
+        barraVidaSprite = new SpriteSheet("/assets/Hud/sprite_barra_vida_2.png", 10);
+        spritePuntaje = CargadorRecursos.cargarImagen("assets/Hud/puntaje_proyecto.png");
+        spriteTemporizador = CargadorRecursos.cargarImagen("assets/temporizador.png");
     }
 
     //la estamina puede ser cuadrado donde tendriamos 3 frames 

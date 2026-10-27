@@ -3,9 +3,16 @@ package modelos.items;
 import modelos.personajes.Personaje;
 
 public final class EfectoInvulnerabilidad implements EfectoTemporal {
+    private static final RecompensaPowerUp RECOMPENSA = new RecompensaPowerUp(1_000, false);
+
     @Override
     public CategoriaEfectoTemporal getCategoria() {
         return CategoriaEfectoTemporal.DEFENSA;
+    }
+
+    @Override
+    public RecompensaPowerUp getRecompensa() {
+        return RECOMPENSA;
     }
 
     @Override

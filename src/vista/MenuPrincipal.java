@@ -2,7 +2,7 @@ package vista;
 
 import javax.swing.*;
 import java.awt.*;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 public class MenuPrincipal extends JPanel {
     private static final int ANCHO_BOTON = 252;
@@ -21,8 +21,8 @@ public class MenuPrincipal extends JPanel {
         setPreferredSize(new Dimension(800, 600));
         setLayout(new GridBagLayout());
 
-        fondo = loadsave.GetSpriteatlas("assets/Portada_rata.png");
-        titulo = loadsave.GetSpriteatlas("assets/TITULO 2.png");
+        fondo = CargadorRecursos.cargarImagen("assets/Portada_rata.png");
+        titulo = CargadorRecursos.cargarImagen("assets/TITULO 2.png");
 
         btnJugar = crearBoton("Jugar", "boton_jugar.png");
         btnOpciones = crearBoton("Opciones", "boton_opciones.png");

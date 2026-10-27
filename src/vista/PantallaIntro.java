@@ -12,7 +12,7 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import java.util.concurrent.atomic.AtomicBoolean;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 // Mostramos el video de entrada con JavaFX dentro de la ventana Swing
 // y avisamos al controlador cuando termina o no se puede reproducir.
@@ -66,7 +66,7 @@ public class PantallaIntro extends JPanel {
             // Cargar el video MP4 desde los recursos del proyecto.
             java.net.URL urlVideo;
             try {
-                urlVideo = loadsave.obtenerURLRecurso(
+                urlVideo = CargadorRecursos.obtenerUrlRecurso(
                     "assets/intro_concepto_final/Intro_Final.mp4"
                 );
             } catch (IllegalArgumentException error) {
@@ -129,7 +129,7 @@ public class PantallaIntro extends JPanel {
 
         java.net.URL urlGif;
         try {
-            urlGif = loadsave.obtenerURLRecurso(
+            urlGif = CargadorRecursos.obtenerUrlRecurso(
                 "assets/intro_concepto_final/concepto_inicio_juego_10s.gif"
             );
         } catch (IllegalArgumentException error) {

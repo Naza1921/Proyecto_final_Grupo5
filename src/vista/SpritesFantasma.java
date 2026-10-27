@@ -1,7 +1,7 @@
 package vista;
 
 import java.awt.image.BufferedImage;
-import controlador.utilz.loadsave;
+import recursos.CargadorRecursos;
 
 public final class SpritesFantasma {
     private static final String RUTA_HOJA = "assets/arte_enemigos/fantasma.jpeg";
@@ -26,14 +26,14 @@ public final class SpritesFantasma {
         int ancho = haciaDerecha
             ? ANCHO_PATRULLA_DERECHA
             : ANCHO_PATRULLA_IZQUIERDA;
-        SpriteSheet hoja = new SpriteSheet(loadsave.GetSpriteatlas(RUTA_HOJA),
+        SpriteSheet hoja = new SpriteSheet(CargadorRecursos.cargarImagen(RUTA_HOJA),
             CANTIDAD_CUADROS_PATRULLA,
             x, INICIO_FILA_PATRULLA, ancho, ALTO_FILA_PATRULLA);
         return SpritesRatas.crearFramesAlineados(hoja, 0);
     }
 
     public static BufferedImage[] cargarMuerte() {
-        SpriteSheet hoja = new SpriteSheet(loadsave.GetSpriteatlas(RUTA_HOJA),
+        SpriteSheet hoja = new SpriteSheet(CargadorRecursos.cargarImagen(RUTA_HOJA),
             CANTIDAD_CUADROS_MUERTE,
             X_PRIMER_FRAME_MUERTE, INICIO_FILA_MUERTE,
             ANCHO_FILA_MUERTE, ALTO_FILA_MUERTE);

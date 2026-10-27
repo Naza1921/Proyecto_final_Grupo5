@@ -129,32 +129,6 @@ public abstract class Personaje {
         this.enElAire = false;
     }
 
-    // Restaura los valores de partida antes de volver a cargar la posición inicial del nivel.
-    public void restablecerEstado() {
-        vida = vidaMaxima;
-        setEstamina(estaminaMaxima);
-        velocidad = velocidadBase;
-        x = 0;
-        y = 0;
-        velocidadY = 0;
-        enElAire = false;
-        agachada = false;
-        invulnerable = false;
-        multiplicadorVelocidadTemporal = 1.0;
-    }
-
-    public void recibirDanioYReducirEstamina(int danioVida, double danioEstamina) {
-        if (danioVida < 0 || !Double.isFinite(danioEstamina) || danioEstamina < 0) {
-            throw new IllegalArgumentException("El daño y la reducción de estamina no pueden ser negativos");
-        }
-        if (invulnerable) {
-            return;
-        }
-        vida = Math.max(0, vida - danioVida);
-        // Reutiliza la validación y los límites definidos para la estamina.
-        setEstamina(estamina - danioEstamina);
-    }
-
     // Exponemos consultas del estado sin entregar acceso directo a los atributos.
     public boolean estaViva() { return vida > 0; }
     public int getVida() { return vida; }
@@ -173,7 +147,6 @@ public abstract class Personaje {
     public double getVelocidadY(){return velocidadY;}
     public boolean esInvulnerable() { return invulnerable; }
 
-    public void setVelocidad(double velocidad) { this.velocidad = velocidad; }
     public void setMultiplicadorVelocidadTemporal(double multiplicador) {
         if (!Double.isFinite(multiplicador) || multiplicador <= 0) {
             throw new IllegalArgumentException("El multiplicador de velocidad debe ser finito y positivo");

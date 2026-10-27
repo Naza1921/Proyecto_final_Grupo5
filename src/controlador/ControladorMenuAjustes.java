@@ -15,8 +15,8 @@ import java.util.function.Consumer;
 import javax.swing.JFrame;
 
 import modelos.PreferenciasAjustes;
-import controlador.utilz.loadsave;
 import vista.MenuAjustesVista;
+import recursos.CargadorRecursos;
 
 public final class ControladorMenuAjustes {
 
@@ -123,7 +123,7 @@ public final class ControladorMenuAjustes {
         }
 
         try {
-            URL url = loadsave.obtenerURLRecurso(recurso);
+            URL url = CargadorRecursos.obtenerUrlRecurso(recurso);
             Path archivo = Path.of(url.toURI());
             reproductorMusica.seleccionarCancion(archivo);
         } catch (IllegalArgumentException | IOException | URISyntaxException error) {
