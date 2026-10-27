@@ -62,7 +62,7 @@ Pantalla de Game Over: mensaje correspondiente, opción de reiniciar o volver al
 
 #### Sistema de Puntos y Tiempo
 Tiempo de juego: cronómetro que comienza al iniciar y se detiene al terminar.
-El HUD ya muestra el tiempo transcurrido en formato `MM:SS` con el sprite `src/assets/temporizador.png`.
+El HUD ya muestra el tiempo transcurrido en formato `MM:SS`.
 La cámara de presentación sigue suavemente al personaje con zoom 2× y límites
 del mapa; el HUD permanece fijo en la pantalla mientras el escenario se desplaza.
 Puntos por comida buena: +X puntos por cada pieza consumida.
@@ -73,13 +73,6 @@ Puntuación final:
 Score = (Puntos comida buena) – (Puntos comida mala) – (Penalizaciones daño) – (Factor tiempo opcional)
 Visualización: tiempo y puntuación mostrados al final y opcionalmente durante la partida (HUD).Estructura de Niveles Pisos
 Piso	Descripción	Enemigos Principales	Obstáculos	Comida Disponible
-
-####  Arte y Estilo Visual
-Paleta de colores: tonos oscuros y sucios con acentos amarillos/verdes para power‑ups y rojos para peligros.
-Sprite del protagonista: ciclo de animación (idle, walk, jump, hurt, eat, power‑up).
-Entorno: tilesets para paredes, pisos, techos, objetos interactivos.
-Efectos: partículas de polvo, chispas de lavandina, brillos al obtener power‑up, pantalla temblor al daño.
-UI: barra de vida, contador de tiempo, íconos de activos power‑up, mini‑mapa opcional.
 
 #### Audio y Musica
 Música de fondo: Un tema en bucle que queda a lección del jugador desde menu de  ajustes
@@ -112,20 +105,18 @@ Pruebas de juego y ajuste de controles.
 Integración de audio y música.
 Build y pruebas en plataformas objetivo.
 
-#### Este README es solo un punto de partida. A medida que el proyecto avance, se pueden agregar, modificar o eliminar secciones según las necesidades específicas del juego.
 
 //Esta la portada de el juego
 ![Portada del Juego](src/assets/Portada_rata.png)
 
+
+## Arquitectura y diseño 
 
 //Este es el Diagrama de herencia de la clase personaje a cada rata  
 ![Diagrama del Juego](docs/diagrama_de_clases.png)
 
 
 
-
-
-## Arquitectura y di
 
 ### En el juego utilizamos varios tipos de `Patrones de Diseño` 
 
@@ -136,7 +127,8 @@ Build y pruebas en plataformas objetivo.
 
 `PersonajeFactory` centraliza la creación de las distintas subclases de `Personaje`. Recibe un nombre y un valor de `Personaje.TipoRata`, y devuelve la instancia concreta correspondiente:
 
-```public class PersonajeFactory {
+```java
+public class PersonajeFactory {
 
     public static Personaje crearPersonaje(String nombre, Personaje.TipoRata tipoRata) {
         // Usamos un switch para determinar qué tipo de rata crear
