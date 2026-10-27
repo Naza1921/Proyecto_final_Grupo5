@@ -267,5 +267,6 @@ La consulta guarda el mejor resultado de cada jugador: reemplaza el anterior si 
 - IDE: Visual Studio Code.
 - Framework de IGU: Java Swing.
 - Control de Versiones: Git y GitHub.
-- Persistencia: A definir durante las siguientes etapas del proyecto.
+- Base de datos: SQLite
+- Framework de gestor de musica :JavaFX
 ```
