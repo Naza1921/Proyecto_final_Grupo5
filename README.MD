@@ -54,6 +54,7 @@ Se hicieron las 6 am y llegaron los encargados de limpiar el edificio con vos 
 - Ejemplos de efectos:
 - Velocidad++, salto triple, invisibilidad (comida buena).
 - Lentos, controles invertidos (comida mala).
+- Curación 
 
 Daño por fantasma → Secuestro: la rata es capturada y se muestra una escena de “mascota”.
 Comer comida en mal estado → Intoxicación: animación de enfermedad y pérdida de vida.
@@ -135,7 +136,7 @@ public class PersonajeFactory {
         }
     }
 }
-);
+;
 ```
 **Por qué es útil para el juego:**
 
