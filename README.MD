@@ -89,7 +89,12 @@ en bucle mediante JavaFX Media. Los audios estan en `src/assets/audio/`.
 
 
 //Esta la portada de el juego
+
+
 ![Portada del Juego](src/assets/Portada_rata.png)
+
+
+
 
 
 ## Arquitectura y diseño 
