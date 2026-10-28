@@ -20,8 +20,6 @@ import modelos.personajes.Personaje;
 import modelos.items.PowerUp;
 import modelos.items.Moneda;
 
-//aqui nosotros estamos definimos el panel visual del juego
-//mostramos la barrera de vida, estamina y mana del personaje, ademas de dibujar al personaje en el panel
 public final class PanelJuego extends JPanel implements VistaPartida {
     private static final double ZOOM_CAMARA = 2.0;
     private static final double ZOOM_CAMARA_PANTALLA_COMPLETA = 2.5;
@@ -45,13 +43,9 @@ public final class PanelJuego extends JPanel implements VistaPartida {
     private int puntajePresentado;
     private boolean nivelCompletado;
     private Runnable alCerrarNivelCompletado;
-
-    // Fondo fijo del nivel (por ahora un solo escenario, sin gestor de niveles).
     private final BufferedImage fondoImagen;
     private final BufferedImage tutorialControles;
 
-    //definimos el panel de juego, con un personaje
-    // y un panel de hud, ademas de un timer para actualizar el juego
 public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fantasmas,
                   List<ratainfestada> ratasInfestadas, EstadoNivel estadoNivel,
                   Runnable alTerminarAnimacionMuerte, BufferedImage fondoImagen,
