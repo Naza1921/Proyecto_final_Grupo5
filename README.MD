@@ -94,10 +94,10 @@ en bucle mediante JavaFX Media. Los audios estan en `src/assets/audio/`.
 
 ## Arquitectura y diseño 
 
+- [Diagrama General del juego](docs/ghosts_and_rats_arquitectura_general.png)
+
 //Este es el Diagrama de herencia de la clase personaje a cada rata  
-![Diagrama del Juego](docs/diagrama_de_clases.png)
-
-
+![Diagrama de clases](docs/diagrama_de_clases.png)
 
 
 ### En el juego utilizamos varios tipos de `Patrones de Diseño` 
