@@ -4,15 +4,13 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import recursos.CargadorRecursos;
 
-// Leemos hojas de sprites y guardamos cada cuadro por fila para que la vista pida
-// una animación concreta sin mezclarla con los cuadros de otra acción.
+
 public class SpriteSheet {
     private final BufferedImage[][] frames;
     private final BufferedImage[][] contornos;
     private static final int GROSOR_CONTORNO = 3;
     private static final Color COLOR_CONTORNO = Color.YELLOW;
 
-    // Mantiene compatibilidad con hojas de una sola fila, como la barra de vida.
     public SpriteSheet(String path, int cantidadFrames) {
         this(cargarHoja(path), cantidadFrames);
     }
@@ -198,7 +196,7 @@ public class SpriteSheet {
         return getFrame(0, Math.max(0, Math.min(indice, frames[0].length - 1)));
     }
 
-    // El acceso por fila es estricto: un índice inválido no se convierte en otro frame.
+    
     public BufferedImage getFrame(int fila, int indice) {
         if (fila < 0 || fila >= frames.length || indice < 0 || indice >= frames[fila].length) {
             throw new IndexOutOfBoundsException("El frame solicitado no existe en esa fila");
@@ -224,9 +222,7 @@ public class SpriteSheet {
             throw new IndexOutOfBoundsException("La fila solicitada no existe en la hoja");
         }
     }
-
-    // Quitamos solo el fondo que toca los bordes; así no borramos los colores parecidos
-    // que forman parte del dibujo cuando están encerrados dentro del sprite.
+ 
     private BufferedImage quitarFondo(BufferedImage origen, int[] coloresFondo, int tolerancia) {
         int ancho = origen.getWidth();
         int alto = origen.getHeight();
@@ -273,8 +269,7 @@ public class SpriteSheet {
         if (esFondo[indice]) {
             return;
         }
-
-        // Guardamos el píxel para revisarlo una sola vez y expandir el fondo desde sus bordes.
+       
         int color = origen.getRGB(x, y);
         if (esColorDeFondo(color, coloresFondo, tolerancia)) {
             esFondo[indice] = true;
@@ -303,7 +298,6 @@ public class SpriteSheet {
     }
 
     private BufferedImage generarContorno(BufferedImage origen, int grosor, Color color) {
-        // Construimos el contorno aparte para poder dibujarlo sin modificar el frame original.
         int ancho = origen.getWidth();
         int alto = origen.getHeight();
         BufferedImage contorno = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);

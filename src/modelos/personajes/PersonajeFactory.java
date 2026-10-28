@@ -14,25 +14,21 @@ public class PersonajeFactory {
      * @throws IllegalArgumentException Si el tipo de rata no es reconocido.
      */
     public static Personaje crearPersonaje(String nombre, Personaje.TipoRata tipoRata) {
-        // Usamos un switch para determinar qué tipo de rata crear
+
         switch (tipoRata) {
             case GRIS -> {
-                // Retorna una instancia de rata_gris
                 return new rata_gris(nombre);
             }
             case BLANCA -> {
-                // Retorna una instancia de rata_blanca
                 return new rata_blanca(nombre);
             }
             case NEGRA -> {
-                // Retorna una instancia de rata_negra
                 return new rata_negra(nombre);
             }
             case VERDE -> {
-                // Retorna una instancia de rata_verde
                 return new rata_verde(nombre);
             }
-            default -> // Si el tipo de rata no es válido, lanzamos una excepción
+            default -> 
                 throw new IllegalArgumentException("Tipo de rata no reconocido: " + tipoRata);
         }
     }

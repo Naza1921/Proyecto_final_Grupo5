@@ -142,7 +142,7 @@ public final class SpritesRatas {
 
     public static void dibujarAjustado(Graphics2D g, BufferedImage frame,
                                        int x, int y, int ancho, int alto) {
-        // Ajustamos el dibujo al espacio disponible sin estirar la imagen ni suavizar sus píxeles.
+        
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
             RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         double escala = Math.min((double) ancho / frame.getWidth(), (double) alto / frame.getHeight());
@@ -152,8 +152,7 @@ public final class SpritesRatas {
             anchoDibujo, altoDibujo, null);
     }
 
-    // Conserva el anclaje original de cada celda y solo completa a la derecha si una división
-    // de la hoja dejó anchos de uno o dos píxeles distintos entre cuadros.
+   
     public static BufferedImage[] crearFramesAlineados(SpriteSheet hoja, int fila) {
         int cantidad = hoja.getCantidadFrames(fila);
         BufferedImage[] alineados = new BufferedImage[cantidad];

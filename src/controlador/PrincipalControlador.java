@@ -68,10 +68,7 @@ public class PrincipalControlador {
     private void iniciarVentana() {
         ventana = new JFrame("Ghosts and Rats");
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Antes estaba en false: eso es lo que impedía agrandar la ventana.
         ventana.setResizable(true);
-        // Evita que el jugador la achique tanto que el HUD o los botones no entren.
         ventana.setMinimumSize(new Dimension(640, 480));
 
         cardLayout = new CardLayout();
@@ -83,8 +80,6 @@ public class PrincipalControlador {
         menuPausa = new MenuPausa();
         menuGameOver = new MenuGameOver();
         panelAjustes = new MenuAjustesVista();
-
-        //El panel de seleccion llama a iniciarJuego pasandole el personaje elegido
         panelSeleccion = new PanelSeleccionPersonaje(this::iniciarJuego);
 
         contenedor.add(pantallaIntro, VISTA_INTRO);
@@ -108,9 +103,6 @@ public class PrincipalControlador {
 
         ventana.add(contenedor);
 
-        // pack() solo se llama UNA vez, para darle un tamaño inicial a la ventana
-        // a partir del preferredSize de sus paneles. Después de esto, el usuario
-        // maneja el tamaño arrastrando el borde de la ventana.
         cardLayout.show(contenedor, VISTA_INTRO);
         ventana.pack();
         ventana.setLocationRelativeTo(null);

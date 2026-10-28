@@ -214,7 +214,6 @@ dibujarPowerUps(g2);
 dibujarMonedas(g2);
 renderizadorEntidades.dibujar(g2);
 
-        // Dibujar el HUD en las esquinas superiores de la pantalla.
         g2.setTransform(transformacionPantalla);
         hud.dibujar(g2, jugador, puntajePresentado, tiempoPartidaMillis, getWidth());
     if (nivelCompletado) {

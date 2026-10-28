@@ -42,10 +42,7 @@ public class PanelSeleccionPersonaje extends JPanel {
         encabezado.add(titulo);
         encabezado.add(subtitulo);
         add(encabezado, BorderLayout.NORTH);
-        // Crear un panel de tarjetas para mostrar las opciones de personajes pertenece 
-        // en realidad esta seccion de codigo tendria que estar dentro de un gestor
-        //de paneldeseleccion, pero por ahora lo dejamos aca, ya que no tenemos un gestor de paneleseleccion
-        // El panel de tarjetas tiene un GridLayout de 2 filas y 2 columnas, con espacio entre ellas.
+
         JPanel tarjetas = new JPanel(new GridLayout(2, 2, 18, 16));
         tarjetas.setOpaque(false);
             tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
@@ -60,7 +57,6 @@ public class PanelSeleccionPersonaje extends JPanel {
             add(tarjetas, BorderLayout.CENTER);
     }
 
-    // Dibuja el fondo del selector sin cubrir las tarjetas ni su contenido.
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -75,7 +71,6 @@ public class PanelSeleccionPersonaje extends JPanel {
         g2.dispose();
     }
 
-    // Muestra el nombre y el sprite; al hacer clic crea la instancia elegida.
     private JButton crearBoton(String nombre, Personaje.TipoRata tipo,
                     Supplier<Personaje> fabrica) {
         JButton boton = new JButton(

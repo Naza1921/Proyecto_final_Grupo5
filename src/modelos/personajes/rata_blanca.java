@@ -6,16 +6,12 @@ import java.util.List;
 import modelos.enemigos.enemigo;
 import modelos.partida.ConfiguracionPartida;
 
-// La rata blanca hereda el estado y las acciones compartidas, y acá definimos
-// sus estadísticas y la recarga extra que obtiene al agacharse.
 public class rata_blanca extends Personaje {
 
-    // Costo de estamina por intentar usar la habilidad especial.
     private static final double COSTO_ESTAMINA_STUN = 15;
     private final List<ProyectilStun> proyectilesStun = new ArrayList<>();
 
     public rata_blanca(String nombre) {
-        // Es más resistente, a cambio de moverse y saltar un poco menos.
         super(nombre, TipoRata.BLANCA, 100, 7, 7.5, 100);
     }
 

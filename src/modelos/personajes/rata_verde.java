@@ -2,16 +2,14 @@ package modelos.personajes;
 import modelos.enemigos.enemigo;
 import java.util.List;
 import modelos.partida.ConfiguracionPartida;
-// La rata verde hereda el comportamiento común y conserva sus estadísticas
-// y el costo de su habilidad de ácido en esta clase.
+
 public class rata_verde extends Personaje {
 
     // Costo de estamina de la habilidad de ácido.
     private static final double COSTO_ESTAMINA_ACIDO = 15;
     private CharcoAcido charcoAcido;
-
+    
     public rata_verde(String nombre) {
-        // Es algo más lenta, pero tiene una reserva de estamina amplia.
         super(nombre, TipoRata.VERDE, 80, 5, 11, 130);
     }
 

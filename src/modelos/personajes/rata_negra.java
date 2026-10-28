@@ -4,15 +4,12 @@ import java.util.List;
 import modelos.enemigos.enemigo;
 import modelos.partida.ConfiguracionPartida;
 
-// La rata negra prepara una lámpara y la convierte en una zona de fuego.
 public class rata_negra extends Personaje {
 
-    // Conserva el costo de estamina que ya tenía la habilidad de esta rata.
     private static final double COSTO_ESTAMINA_LAMPARA = 15;
     private LamparaFuego lamparaFuego;
 
     public rata_negra(String nombre) {
-        // Es más rápida y salta más alto, pero tiene menos vida y estamina.
         super(nombre, TipoRata.NEGRA, 50, 7, 9.5, 90);
     }
 

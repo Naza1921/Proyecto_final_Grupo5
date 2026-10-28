@@ -4,7 +4,7 @@ import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 
 public class ColisionNivel {
-    private level nivel;                       // ya no es final
+    private level nivel;                      
     private final int tile, ancho, alto;
     private double xSeguro, ySeguro;
     private boolean iniciado;

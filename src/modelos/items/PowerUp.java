@@ -4,7 +4,6 @@ import modelos.personajes.Personaje;
 
 public interface PowerUp {
     EfectoTemporal getEfecto();
-    // The duration is expressed in milliseconds.
     long getDuracion();
     double getX();
     double getY();

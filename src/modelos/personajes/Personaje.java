@@ -3,15 +3,8 @@ package modelos.personajes;
 import modelos.enemigos.enemigo;
 import java.util.List;
 
-// Acá concentramos lo que todas las ratas tienen en común: estadísticas, posición
-// y acciones básicas. Cada tipo concreto hereda de esta clase y aporta sus diferencias.
 public abstract class Personaje {
    
-   // cambiar el tipo de rata a un enum para que sea mas facil de manejar
-   // cada subclase concreta define su tipo de rata y sus estadísticas iniciales.
-   
-
-    // Guardamos el estado como privado para que los cambios pasen por las operaciones del modelo.
     private final String nombre;
     private final TipoRata tipoRata;
     private int vida;
@@ -32,12 +25,10 @@ public abstract class Personaje {
     private static final double GRAVEDAD = 0.4;
     private static final double VELOCIDAD_MAXIMA_CAIDA = 15;
     
-    //revisar si es necesario tipo enum para el tipo de rata, para que sea mas facil de manejar
     public enum TipoRata {
         BLANCA, GRIS, NEGRA, VERDE
     }
-    // Cada subclase pasa sus números iniciales por super(); así no repetimos estas variables
-    // en cada rata y mantenemos en un solo lugar la validación del estado compartido.
+
     protected Personaje(String nombre, TipoRata tipoRata, int vidaMaxima, double velocidad,
                         double fuerzaSalto, double estaminaMaxima) {
         if (nombre == null || nombre.isBlank() || tipoRata == null
@@ -61,11 +52,9 @@ public abstract class Personaje {
         this.estamina = estaminaMaxima;
     }
 
-    // El movimiento horizontal usa la velocidad actual del personaje.
     public void moverIzquierda() { x -= getVelocidad(); mirandoIzquierda = true; }
     public void moverDerecha() { x += getVelocidad(); mirandoIzquierda = false; }
 
-    // Mantiene la posición horizontal dentro del área que el nivel permite recorrer.
     public void limitarPosicionHorizontal(double xMinimo, double xMaximo) {
         if (!Double.isFinite(xMinimo) || !Double.isFinite(xMaximo) || xMinimo > xMaximo) {
             throw new IllegalArgumentException("Los límites horizontales deben ser finitos y válidos");
@@ -74,7 +63,6 @@ public abstract class Personaje {
     }
 
     public boolean saltar() {
-        // Solo se puede iniciar un salto si el personaje está en el suelo.
         if (!enElAire) {
             enElAire = true;
             velocidadY = -fuerzaSalto;
@@ -82,23 +70,20 @@ public abstract class Personaje {
         }
         return false;
     }
-    // Mantenemos la postura como parte del modelo porque también puede cambiar la recarga.
     public void agacharse() { agachada = true; }
     public void levantarse() { agachada = false; }
 
     public void recargarEstamina() {
         if (estamina < estaminaMaxima) {
-            // El setter limita la recarga al máximo permitido.
+
             setEstamina(estamina + 1);
         }
     }
 
     public void actualizar() {
-        // La gravedad solo se aplica mientras el personaje está en el aire.
         if (!enElAire) {
             return;
         }
-        // Aceleramos la caída hasta el límite para que no siga aumentando indefinidamente.
         velocidadY = Math.min(velocidadY + GRAVEDAD, VELOCIDAD_MAXIMA_CAIDA);
         y += velocidadY;
     }
@@ -110,11 +95,9 @@ public abstract class Personaje {
         if (invulnerable) {
             return;
         }
-        // La vida nunca puede quedar por debajo de cero.
         vida = Math.max(0, vida - cantidad);
     }
 
-    // Recupera vida sin superar el máximo definido por la subclase concreta.
     public void recuperarVida(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La recuperación de vida no puede ser negativa");
@@ -123,13 +106,11 @@ public abstract class Personaje {
     }
 
     public void aterrizar(double yPiso) {
-        // Detiene la caída y deja al personaje apoyado en la plataforma.
         this.y = yPiso;
         this.velocidadY = 0.0;
         this.enElAire = false;
     }
 
-    // Exponemos consultas del estado sin entregar acceso directo a los atributos.
     public boolean estaViva() { return vida > 0; }
     public int getVida() { return vida; }
     public int getVidaMaxima() { return vidaMaxima; }
@@ -160,10 +141,9 @@ public abstract class Personaje {
         if (!Double.isFinite(estamina)) {
             throw new IllegalArgumentException("La estamina debe ser un número finito");
         }
-        // Centraliza los límites para evitar valores fuera del rango válido.
         this.estamina = Math.max(0, Math.min(estamina, estaminaMaxima));
     }
-    // Al detener el movimiento ponemos a cero la velocidad horizontal actual.
+
     public void detenerMovimiento() { velocidad = 0; }
 
     public abstract boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino);
@@ -187,17 +167,13 @@ public abstract class Personaje {
             && Math.hypot(objetivo.getX() - x, objetivo.getY() - y) <= rango;
     }
 
-    // Estas posiciones se actualizan al iniciar un nivel o cuando se mueve al personaje.
     public void setX(double x) { this.x = x; }
     public void setY(double y) {
         this.y = y;
         this.velocidadY = 0;
-        // Al cargar un nivel, el personaje debe poder caer desde su posición inicial.
         this.enElAire = true;
     }
 
-    // Las habilidades de las subclases comparten esta comprobación y descuento:
-    // si no alcanza la estamina, no la modificamos y devolvemos false.
     protected final boolean consumirEstamina(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("El costo de estamina no puede ser negativo");
@@ -208,6 +184,7 @@ public abstract class Personaje {
         estamina -= cantidad;
         return true;
     }
+    
 public void setEnElAire(boolean enElAire) { this.enElAire = enElAire; }
 public void setVelocidadY(double velocidadY) { this.velocidadY = velocidadY; }
 public void corregirPosicion(double x, double y) { this.x = x; this.y = y; }
