@@ -36,7 +36,7 @@ public class rata_blanca extends Personaje {
 
     @Override
     public void actualizarHabilidad(List<enemigo> objetivos) {
-        super.actualizarHabilidad(objetivos);
+        validarObjetivosHabilidad(objetivos);
         Iterator<ProyectilStun> iterador = proyectilesStun.iterator();
         while (iterador.hasNext()) {
             ProyectilStun proyectil = iterador.next();
@@ -50,6 +50,11 @@ public class rata_blanca extends Personaje {
                 iterador.remove();
             }
         }
+    }
+
+    @Override
+    public void prepararCambioDeSeccion() {
+        // Los proyectiles de stun siguen activos al cambiar de sección.
     }
 
     @Override

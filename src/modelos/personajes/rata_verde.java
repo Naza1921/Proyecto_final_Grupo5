@@ -35,7 +35,7 @@ public class rata_verde extends Personaje {
 
     @Override
     public void actualizarHabilidad(List<enemigo> objetivos) {
-        super.actualizarHabilidad(objetivos);
+        validarObjetivosHabilidad(objetivos);
         if (charcoAcido != null && !charcoAcido.actualizar(objetivos)) {
             charcoAcido = null;
         }
@@ -47,5 +47,10 @@ public class rata_verde extends Personaje {
 
     public void limpiarCharcoAcido() {
         charcoAcido = null;
+    }
+
+    @Override
+    public void prepararCambioDeSeccion() {
+        limpiarCharcoAcido();
     }
 }

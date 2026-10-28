@@ -2,24 +2,11 @@ package controlador;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import javax.swing.*;
-import modelos.enemigos.fantasma;
-import modelos.enemigos.ratainfestada;
-import modelos.items.PowerUp;
-import modelos.items.FabricaPowerUps;
-import modelos.items.Moneda;
-import modelos.partida.ConfiguracionPartida;
-import modelos.partida.Puntaje;
-import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
 import persistencia.SQLitePuntajeDAO;
-import recursos.CargadorRecursos;
 import servicios.ServicioPuntajes;
 import vista.MenuPrincipal;
 import vista.MenuAjustesVista;
@@ -40,8 +27,6 @@ public class PrincipalControlador {
     private static final String VISTA_PAUSA = "pausa";
     private static final String VISTA_GAME_OVER = "gameOver";
     private static final String VISTA_TABLERO = "tablero";
-    private static final double ANCHO_FANTASMA = 36;
-    private static final double ALTO_FANTASMA = 41;
 
     private Personaje jugador;
     private JFrame ventana;
@@ -60,6 +45,7 @@ public class PrincipalControlador {
     private ReproductorMusica reproductorMusica;
     private final ServicioPuntajes servicioPuntajes;
     private final GestorEfectosSonido efectosSonido;
+    private final CreadorPartida creadorPartida;
     private CardLayout cardLayout;
     private JPanel contenedor;
 
@@ -75,6 +61,7 @@ public class PrincipalControlador {
         }
         this.servicioPuntajes = servicioPuntajes;
         this.efectosSonido = new GestorEfectosSonido(this::mostrarErrorAjustes);
+        this.creadorPartida = new CreadorPartida(efectosSonido);
         iniciarVentana();
     }
 
@@ -246,56 +233,16 @@ public class PrincipalControlador {
         }
 
         this.jugador = personajeElegido;
-        jugador.setX(ConfiguracionPartida.POSICION_INICIAL_X);
-        jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
-
-        ControladorRata controladorRata = new ratacontroller(jugador);
-        GestorControlesRatas gestorControles = new GestorControlesRatas(controladorRata);
-        gestorEfectos = new GestorEfectosTemporales(jugador);
-        Puntaje puntaje = new Puntaje();
-        ControladorPuntaje controladorPuntaje = new ControladorPuntaje(puntaje);
-        List<fantasma> fantasmas = new ArrayList<>();
-        List<ratainfestada> ratasInfestadas = new ArrayList<>();
-        for (int indice = 0; indice < level.MAX_ENEMIGOS_POR_TIPO; indice++) {
-            fantasmas.add(new fantasma(
-                "Fantasma " + (indice + 1), 2.0, 0, 0,
-                ConfiguracionPartida.TAM_TILE, ANCHO_FANTASMA, ALTO_FANTASMA
-            ));
-            ratasInfestadas.add(
-                new ratainfestada("Rata Infestada " + (indice + 1), 2.0, 0)
-            );
-        }
-        levelmanager niveles = new levelmanager();
-        BufferedImage fondoJuego = cargarFondoJuego();
-        BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
-            "assets/tutorial_controles.png"
-        );
-        panelJuego = new PanelJuego(
-            jugador, puntaje, fantasmas, ratasInfestadas, niveles,
-            this::mostrarMenuGameOver, fondoJuego, tutorialControles
-        );
-        Map<Integer, List<PowerUp>> powerUpsPorNivel =
-            FabricaPowerUps.crearPorNivel(niveles.getNiveles());
-        Map<Integer, List<Moneda>> monedasPorSeccion = Map.of(
-            0, List.of(
-                new Moneda(330, 640), new Moneda(480, 640), new Moneda(720, 640)
-            ),
-            1, List.of(new Moneda(450, 640), new Moneda(780, 640)),
-            2, List.of(new Moneda(300, 640), new Moneda(660, 640)),
-            3, List.of(new Moneda(510, 640), new Moneda(900, 640)),
-            4, List.of(new Moneda(360, 640), new Moneda(750, 640))
-        );
-        controladorPartida = new ControladorPartida(
-            controladorRata, gestorControles, gestorEfectos, efectosSonido,
-            controladorPuntaje, panelJuego, niveles, powerUpsPorNivel,
-            monedasPorSeccion, jugador, fantasmas, ratasInfestadas,
+        CreadorPartida.PartidaCreada partida = creadorPartida.crear(
+            jugador,
+            this::mostrarMenuGameOver,
+            this::pausarJuego,
             this::guardarResultadoPartida
         );
-        controladorTecladoRata = new ControladorTecladoRata(
-            panelJuego, gestorControles, this::pausarJuego,
-            () -> efectosSonido.reproducir(GestorEfectosSonido.Efecto.SALTO),
-            controladorPartida::activarHabilidad
-        );
+        panelJuego = partida.panelJuego();
+        gestorEfectos = partida.gestorEfectos();
+        controladorPartida = partida.controladorPartida();
+        controladorTecladoRata = partida.controladorTecladoRata();
 
         contenedor.add(panelJuego, VISTA_JUEGO);
         cardLayout.show(contenedor, VISTA_JUEGO);
@@ -303,16 +250,6 @@ public class PrincipalControlador {
         panelJuego.requestFocusInWindow();
         controladorPartida.iniciar();
         reproductorMusica.habilitarReproduccion();
-    }
-
-    private BufferedImage cargarFondoJuego() {
-        String ruta = "/assets/escenarios/Nivel_1_Top_Floor X.png";
-        try {
-            return CargadorRecursos.cargarImagen(ruta.substring(1));
-        } catch (IllegalArgumentException error) {
-            System.err.println("No se pudo cargar el fondo " + ruta + ": " + error.getMessage());
-            return null;
-        }
     }
 
     private void guardarResultadoPartida() {

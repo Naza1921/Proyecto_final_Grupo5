@@ -33,7 +33,7 @@ public class rata_negra extends Personaje {
 
     @Override
     public void actualizarHabilidad(List<enemigo> objetivos) {
-        super.actualizarHabilidad(objetivos);
+        validarObjetivosHabilidad(objetivos);
         if (lamparaFuego != null && !lamparaFuego.actualizar(objetivos)) {
             lamparaFuego = null;
         }
@@ -45,5 +45,10 @@ public class rata_negra extends Personaje {
 
     public void limpiarLamparaFuego() {
         lamparaFuego = null;
+    }
+
+    @Override
+    public void prepararCambioDeSeccion() {
+        limpiarLamparaFuego();
     }
 }

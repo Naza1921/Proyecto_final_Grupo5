@@ -52,11 +52,6 @@ public class ratacontroller implements ControladorRata {
         rata.levantarse();
     }
 
-    // Interactúa con un objeto, comida, power-up, etc.
-    public void interactuar() {
-        rata.interactuar();
-    }
-
     // Detiene el movimiento de la rata
     public void detenerMovimiento() {
         rata.detenerMovimiento();

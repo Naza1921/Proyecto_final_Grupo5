@@ -166,15 +166,13 @@ public abstract class Personaje {
     // Al detener el movimiento ponemos a cero la velocidad horizontal actual.
     public void detenerMovimiento() { velocidad = 0; }
 
-    public void interactuar() {
-        // La interacción concreta depende del objeto cercano.
-    }
+    public abstract boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino);
 
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
-        return false;
-    }
+    public abstract void actualizarHabilidad(List<enemigo> objetivos);
 
-    public void actualizarHabilidad(List<enemigo> objetivos) {
+    public abstract void prepararCambioDeSeccion();
+
+    protected final void validarObjetivosHabilidad(List<enemigo> objetivos) {
         if (objetivos == null || objetivos.stream().anyMatch(objetivo -> objetivo == null)) {
             throw new IllegalArgumentException("Los objetivos de la habilidad deben ser válidos");
         }

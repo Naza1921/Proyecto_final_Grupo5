@@ -1,13 +1,8 @@
 package controlador;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.swing.Timer;
 import aplicacion.VistaPartida;
 import modelos.enemigos.enemigo;
@@ -18,19 +13,12 @@ import modelos.items.PowerUp;
 import modelos.partida.ConfiguracionPartida;
 import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
-import modelos.personajes.rata_negra;
-import modelos.personajes.rata_verde;
 
 // Coordina el ciclo temporal de la partida y solicita el repintado de la vista.
 public final class ControladorPartida implements SeccionListener {
     private static final int INTERVALO_ACTUALIZACION_MS = 16;
     private static final long INTERVALO_RECARGA_ESTAMINA_NANOS = 250_000_000L;
     private static final int PENALIZACION_GOLPE_FANTASMA = 125;
-    private static final int PUNTOS_DERROTAR_FANTASMA = 300;
-    private static final int PUNTOS_DERROTAR_RATA_INFESTADA = 500;
-    private static final int PUNTOS_MONEDA = 100;
-    private static final long INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS = 30;
-    private static final int PENALIZACION_TIEMPO_PUNTOS = 10;
 
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
@@ -41,27 +29,17 @@ public final class ControladorPartida implements SeccionListener {
     private final levelmanager niveles;
     private final ColisionNivel colisionNivel;
     private final GestorSecciones gestorSecciones;
-    private final ConfiguradorEnemigosSeccion configuradorEnemigos;
     private final GestorRecogidaPowerUps gestorRecogidaPowerUps;
+    private final GestorEnemigosPartida gestorEnemigos;
+    private final GestorMonedasPartida gestorMonedas;
+    private final GestorTiempoPartida gestorTiempo;
     private final Personaje jugador;
-    private final List<fantasma> fantasmas;
-    private final List<ratainfestada> ratasInfestadas;
-    private List<fantasma> fantasmasVisibles = List.of();
-    private List<ratainfestada> ratasInfestadasVisibles = List.of();
-    private final Set<fantasma> fantasmasPremiados =
-        Collections.newSetFromMap(new IdentityHashMap<>());
-    private final Set<ratainfestada> ratasInfestadasPremiadas =
-        Collections.newSetFromMap(new IdentityHashMap<>());
-    private final Map<Integer, List<Moneda>> monedasPorSeccion;
     private final Timer temporizador;
     private boolean listenerTemporizadorConfigurado;
     private final Runnable alCompletarNivel;
     private long ultimaRecargaEstaminaNanos = System.nanoTime();
-    private long inicioPartidaNanos;
-    private long tiempoAcumuladoNanos;
     private boolean partidaEnCurso;
     private boolean pausada;
-    private int seccionMonedasPresentada = -1;
     private boolean sonidoMuerteReproducido;
 
     public ControladorPartida(ControladorRata controladorRata,
@@ -99,12 +77,15 @@ public final class ControladorPartida implements SeccionListener {
         this.panelJuego = panelJuego;
         this.niveles = niveles;
         this.jugador = jugador;
-        this.fantasmas = List.copyOf(fantasmas);
-        this.ratasInfestadas = List.copyOf(ratasInfestadas);
-        this.configuradorEnemigos = new ConfiguradorEnemigosSeccion(
-            this.fantasmas, this.ratasInfestadas
+        ConfiguradorEnemigosSeccion configuradorEnemigos =
+            new ConfiguradorEnemigosSeccion(fantasmas, ratasInfestadas);
+        this.gestorEnemigos = new GestorEnemigosPartida(
+            configuradorEnemigos,
+            this.panelJuego::actualizarEnemigosVisibles,
+            this.jugador,
+            this.niveles
         );
-        this.monedasPorSeccion = copiarMonedasPorSeccion(monedasPorSeccion);
+        this.gestorTiempo = new GestorTiempoPartida(this.controladorPuntaje);
         this.alCompletarNivel = alCompletarNivel;
         this.colisionNivel = new ColisionNivel(
             niveles.getNivel(),
@@ -129,54 +110,21 @@ public final class ControladorPartida implements SeccionListener {
             panelJuego::actualizarPowerUps,
             this::actualizarPuntajePresentado
         );
+        this.gestorMonedas = new GestorMonedasPartida(
+            monedasPorSeccion,
+            jugador,
+            controladorPuntaje,
+            efectosSonido,
+            panelJuego,
+            this::actualizarPuntajePresentado
+        );
         configurarEnemigosVisibles(niveles.getSeccion());
         actualizarPowerUpsVisibles();
         actualizarMonedasVisibles();
     }
 
-    private Map<Integer, List<Moneda>> copiarMonedasPorSeccion(
-            Map<Integer, List<Moneda>> monedasPorSeccion) {
-        Map<Integer, List<Moneda>> copia = new HashMap<>();
-        for (Map.Entry<Integer, List<Moneda>> entrada : monedasPorSeccion.entrySet()) {
-            Integer seccion = entrada.getKey();
-            List<Moneda> monedas = entrada.getValue();
-            if (seccion == null || seccion < 0 || monedas == null
-                    || monedas.stream().anyMatch(moneda -> moneda == null)) {
-                throw new IllegalArgumentException(
-                    "Cada sección debe tener una lista válida de monedas"
-                );
-            }
-            copia.put(seccion, new ArrayList<>(monedas));
-        }
-        return copia;
-    }
-
     private void actualizarMonedasVisibles() {
-        int seccionActual = gestorSecciones.getSeccionActual();
-        List<Moneda> monedas = monedasPorSeccion.get(seccionActual);
-        if (seccionActual != seccionMonedasPresentada) {
-            panelJuego.actualizarMonedas(monedas == null ? List.of() : monedas);
-            seccionMonedasPresentada = seccionActual;
-        }
-        if (monedas == null) {
-            return;
-        }
-
-        boolean cambioInventario = false;
-        Iterator<Moneda> iterador = monedas.iterator();
-        while (iterador.hasNext()) {
-            Moneda moneda = iterador.next();
-            if (moneda.colisionaCon(jugador)) {
-                iterador.remove();
-                controladorPuntaje.agregarPuntos(PUNTOS_MONEDA);
-                efectosSonido.reproducir(GestorEfectosSonido.Efecto.MONEDA);
-                cambioInventario = true;
-            }
-        }
-        if (cambioInventario) {
-            panelJuego.actualizarMonedas(monedas);
-            actualizarPuntajePresentado();
-        }
+        gestorMonedas.actualizar(gestorSecciones.getSeccionActual());
     }
 
     private void actualizarPowerUpsVisibles() {
@@ -218,7 +166,7 @@ public final class ControladorPartida implements SeccionListener {
             listenerTemporizadorConfigurado = true;
         }
         gestorSecciones.setListener(this);
-        inicioPartidaNanos = System.nanoTime();
+        gestorTiempo.iniciar();
         partidaEnCurso = true;
         pausada = false;
         temporizador.start();
@@ -229,7 +177,7 @@ public final class ControladorPartida implements SeccionListener {
             return false;
         }
         temporizador.stop();
-        tiempoAcumuladoNanos += System.nanoTime() - inicioPartidaNanos;
+        gestorTiempo.pausar();
         partidaEnCurso = false;
         pausada = true;
         actualizarTiempoPartida();
@@ -240,7 +188,7 @@ public final class ControladorPartida implements SeccionListener {
         if (!pausada) {
             return;
         }
-        inicioPartidaNanos = System.nanoTime();
+        gestorTiempo.iniciar();
         partidaEnCurso = true;
         pausada = false;
         temporizador.start();
@@ -249,7 +197,7 @@ public final class ControladorPartida implements SeccionListener {
     public void detener() {
         temporizador.stop();
         if (partidaEnCurso) {
-            tiempoAcumuladoNanos += System.nanoTime() - inicioPartidaNanos;
+            gestorTiempo.detener();
             partidaEnCurso = false;
             actualizarTiempoPartida();
         }
@@ -257,22 +205,11 @@ public final class ControladorPartida implements SeccionListener {
     }
 
     public long obtenerTiempoPartidaSegundos() {
-        return obtenerTiempoPartidaNanos() / 1_000_000_000L;
-    }
-
-    private long obtenerTiempoPartidaNanos() {
-        long tiempoNanos = tiempoAcumuladoNanos;
-        if (partidaEnCurso) {
-            tiempoNanos += System.nanoTime() - inicioPartidaNanos;
-        }
-        return tiempoNanos;
+        return gestorTiempo.obtenerTiempoSegundos();
     }
 
     public int obtenerPuntaje() {
-        long intervalosCompletos = obtenerTiempoPartidaSegundos()
-            / INTERVALO_PENALIZACION_TIEMPO_SEGUNDOS;
-        long penalizacion = intervalosCompletos * PENALIZACION_TIEMPO_PUNTOS;
-        return (int) Math.max(0, controladorPuntaje.obtenerPuntaje() - penalizacion);
+        return gestorTiempo.obtenerPuntajeActual();
     }
 
     private void actualizarPuntajePresentado() {
@@ -282,9 +219,6 @@ public final class ControladorPartida implements SeccionListener {
 private void actualizar() {
     long ahora = System.nanoTime();
     int vidaAntesDeActualizar = jugador.getVida();
-    List<enemigo> enemigosActivos = new ArrayList<>(
-        fantasmasVisibles.size() + ratasInfestadasVisibles.size()
-    );
     if (ahora - ultimaRecargaEstaminaNanos >= INTERVALO_RECARGA_ESTAMINA_NANOS) {
         controladorRata.recargarEstamina();
         ultimaRecargaEstaminaNanos = ahora;
@@ -299,27 +233,14 @@ private void actualizar() {
     controladorRata.actualizar(Double.POSITIVE_INFINITY);
     colisionNivel.resolver(jugador);
     gestorSecciones.actualizar(jugador);
-    for (fantasma enemigo : fantasmasVisibles) {
-        enemigosActivos.add(enemigo);
-        enemigo.actualizarPatrulla(enemigo.getY());
-        int vidaAntesDelGolpe = jugador.getVida();
-        enemigo.atacar(
-            jugador,
-            ConfiguracionPartida.ANCHO_JUGADOR,
-            ConfiguracionPartida.ALTO_JUGADOR
-        );
-        if (jugador.getVida() < vidaAntesDelGolpe) {
-            controladorPuntaje.penalizar(PENALIZACION_GOLPE_FANTASMA);
-        }
-    }
-    for (ratainfestada rataInfestada : ratasInfestadasVisibles) {
-        enemigosActivos.add(rataInfestada);
-        rataInfestada.atacar(jugador);
-        rataInfestada.actualizar(
-            jugador, niveles.getNivel(), ConfiguracionPartida.TAM_TILE
-        );
-        rataInfestada.actualizarProyectiles(jugador);
-    }
+    List<enemigo> enemigosActivos = gestorEnemigos.actualizar(
+        niveles.getNivel(),
+        ConfiguracionPartida.TAM_TILE,
+        ConfiguracionPartida.ANCHO_JUGADOR,
+        ConfiguracionPartida.ALTO_JUGADOR,
+        controladorPuntaje::penalizar,
+        PENALIZACION_GOLPE_FANTASMA
+    );
     jugador.actualizarHabilidad(enemigosActivos);
     registrarEnemigosDerrotados();
     if (!jugador.estaViva()) {
@@ -346,24 +267,16 @@ private void reproducirSonidoMuerte() {
 }
 
 private void actualizarTiempoPartida() {
-    long tiempoNanos = obtenerTiempoPartidaNanos();
-    panelJuego.actualizarTiempoPartida(tiempoNanos / 1_000_000);
+    panelJuego.actualizarTiempoPartida(gestorTiempo.obtenerTiempoMilisegundos());
     actualizarPuntajePresentado();
 }
 
 private void registrarEnemigosDerrotados() {
-    for (fantasma enemigo : fantasmasVisibles) {
-        if (!enemigo.estavivo() && fantasmasPremiados.add(enemigo)) {
-            agregarPuntos(PUNTOS_DERROTAR_FANTASMA);
-            panelJuego.mostrarMuerteFantasma(enemigo);
-        }
-    }
-    for (ratainfestada rataInfestada : ratasInfestadasVisibles) {
-        if (!rataInfestada.estavivo() && ratasInfestadasPremiadas.add(rataInfestada)) {
-            agregarPuntos(PUNTOS_DERROTAR_RATA_INFESTADA);
-            panelJuego.mostrarMuerteRataInfestada(rataInfestada);
-        }
-    }
+    gestorEnemigos.registrarEnemigosDerrotados(
+        this::agregarPuntos,
+        panelJuego::mostrarMuerteFantasma,
+        panelJuego::mostrarMuerteRataInfestada
+    );
 }
 
 @Override
@@ -372,23 +285,7 @@ public void alCambiarSeccion(int seccion) {
 }
 
 private void configurarEnemigosVisibles(int seccion) {
-    if (seccion < 0 || seccion != niveles.getSeccion()) {
-        throw new IllegalArgumentException("La sección de enemigos debe coincidir con el nivel actual");
-    }
-    if (jugador instanceof rata_verde rataVerde) {
-        rataVerde.limpiarCharcoAcido();
-    }
-    if (jugador instanceof rata_negra rataNegra) {
-        rataNegra.limpiarLamparaFuego();
-    }
-
-    ConfiguradorEnemigosSeccion.EnemigosVisibles enemigos =
-        configuradorEnemigos.configurar(niveles.getNivel(), seccion);
-    fantasmasVisibles = enemigos.fantasmas();
-    ratasInfestadasVisibles = enemigos.ratasInfestadas();
-    fantasmasPremiados.clear();
-    ratasInfestadasPremiadas.clear();
-    panelJuego.actualizarEnemigosVisibles(fantasmasVisibles, ratasInfestadasVisibles);
+    gestorEnemigos.configurarVisibles(seccion);
 }
 
 @Override
@@ -411,7 +308,7 @@ private void continuarConSiguientePiso() {
     jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
     gestorSecciones.reiniciar(jugador);
     gestorRecogidaPowerUps.reiniciarPresentacion();
-    seccionMonedasPresentada = -1;
+    gestorMonedas.reiniciarPresentacion();
     iniciar();
 }
 }
