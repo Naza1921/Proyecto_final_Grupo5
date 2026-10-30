@@ -43,12 +43,12 @@ public final class PanelJuego extends JPanel implements VistaPartida {
     private int puntajePresentado;
     private boolean nivelCompletado;
     private Runnable alCerrarNivelCompletado;
-    private final BufferedImage fondoImagen;
+    private final BufferedImage[] fondosPorPiso;
     private final BufferedImage tutorialControles;
 
 public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fantasmas,
                   List<ratainfestada> ratasInfestadas, EstadoNivel estadoNivel,
-                  Runnable alTerminarAnimacionMuerte, BufferedImage fondoImagen,
+                  Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
                   BufferedImage tutorialControles) {
     if (jugador == null || modeloPuntaje == null || fantasmas == null
             || ratasInfestadas == null
@@ -58,6 +58,9 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
             || ratasInfestadas.stream().anyMatch(rata -> rata == null)
             || estadoNivel == null
             || alTerminarAnimacionMuerte == null
+            || fondosPorPiso == null
+            || fondosPorPiso.length == 0
+            || java.util.Arrays.stream(fondosPorPiso).anyMatch(fondo -> fondo == null)
             || tutorialControles == null) {
         throw new IllegalArgumentException("Se requieren el estado de partida y el nivel");
     }
@@ -65,7 +68,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
     this.estadoNivel = estadoNivel;
     this.renderizadorNivel = new RenderizadorNivel();
     this.puntajePresentado = modeloPuntaje.getTotal();
-    this.fondoImagen = fondoImagen;
+    this.fondosPorPiso = fondosPorPiso.clone();
     this.tutorialControles = tutorialControles;
     this.spriteMoneda = new SpriteMoneda();
     this.renderizadorEntidades = new RenderizadorEntidades(
@@ -192,7 +195,8 @@ g2.transform(camara.actualizar(
 
 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-if (fondoImagen != null) g2.drawImage(fondoImagen, 0, 0, (int) anchoMundo, (int) altoMundo, this);
+BufferedImage fondoPiso = fondosPorPiso[estadoNivel.getPiso() - 1];
+g2.drawImage(fondoPiso, 0, 0, (int) anchoMundo, (int) altoMundo, this);
 renderizadorNivel.dibujar(g2, nivelActual, estadoNivel.esUltimaSeccion());
 if (estadoNivel.esPrimeraSeccion()) {
     g2.drawImage(

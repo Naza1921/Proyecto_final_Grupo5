@@ -34,6 +34,10 @@ public class levelmanager implements EstadoNivel {
 
     @Override
     public level getNivel() { return niveles[piso][seccion]; }
+
+    @Override
+    public int getPiso() { return piso + 1; }
+
     public int getSeccion() { return seccion; }
 
     public int getIndiceNivelActual() {

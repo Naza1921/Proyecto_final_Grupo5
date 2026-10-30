@@ -60,13 +60,13 @@ final class CreadorPartida {
         }
 
         levelmanager niveles = new levelmanager();
-        BufferedImage fondoJuego = cargarFondoJuego();
+        BufferedImage[] fondosJuego = cargarFondosJuego();
         BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
             "assets/tutorial_controles.png"
         );
         PanelJuego panelJuego = new PanelJuego(
             jugador, puntaje, fantasmas, ratasInfestadas, niveles,
-            alTerminarAnimacionMuerte, fondoJuego, tutorialControles
+            alTerminarAnimacionMuerte, fondosJuego, tutorialControles
         );
         Map<Integer, List<PowerUp>> powerUpsPorNivel =
             FabricaPowerUps.crearPorNivel(niveles.getNiveles());
@@ -100,14 +100,19 @@ final class CreadorPartida {
         );
     }
 
-    private static BufferedImage cargarFondoJuego() {
-        String ruta = "/assets/escenarios/Nivel_1_Top_Floor X.png";
-        try {
-            return CargadorRecursos.cargarImagen(ruta.substring(1));
-        } catch (IllegalArgumentException error) {
-            System.err.println("No se pudo cargar el fondo " + ruta + ": " + error.getMessage());
-            return null;
+    private static BufferedImage[] cargarFondosJuego() {
+        String[] rutas = {
+            "assets/escenarios/Nivel_1_Top_Floor X.png",
+            "assets/escenarios/Nivel_2_Kitchen_x.png",
+            "assets/escenarios/Pasillo_oscuro.png",
+            "assets/escenarios/Nivel_4_Hallway_x.png",
+            "assets/escenarios/Nivel_5_Server_Room.png"
+        };
+        BufferedImage[] fondos = new BufferedImage[rutas.length];
+        for (int indice = 0; indice < rutas.length; indice++) {
+            fondos[indice] = CargadorRecursos.cargarImagen(rutas[indice]);
         }
+        return fondos;
     }
 
     record PartidaCreada(
