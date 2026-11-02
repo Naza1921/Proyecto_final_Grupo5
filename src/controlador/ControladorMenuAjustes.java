@@ -11,12 +11,10 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import javax.swing.JFrame;
-
 import modelos.PreferenciasAjustes;
-import vista.MenuAjustesVista;
 import recursos.CargadorRecursos;
+import vista.MenuAjustesVista;
 
 public final class ControladorMenuAjustes {
 
@@ -59,13 +57,27 @@ public final class ControladorMenuAjustes {
     }
 
     public void iniciar() {
-        vista.addPantallaCompletaListener(this::cambiarPantallaCompleta);
-        vista.addMusicaListener(reproductorMusica::setMusicaActivada);
-        vista.addCancionListener(this::seleccionarCancion);
-        vista.addVolumenListener(reproductorMusica::setVolumen);
-        vista.addGuardarListener(this::guardarPreferencias);
-        vista.addRestaurarListener(this::restaurarPreferenciasEstandar);
-        vista.addVolverListener(alVolver);
+    vista.addPantallaCompletaListener(
+            activar -> cambiarPantallaCompleta(activar)
+        );
+        vista.addMusicaListener(
+            activada -> reproductorMusica.setMusicaActivada(activada)
+        );
+        vista.addCancionListener(
+            numeroCancion -> seleccionarCancion(numeroCancion)
+        );
+        vista.addVolumenListener(
+            volumen -> reproductorMusica.setVolumen(volumen)
+        );
+        vista.addGuardarListener(
+            () -> guardarPreferencias()
+        );
+        vista.addRestaurarListener(
+            () -> restaurarPreferenciasEstandar()
+        );
+        vista.addVolverListener(
+            () -> alVolver.run()
+        );
         ventana.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
