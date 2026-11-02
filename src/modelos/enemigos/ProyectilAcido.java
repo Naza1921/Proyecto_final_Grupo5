@@ -4,11 +4,11 @@ import modelos.partida.ConfiguracionPartida;
 import modelos.personajes.Personaje;
 
 public final class ProyectilAcido {
-    private static final double VELOCIDAD = 5.0;
+    private static final double VELOCIDAD = 4.0;
     private static final double ALCANCE_MAXIMO = 200.0;
     private static final double ANCHO = 12.0;
     private static final double ALTO = 12.0;
-    private static final int DANIO = 20;
+    private static final int DANIO = 10;
 
     private final double direccionX;
     private final double direccionY;

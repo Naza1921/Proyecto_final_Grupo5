@@ -5,7 +5,7 @@ import modelos.personajes.Personaje;
 public class fantasma extends enemigo {
     private static final int VIDA_FANTASMA = 1; 
     private static final int VIDA_FANTASMA_MAXIMA = 1;
-    private static final int DANIO_CONTACTO = 10;
+    private static final int DANIO_CONTACTO = 20;
 
     private double xMinimo;
     private double xMaximo;

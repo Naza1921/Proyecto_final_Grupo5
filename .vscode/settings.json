@@ -5,12 +5,12 @@
     "java.project.outputPath": "build/classes",
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "C:\\Program Files\\Java\\javafx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\*.jar"
+        "C:\\Users\\enzos\\Downloads\\javafx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\*.jar"
     ],
     "java.configuration.runtimes": [
         {
             "name": "JavaSE-27",
-            "path": "C:\\Program Files\\Java\\jdk-27",
+            "path": "C:\\Users\\enzos\\Downloads\\oracleJdk-27",
             "default": true
         }
     ]
