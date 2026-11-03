@@ -8,7 +8,7 @@ public final class ProyectilStun implements ProyectilEspecial {
     private static final double ANCHO = 16.0;
     private static final double ALTO = 16.0;
     private static final int DANIO = 1;
-    private static final long DURACION_STUN_MS = 3_000;
+    private static final long DURACION_STUN_MS = 2_000;
 
     private final double direccion;
     private double x;

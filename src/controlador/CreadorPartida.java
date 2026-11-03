@@ -102,10 +102,10 @@ final class CreadorPartida {
 
     private static BufferedImage[] cargarFondosJuego() {
         String[] rutas = {
-            "assets/escenarios/Nivel_1_Top_Floor X.png",
-            "assets/escenarios/Nivel_2_Kitchen_x.png",
-            "assets/escenarios/Pasillo_oscuro.png",
-            "assets/escenarios/Nivel_4_Hallway_x.png",
+            "assets/escenarios/Nivel_1_Piso_mayor.png",
+            "assets/escenarios/Nivel_2_Cocina.png",
+            "assets/escenarios/Nivel_3_Gran_Salon.png",
+            "assets/escenarios/Nivel_4_Pasillo_oscuro.png",
             "assets/escenarios/Nivel_5_Server_Room.png"
         };
         BufferedImage[] fondos = new BufferedImage[rutas.length];

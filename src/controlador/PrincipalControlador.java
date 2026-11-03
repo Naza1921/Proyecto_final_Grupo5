@@ -151,7 +151,7 @@ public class PrincipalControlador {
         menuPausa.getBtnReanudar().addActionListener(e -> reanudarJuego());
         menuPausa.getBtnVolverAlMenu().addActionListener(e -> volverAlMenuDesdePausa());
         menuPausa.getBtnSalir().addActionListener(e -> System.exit(0));
-        menuGameOver.getBtnVolver().addActionListener(e -> mostrarMenu());
+        menuGameOver.getBtnVolver().addActionListener(e -> volverAlMenuDesdeGameOver());
         menuGameOver.getBtnSalir().addActionListener(e -> System.exit(0));
     }
 
@@ -193,6 +193,20 @@ public class PrincipalControlador {
         }
         cardLayout.show(contenedor, VISTA_GAME_OVER);
         menuGameOver.getBtnVolver().requestFocusInWindow();
+    }
+
+    private void volverAlMenuDesdeGameOver() {
+        int respuesta = JOptionPane.showConfirmDialog(
+            ventana,
+            "Quisieras guardar tu progreso en la tabla de puntos?",
+            "Guardar progreso",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        if (respuesta == JOptionPane.YES_OPTION) {
+            guardarResultadoPartida();
+        }
+        mostrarMenu();
     }
 
     private void mostrarErrorAjustes(String mensaje) {

@@ -39,8 +39,6 @@ public abstract class enemigo {
     public enum TipoDanio {
     ACIDO,
     STUN,
-    NORMAL,
-    SAL,
     FUEGO
     }
 
@@ -56,8 +54,7 @@ public abstract class enemigo {
         switch (tipo) {
             case ACIDO -> aplicarRelantizacion(0.5, DURACION_RALENTIZACION_MS);
             case STUN -> aturdir(DURACION_ATURDIMIENTO_MS);
-            case NORMAL -> aplicarRelantizacion(0.7, 1500);
-            case SAL, FUEGO -> { }
+            case FUEGO -> { }
         }
     }
 

@@ -16,13 +16,16 @@ public class ratainfestada  extends enemigo{
     private static final double DISTANCIA_MINIMA_SALTO_X = 10.0;
     private static final double RANGO_CONTACTO_FISICO = 10.0;
     private static final double GRAVEDAD = 0.4;
-    private static final int DANIO_FISICO_SALTO = 5;
+    private static final int DANIO_FISICO_SALTO = 10;
     private static final int ENFRIAMIENTO_ESCUPITAJO = 8;
+    private static final long ENFRIAMIENTO_SALTO_NANOS = TimeUnit.SECONDS.toNanos(3);
     private boolean enelAire;
     private double velocidadVertical;
     private final List<ProyectilAcido> proyectilesAcido = new ArrayList<>();
     private long ultimoEscupitajoNanos;
+    private long ultimoSaltoNanos;
     private boolean yaEscupio;
+    private boolean yaSalto;
     private boolean yaDanoFisicoEnEsteSalto;
 
     public ratainfestada(String nombre, double velocidad, int puntaje) {
@@ -159,12 +162,15 @@ public class ratainfestada  extends enemigo{
     }
 
     public void saltar() {
-        if (enelAire) {
+        long ahora = System.nanoTime();
+        if (enelAire || (yaSalto && ahora - ultimoSaltoNanos < ENFRIAMIENTO_SALTO_NANOS)) {
             return;
         }
 
         velocidadVertical = -FUERZA_SALTO;
         enelAire = true;
+        ultimoSaltoNanos = ahora;
+        yaSalto = true;
         yaDanoFisicoEnEsteSalto = false;
     }
 
@@ -179,7 +185,9 @@ public class ratainfestada  extends enemigo{
         velocidadVertical = 0;
         proyectilesAcido.clear();
         ultimoEscupitajoNanos = 0;
+        ultimoSaltoNanos = 0;
         yaEscupio = false;
+        yaSalto = false;
         yaDanoFisicoEnEsteSalto = false;
     }
 }
