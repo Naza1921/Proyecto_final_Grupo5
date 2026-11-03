@@ -3,7 +3,7 @@ package modelos.items;
 import modelos.personajes.Personaje;
 
 public final class EfectoCuracion implements EfectoTemporal {
-    private static final int CANTIDAD_CURACION = 20;
+    private static final int CANTIDAD_CURACION = 200;
     private static final RecompensaPowerUp RECOMPENSA = new RecompensaPowerUp(1_000, false);
 
     @Override

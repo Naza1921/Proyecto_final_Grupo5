@@ -10,16 +10,16 @@ import recursos.CargadorRecursos;
 public class levelmanager implements EstadoNivel {
 
     private static final String[][] RUTAS = {
-        // { "assets/escenarios/Secciones/Piso_1_1.png", "assets/escenarios/Secciones/Piso_1_2.png", "assets/escenarios/Secciones/Piso_1_3.png", "assets/escenarios/Secciones/Piso_1_4.png", "assets/escenarios/Secciones/Piso_1_5.png" },
-        // { "assets/escenarios/Secciones/Piso_2_1.png", "assets/escenarios/Secciones/Piso_2_2.png", "assets/escenarios/Secciones/Piso_2_4.png", "assets/escenarios/Secciones/Piso_2_5.png" },
-        // { "assets/escenarios/Secciones/Piso_3_1.png", "assets/escenarios/Secciones/Piso_3_2.png", "assets/escenarios/Secciones/Piso_3_4.png", "assets/escenarios/Secciones/Piso_3_5.png" },
-        // { "assets/escenarios/Secciones/Piso_4_1.png", "assets/escenarios/Secciones/Piso_4_2.png", "assets/escenarios/Secciones/Piso_4_4.png", "assets/escenarios/Secciones/Piso_4_5.png" },
-        // { "assets/escenarios/Secciones/Piso_5_1.png", "assets/escenarios/Secciones/Piso_5_2.png", "assets/escenarios/Secciones/Piso_5_3.png", "assets/escenarios/Secciones/Piso_5_4.png", "assets/escenarios/Secciones/Piso_5_5.png" }
-        { "assets/escenarios/Secciones/Piso_1_5.png" },
-        { "assets/escenarios/Secciones/Piso_2_5.png" },
-        { "assets/escenarios/Secciones/Piso_3_5.png" },
-        { "assets/escenarios/Secciones/Piso_4_5.png" },
-        { "assets/escenarios/Secciones/Piso_5_5.png" }
+        { "assets/escenarios/Secciones/Piso_1_1.png", "assets/escenarios/Secciones/Piso_1_2.png", "assets/escenarios/Secciones/Piso_1_3.png", "assets/escenarios/Secciones/Piso_1_4.png", "assets/escenarios/Secciones/Piso_1_5.png" },
+        { "assets/escenarios/Secciones/Piso_2_1.png", "assets/escenarios/Secciones/Piso_2_2.png", "assets/escenarios/Secciones/Piso_2_4.png", "assets/escenarios/Secciones/Piso_2_5.png" },
+        { "assets/escenarios/Secciones/Piso_3_1.png", "assets/escenarios/Secciones/Piso_3_2.png", "assets/escenarios/Secciones/Piso_3_4.png", "assets/escenarios/Secciones/Piso_3_5.png" },
+        { "assets/escenarios/Secciones/Piso_4_1.png", "assets/escenarios/Secciones/Piso_4_2.png", "assets/escenarios/Secciones/Piso_4_4.png", "assets/escenarios/Secciones/Piso_4_5.png" },
+        { "assets/escenarios/Secciones/Piso_5_1.png", "assets/escenarios/Secciones/Piso_5_2.png", "assets/escenarios/Secciones/Piso_5_3.png", "assets/escenarios/Secciones/Piso_5_4.png", "assets/escenarios/Secciones/Piso_5_5.png" }
+        // { "assets/escenarios/Secciones/Piso_1_5.png" },
+        // { "assets/escenarios/Secciones/Piso_2_5.png" },
+        // { "assets/escenarios/Secciones/Piso_3_5.png" },
+        // { "assets/escenarios/Secciones/Piso_4_5.png" },
+        // { "assets/escenarios/Secciones/Piso_5_5.png" }
 
 
     };

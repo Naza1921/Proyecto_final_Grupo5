@@ -304,6 +304,7 @@ private void continuarConSiguientePiso() {
     if (!niveles.avanzarPiso()) {
         throw new IllegalStateException("No hay un piso siguiente para continuar");
     }
+    jugador.recuperarVida(jugador.getVidaMaxima());
     jugador.setX(ConfiguracionPartida.POSICION_INICIAL_X);
     jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
     gestorSecciones.reiniciar(jugador);
