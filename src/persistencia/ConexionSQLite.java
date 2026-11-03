@@ -17,16 +17,16 @@ public final class ConexionSQLite {
         )
         """;
 
+    private static ConexionSQLite unica;
     private Connection conexion;
 
     private ConexionSQLite() { }
 
-    private static class Instancia {
-        private static final ConexionSQLite UNICA = new ConexionSQLite();
-    }
-
-    public static ConexionSQLite obtenerInstancia() {
-        return Instancia.UNICA;
+    public static synchronized ConexionSQLite obtenerInstancia() {
+        if (unica == null) {
+            unica = new ConexionSQLite();
+        }
+        return unica;
     }
 
     public synchronized Connection obtenerConexion() throws SQLException {

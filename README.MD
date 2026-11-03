@@ -230,17 +230,18 @@ Singleton: acceso compartido a la conexión
 La clase ConexionSQLite administra la conexión con la base de datos. Su constructor es privado, por lo que no se pueden crear instancias desde otras clases. En cambio, se obtiene la instancia única mediante el método obtenerInstancia():
 
 ```java
+private static ConexionSQLite unica;
+
 private ConexionSQLite() { }
 
-private static class Instancia {
-    private static final ConexionSQLite UNICA = new ConexionSQLite();
-}
-
-public static ConexionSQLite obtenerInstancia() {
-    return Instancia.UNICA;
+public static synchronized ConexionSQLite obtenerInstancia() {
+    if (unica == null) {
+        unica = new ConexionSQLite();
+    }
+    return unica;
 }
 ```
-Este mecanismo crea la instancia cuando se solicita por primera vez y asegura que las distintas partes de la aplicación accedan al mismo gestor de conexión. El método obtenerConexion() abre la conexión cuando es necesario y la reutiliza mientras permanezca disponible. También prepara la tabla score si todavía no existe.
+Este mecanismo de inicialización diferida crea la instancia en la primera llamada a obtenerInstancia(). El método está sincronizado para evitar que dos hilos creen instancias distintas al mismo tiempo. Así, las distintas partes de la aplicación acceden al mismo gestor de conexión. El método obtenerConexion() abre la conexión cuando es necesario y la reutiliza mientras permanezca disponible. También prepara la tabla score si todavía no existe.
 
 DAO: operaciones de persistencia encapsuladas
 El patrón DAO (Data Access Object) se utiliza para aislar las operaciones de base de datos. La interfaz PuntajeDAO declara las acciones que se pueden realizar con los puntajes, sin incluir detalles específicos de SQLite:
