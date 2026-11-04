@@ -2,7 +2,8 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import animacion.GestorAnimacionSprite;
+
+import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
 import modelos.items.Moneda;
 

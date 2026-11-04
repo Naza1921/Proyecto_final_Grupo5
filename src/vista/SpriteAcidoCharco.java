@@ -2,8 +2,9 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+
+import controlador.GestorAnimacionSprite;
 import modelos.personajes.CharcoAcido;
-import animacion.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
 
 public final class SpriteAcidoCharco {

@@ -9,7 +9,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Timer;
-import animacion.GestorAnimacionSprite;
+
+import controlador.GestorAnimacionSprite;
 import modelos.enemigos.ProyectilAcido;
 import modelos.enemigos.fantasma;
 import modelos.enemigos.ratainfestada;
