@@ -28,7 +28,7 @@ public final class PanelJuego extends JPanel implements VistaPartida {
     private static final int ALTO_TUTORIAL_CONTROLES = 127;
     private static final int TUTORIAL_CONTROLES_X = ConfiguracionPartida.POSICION_INICIAL_X;
     private static final int TUTORIAL_CONTROLES_Y =
-        ConfiguracionPartida.POSICION_INICIAL_Y + 95;
+        ConfiguracionPartida.POSICION_INICIAL_Y + 125;
 
     private final Personaje jugador;
     private final EstadoNivel estadoNivel;
