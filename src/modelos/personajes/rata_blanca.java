@@ -12,7 +12,7 @@ public class rata_blanca extends Personaje {
     private final List<ProyectilStun> proyectilesStun = new ArrayList<>();
 
     public rata_blanca(String nombre) {
-        super(nombre, TipoRata.BLANCA, 100, 7, 7.5, 100);
+        super(nombre, 100, 7, 7.5, 100);
     }
 
     @Override

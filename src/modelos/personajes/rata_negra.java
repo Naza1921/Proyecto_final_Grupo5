@@ -10,7 +10,7 @@ public class rata_negra extends Personaje {
     private LamparaFuego lamparaFuego;
 
     public rata_negra(String nombre) {
-        super(nombre, TipoRata.NEGRA, 50, 7, 9.5, 90);
+        super(nombre, 50, 7, 9.5, 90);
     }
 
     @Override

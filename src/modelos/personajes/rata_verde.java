@@ -10,7 +10,7 @@ public class rata_verde extends Personaje {
     private CharcoAcido charcoAcido;
     
     public rata_verde(String nombre) {
-        super(nombre, TipoRata.VERDE, 80, 5, 11, 130);
+        super(nombre, 80, 5, 11, 130);
     }
 
     @Override

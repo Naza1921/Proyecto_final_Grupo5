@@ -6,7 +6,6 @@ import java.util.List;
 public abstract class Personaje {
    
     private final String nombre;
-    private final TipoRata tipoRata;
     private int vida;
     private final int vidaMaxima;
     private double x;
@@ -25,20 +24,15 @@ public abstract class Personaje {
     private static final double GRAVEDAD = 0.4;
     private static final double VELOCIDAD_MAXIMA_CAIDA = 15;
     
-    public enum TipoRata {
-        BLANCA, GRIS, NEGRA, VERDE
-    }
-
-    protected Personaje(String nombre, TipoRata tipoRata, int vidaMaxima, double velocidad,
+    protected Personaje(String nombre, int vidaMaxima, double velocidad,
                         double fuerzaSalto, double estaminaMaxima) {
-        if (nombre == null || nombre.isBlank() || tipoRata == null
+        if (nombre == null || nombre.isBlank()
                 || vidaMaxima <= 0 || !Double.isFinite(velocidad) || velocidad <= 0
                 || !Double.isFinite(fuerzaSalto) || fuerzaSalto <= 0
                 || !Double.isFinite(estaminaMaxima) || estaminaMaxima <= 0) {
             throw new IllegalArgumentException("El personaje debe tener identidad y estadísticas válidas");
         }
         this.nombre = nombre;
-        this.tipoRata = tipoRata;
         this.vidaMaxima = vidaMaxima;
         this.vida = vidaMaxima;
         this.x = 0;
@@ -119,7 +113,6 @@ public abstract class Personaje {
     public String getNombre() { return nombre; }
     public abstract String getClaveSprite();
     public abstract String getDescripcionHabilidad();
-    public TipoRata getTipoRata() { return tipoRata; }
     public boolean estaEnElAire() { return enElAire; }
     public boolean estaAgachada() { return agachada; }
     public boolean estaMirandoIzquierda() { return mirandoIzquierda; }
