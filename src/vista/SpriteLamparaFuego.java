@@ -6,7 +6,6 @@ import java.awt.image.BufferedImage;
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
 import modelos.personajes.EfectoHabilidad;
-import modelos.personajes.EtapaEfecto;
 
 public final class SpriteLamparaFuego implements SpriteEfecto {
     private static final String CLAVE_SPRITE = "lampara_fuego";
