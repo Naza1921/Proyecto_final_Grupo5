@@ -3,11 +3,7 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
-import recursos.CargadorRecursos;
 
 // Relacionamos cada tipo y acción con las hojas de sprites de la rata.
 public final class SpritesRatas {
@@ -16,12 +12,6 @@ public final class SpritesRatas {
     public enum Accion {
         QUIETA, CAMINAR, SALTAR, AGACHADA, HAB_ESPECIAL, RECIBIR_DANIO, MUERTE
     }
-
-    private static final Map<String, Supplier<BufferedImage[]>> FRAMES_HABILIDAD = Map.of(
-        "blanca", SpritesRatas::cargarFramesHabilidadBlanca,
-        "verde", SpritesRatas::cargarFramesHabilidadVerde,
-        "negra", SpritesRatas::cargarFramesHabilidadNegra
-    );
 
     private SpritesRatas() {
     }
@@ -37,101 +27,13 @@ public final class SpritesRatas {
         if (clave == null || accion == null) {
             throw new IllegalArgumentException("Se requieren la rata y la acción de animación");
         }
-        Supplier<BufferedImage[]> cargador = accion == Accion.HAB_ESPECIAL
-            ? FRAMES_HABILIDAD.get(clave) : null;
+        Supplier<BufferedImage[]> cargador =
+            accion == Accion.HAB_ESPECIAL ? CatalogoSpritesRatas.framesHabilidad(clave) : null;
         if (cargador != null) {
             return cargador.get();
         }
         return crearFramesAlineados(cargarHoja(clave, accion), FILA_IDLE);
     }
-
-    private static BufferedImage[] cargarFramesHabilidadBlanca() {
-        BufferedImage hoja = CargadorRecursos.cargarImagen(
-            "assets/rata_blanca/Animacion_de_ataque_energetico_del_raton.png"
-        );
-        int[][] limitesX = {
-            {0, 351, 678, 1019, 1364, 1740, 2170},
-            {0, 394, 648, 1011, 1373, 1783, 2170}
-        };
-        int[] iniciosY = {145, 435};
-        int[] alturas = {160, 165};
-        List<BufferedImage> frames = new ArrayList<>(12);
-        for (int fila = 0; fila < limitesX.length; fila++) {
-            SpriteSheet filaSprites = new SpriteSheet(
-                hoja, limitesX[fila], iniciosY[fila], alturas[fila]
-            );
-            for (int indice = 0; indice < filaSprites.getCantidadFrames(0); indice++) {
-                frames.add(filaSprites.getFrame(0, indice));
-            }
-        }
-        return centrarFrames(frames);
-    }
-
-    private static BufferedImage[] cargarFramesHabilidadVerde() {
-        BufferedImage hoja = CargadorRecursos.cargarImagen(
-            "assets/rata_verde/rata_lanzando_veneno_6x2_transparente.png"
-        );
-        SpriteSheet spriteSheet = new SpriteSheet(
-            hoja,
-            new int[]{0, 230, 460},
-            new int[]{6, 6},
-            new int[]{6, 6}
-        );
-        List<BufferedImage> frames = new ArrayList<>(12);
-        for (int fila = 0; fila < 2; fila++) {
-            for (int indice = 0; indice < spriteSheet.getCantidadFrames(fila); indice++) {
-                frames.add(spriteSheet.getFrame(fila, indice));
-            }
-        }
-        return centrarFrames(frames);
-    }
-
-    private static BufferedImage[] cargarFramesHabilidadNegra() {
-        BufferedImage hoja = CargadorRecursos.cargarImagen(
-            "assets/rata_negra/rata_peste_lanzando_lampara_8x2_transparente.png"
-        );
-        SpriteSheet spriteSheet = new SpriteSheet(
-            hoja,
-            new int[]{0, 240, 480},
-            new int[]{8, 8},
-            new int[]{8, 8}
-        );
-        List<BufferedImage> frames = new ArrayList<>(16);
-        for (int fila = 0; fila < 2; fila++) {
-            for (int indice = 0; indice < spriteSheet.getCantidadFrames(fila); indice++) {
-                frames.add(spriteSheet.getFrame(fila, indice));
-            }
-        }
-        return centrarFrames(frames);
-    }
-
-    private static BufferedImage[] centrarFrames(List<BufferedImage> frames) {
-        int anchoLienzo = 0;
-        int altoLienzo = 0;
-        for (BufferedImage frame : frames) {
-            anchoLienzo = Math.max(anchoLienzo, frame.getWidth());
-            altoLienzo = Math.max(altoLienzo, frame.getHeight());
-        }
-
-        BufferedImage[] alineados = new BufferedImage[frames.size()];
-        for (int indice = 0; indice < frames.size(); indice++) {
-            BufferedImage frame = frames.get(indice);
-            BufferedImage alineado = new BufferedImage(
-                anchoLienzo, altoLienzo, BufferedImage.TYPE_INT_ARGB
-            );
-            Graphics2D graficos = alineado.createGraphics();
-            graficos.drawImage(
-                frame,
-                (anchoLienzo - frame.getWidth()) / 2,
-                (altoLienzo - frame.getHeight()) / 2,
-                null
-            );
-            graficos.dispose();
-            alineados[indice] = alineado;
-        }
-        return alineados;
-    }
-
     private static SpriteSheet cargarHoja(String clave, Accion accion) {
         return CatalogoSpritesRatas.cargar(clave, accion);
     }
