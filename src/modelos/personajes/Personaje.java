@@ -12,7 +12,6 @@ public abstract class Personaje {
     private double y;
     private double velocidad;
     private final double velocidadBase;
-    private double multiplicadorVelocidadTemporal = 1.0;
     private final double fuerzaSalto;
     private boolean enElAire;
     private boolean mirandoIzquierda;
@@ -127,12 +126,17 @@ public abstract class Personaje {
     public double getVelocidadY(){return velocidadY;}
     public boolean esInvulnerable() { return estadisticasActuales.esInvulnerable(); }
 
-    public void setMultiplicadorVelocidadTemporal(double multiplicador) {
-        if (!Double.isFinite(multiplicador) || multiplicador <= 0) {
-            throw new IllegalArgumentException("El multiplicador de velocidad debe ser finito y positivo");
-        }
-        this.multiplicadorVelocidadTemporal = multiplicador;
+    public final EstadisticasRata getEstadisticasBase() {
+        return estadisticasBase;
     }
+
+    public final void actualizarEstadisticas(EstadisticasRata estadisticas) {
+        if (estadisticas == null) {
+            throw new IllegalArgumentException("Se requieren estadísticas para el personaje");
+        }
+        this.estadisticasActuales = estadisticas;
+    }
+
     public void setInvulnerable(boolean invulnerable) {
         this.invulnerable = invulnerable;
     }
@@ -191,7 +195,7 @@ public abstract class Personaje {
     private final class EstadisticasRataBase implements EstadisticasRata {
         @Override
         public double getVelocidad() {
-            return velocidad * multiplicadorVelocidadTemporal;
+            return velocidad;
         }
 
         @Override

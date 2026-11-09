@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import modelos.items.CategoriaEfectoTemporal;
 import modelos.items.EfectoTemporal;
 import modelos.items.PowerUp;
+import modelos.personajes.EstadisticasRata;
 import modelos.personajes.Personaje;
 
 public final class GestorEfectosTemporales {
@@ -56,30 +57,31 @@ public final class GestorEfectosTemporales {
 
         long ahora = System.nanoTime();
         long duracionNanos = TimeUnit.MILLISECONDS.toNanos(powerUp.getDuracion());
-        EfectoActivo anterior = efectosActivos.get(categoria);
-
-        if (anterior != null && anterior.efecto.getClass() != nuevoEfecto.getClass()) {
+        EfectoActivo anterior = efectosActivos.put(
+            categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos)
+        );
+        if (anterior != null) {
             anterior.efecto.revertir(personaje);
-            efectosActivos.remove(categoria);
-            anterior = null;
         }
-
-        if (anterior == null) {
-            nuevoEfecto.aplicar(personaje);
-        }
-        efectosActivos.put(categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos));
+        nuevoEfecto.aplicar(personaje);
+        reconstruirEstadisticas();
     }
 
     public void actualizar() {
         long ahora = System.nanoTime();
         Iterator<Map.Entry<CategoriaEfectoTemporal, EfectoActivo>> iterador =
             efectosActivos.entrySet().iterator();
+        boolean cambio = false;
         while (iterador.hasNext()) {
             EfectoActivo activo = iterador.next().getValue();
             if (ahora - activo.iniciadoEnNanos >= activo.duracionNanos) {
                 activo.efecto.revertir(personaje);
                 iterador.remove();
+                cambio = true;
             }
+        }
+        if (cambio) {
+            reconstruirEstadisticas();
         }
     }
 
@@ -110,6 +112,7 @@ public final class GestorEfectosTemporales {
         efectosActivos.clear();
         pausaIniciadaEnNanos = 0;
         pausado = false;
+        reconstruirEstadisticas();
     }
 
     public boolean estaActivo(CategoriaEfectoTemporal categoria) {
@@ -117,6 +120,17 @@ public final class GestorEfectosTemporales {
             throw new IllegalArgumentException("Se requiere una categoría de efecto");
         }
         return efectosActivos.containsKey(categoria);
+    }
+
+    private void reconstruirEstadisticas() {
+        EstadisticasRata estadisticas = personaje.getEstadisticasBase();
+        for (EfectoActivo activo : efectosActivos.values()) {
+            estadisticas = activo.efecto.decorarEstadisticas(estadisticas);
+            if (estadisticas == null) {
+                throw new IllegalStateException("Un efecto devolvió estadísticas nulas");
+            }
+        }
+        personaje.actualizarEstadisticas(estadisticas);
     }
 
     private static final class EfectoActivo {
