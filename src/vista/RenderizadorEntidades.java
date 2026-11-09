@@ -75,24 +75,24 @@ final class RenderizadorEntidades {
         for (SpritesRatas.Accion accion : SpritesRatas.Accion.values()) {
             if (accion == SpritesRatas.Accion.MUERTE
                     || accion == SpritesRatas.Accion.RECIBIR_DANIO
-                    || !CatalogoSpritesRatas.tiene(jugador.getTipoRata(), accion)) {
+                    || !CatalogoSpritesRatas.tiene(jugador.getClaveSprite(), accion)) {
                 continue;
             }
-            BufferedImage[] frames = SpritesRatas.cargarFrames(jugador.getTipoRata(), accion);
+            BufferedImage[] frames = SpritesRatas.cargarFrames(jugador.getClaveSprite(), accion);
             animacionesRata.put(
                 accion,
                 new GestorAnimacionSprite(frames, obtenerDuracionFrame(accion, frames.length))
             );
         }
         framesMuerte = SpritesRatas.cargarFrames(
-            jugador.getTipoRata(), SpritesRatas.Accion.MUERTE
+            jugador.getClaveSprite(), SpritesRatas.Accion.MUERTE
         );
         temporizadorAnimacionMuerte = new Timer(
             (int) (DURACION_FRAME_NANOS / 1_000_000L), null
         );
         temporizadorAnimacionMuerte.setCoalesce(true);
         framesDanio = SpritesRatas.cargarFrames(
-            jugador.getTipoRata(), SpritesRatas.Accion.RECIBIR_DANIO
+            jugador.getClaveSprite(), SpritesRatas.Accion.RECIBIR_DANIO
         );
         temporizadorAnimacionDanio = new Timer(
             (int) (DURACION_FRAME_NANOS / 1_000_000L), null

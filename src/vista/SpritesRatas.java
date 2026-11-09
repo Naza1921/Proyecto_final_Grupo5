@@ -5,8 +5,9 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import recursos.CargadorRecursos;
-import modelos.personajes.Personaje.TipoRata;
 
 // Relacionamos cada tipo y acción con las hojas de sprites de la rata.
 public final class SpritesRatas {
@@ -16,27 +17,32 @@ public final class SpritesRatas {
         QUIETA, CAMINAR, SALTAR, AGACHADA, HAB_ESPECIAL, RECIBIR_DANIO, MUERTE
     }
 
+    private static final Map<String, Supplier<BufferedImage[]>> FRAMES_HABILIDAD = Map.of(
+        "blanca", SpritesRatas::cargarFramesHabilidadBlanca,
+        "verde", SpritesRatas::cargarFramesHabilidadVerde,
+        "negra", SpritesRatas::cargarFramesHabilidadNegra
+    );
+
     private SpritesRatas() {
     }
 
-    public static SpriteSheet cargar(TipoRata tipo) {
-        if (tipo == null) {
-            throw new IllegalArgumentException("Se requiere el tipo de rata para cargar sus sprites");
+    public static SpriteSheet cargar(String clave) {
+        if (clave == null) {
+            throw new IllegalArgumentException("Se requiere la clave de la rata para cargar sus sprites");
         }
-        return cargarHoja(tipo, Accion.QUIETA);
+        return cargarHoja(clave, Accion.QUIETA);
     }
 
-    public static BufferedImage[] cargarFrames(TipoRata tipo, Accion accion) {
-        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRata.BLANCA) {
-            return cargarFramesHabilidadBlanca();
+    public static BufferedImage[] cargarFrames(String clave, Accion accion) {
+        if (clave == null || accion == null) {
+            throw new IllegalArgumentException("Se requieren la rata y la acción de animación");
         }
-        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRata.VERDE) {
-            return cargarFramesHabilidadVerde();
+        Supplier<BufferedImage[]> cargador = accion == Accion.HAB_ESPECIAL
+            ? FRAMES_HABILIDAD.get(clave) : null;
+        if (cargador != null) {
+            return cargador.get();
         }
-        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRata.NEGRA) {
-            return cargarFramesHabilidadNegra();
-        }
-        return crearFramesAlineados(cargarHoja(tipo, accion), FILA_IDLE);
+        return crearFramesAlineados(cargarHoja(clave, accion), FILA_IDLE);
     }
 
     private static BufferedImage[] cargarFramesHabilidadBlanca() {
@@ -126,13 +132,13 @@ public final class SpritesRatas {
         return alineados;
     }
 
-    private static SpriteSheet cargarHoja(TipoRata tipo, Accion accion) {
-        return CatalogoSpritesRatas.cargar(tipo, accion);
+    private static SpriteSheet cargarHoja(String clave, Accion accion) {
+        return CatalogoSpritesRatas.cargar(clave, accion);
     }
 
     // Devuelve el primer cuadro de la fila de reposo, ajustado sin deformar el sprite.
-    public static BufferedImage crearVistaIdle(TipoRata tipo, int ancho, int alto) {
-        BufferedImage frame = crearFramesAlineados(cargar(tipo), FILA_IDLE)[0];
+    public static BufferedImage crearVistaIdle(String clave, int ancho, int alto) {
+        BufferedImage frame = crearFramesAlineados(cargar(clave), FILA_IDLE)[0];
         BufferedImage vista = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = vista.createGraphics();
         dibujarAjustado(g, frame, 0, 0, ancho, alto);

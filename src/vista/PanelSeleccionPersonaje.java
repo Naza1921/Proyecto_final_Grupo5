@@ -77,7 +77,7 @@ public class PanelSeleccionPersonaje extends JPanel {
             "<html><center>" + nombre
                 + "<br><font size='3' color='#FFD685'>HAB. ESPECIAL</font>"
                 + "<br>" + obtenerHabilidadEspecial(tipo) + "</center></html>",
-            new ImageIcon(SpritesRatas.crearVistaIdle(tipo, 170, 112))
+            new ImageIcon(SpritesRatas.crearVistaIdle(fabrica.get().getClaveSprite(), 170, 112))
         ) {
             @Override
             protected void paintComponent(Graphics g) {
