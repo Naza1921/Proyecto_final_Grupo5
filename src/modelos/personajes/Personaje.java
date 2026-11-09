@@ -21,6 +21,8 @@ public abstract class Personaje {
     private double estamina;
     private final double estaminaMaxima;
     private double velocidadY = 0;
+    private final EstadisticasRata estadisticasBase;
+    private EstadisticasRata estadisticasActuales;
     private static final double GRAVEDAD = 0.4;
     private static final double VELOCIDAD_MAXIMA_CAIDA = 15;
     
@@ -40,6 +42,8 @@ public abstract class Personaje {
         this.velocidad = velocidad;
         this.velocidadBase = velocidad;
         this.fuerzaSalto = fuerzaSalto;
+        this.estadisticasBase = new EstadisticasRataBase();
+        this.estadisticasActuales = estadisticasBase;
         this.enElAire = false;
         this.agachada = false;
         this.estaminaMaxima = estaminaMaxima;
@@ -86,7 +90,7 @@ public abstract class Personaje {
         if (cantidad < 0) {
             throw new IllegalArgumentException("El daño no puede ser negativo");
         }
-        if (invulnerable) {
+        if (estadisticasActuales.esInvulnerable()) {
             return;
         }
         vida = Math.max(0, vida - cantidad);
@@ -118,10 +122,10 @@ public abstract class Personaje {
     public boolean estaMirandoIzquierda() { return mirandoIzquierda; }
     public double getEstamina() { return estamina; }
     public double getEstaminaMaxima() { return estaminaMaxima; }
-    public double getVelocidad() { return velocidad * multiplicadorVelocidadTemporal; }
+    public double getVelocidad() { return estadisticasActuales.getVelocidad(); }
     public double getFuerzaSalto() { return fuerzaSalto; }
     public double getVelocidadY(){return velocidadY;}
-    public boolean esInvulnerable() { return invulnerable; }
+    public boolean esInvulnerable() { return estadisticasActuales.esInvulnerable(); }
 
     public void setMultiplicadorVelocidadTemporal(double multiplicador) {
         if (!Double.isFinite(multiplicador) || multiplicador <= 0) {
@@ -182,6 +186,18 @@ public abstract class Personaje {
         }
         estamina -= cantidad;
         return true;
+    }
+
+    private final class EstadisticasRataBase implements EstadisticasRata {
+        @Override
+        public double getVelocidad() {
+            return velocidad * multiplicadorVelocidadTemporal;
+        }
+
+        @Override
+        public boolean esInvulnerable() {
+            return invulnerable;
+        }
     }
     
 public void setEnElAire(boolean enElAire) { this.enElAire = enElAire; }
