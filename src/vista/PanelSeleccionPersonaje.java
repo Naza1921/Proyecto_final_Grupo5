@@ -2,7 +2,6 @@ package vista;
 
 import java.awt.*;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import javax.swing.*;
 import modelos.personajes.Personaje;
 import modelos.personajes.PersonajeFactory;
@@ -45,16 +44,12 @@ public class PanelSeleccionPersonaje extends JPanel {
 
         JPanel tarjetas = new JPanel(new GridLayout(2, 2, 18, 16));
         tarjetas.setOpaque(false);
-            tarjetas.add(crearBoton("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS,
-            () -> PersonajeFactory.crearPersonaje("Rata Gris", modelos.personajes.Personaje.TipoRata.GRIS)));
-            tarjetas.add(crearBoton("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA,
-            () -> PersonajeFactory.crearPersonaje("Rata Blanca", modelos.personajes.Personaje.TipoRata.BLANCA)));
-            tarjetas.add(crearBoton("Rata Negra", modelos.personajes.Personaje.TipoRata.NEGRA,
-            () -> PersonajeFactory.crearPersonaje("Rata Negra", modelos.personajes.Personaje.TipoRata.NEGRA)));
-            tarjetas.add(crearBoton("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE,
-            () -> PersonajeFactory.crearPersonaje("Rata Verde", modelos.personajes.Personaje.TipoRata.VERDE)));
+        for (String clave : PersonajeFactory.clavesDisponibles()) {
+            Personaje muestra = PersonajeFactory.crearPersonaje(clave);
+            tarjetas.add(crearBoton(clave, muestra));
+        }
 
-            add(tarjetas, BorderLayout.CENTER);
+        add(tarjetas, BorderLayout.CENTER);
     }
 
     @Override
@@ -71,13 +66,13 @@ public class PanelSeleccionPersonaje extends JPanel {
         g2.dispose();
     }
 
-    private JButton crearBoton(String nombre, Personaje.TipoRata tipo,
-                    Supplier<Personaje> fabrica) {
+    private JButton crearBoton(String clave, Personaje muestra) {
+        String nombre = muestra.getNombre();
         JButton boton = new JButton(
             "<html><center>" + nombre
                 + "<br><font size='3' color='#FFD685'>HAB. ESPECIAL</font>"
-                + "<br>" + obtenerHabilidadEspecial(tipo) + "</center></html>",
-            new ImageIcon(SpritesRatas.crearVistaIdle(fabrica.get().getClaveSprite(), 170, 112))
+                + "<br>" + muestra.getDescripcionHabilidad() + "</center></html>",
+            new ImageIcon(SpritesRatas.crearVistaIdle(muestra.getClaveSprite(), 170, 112))
         ) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -111,16 +106,9 @@ public class PanelSeleccionPersonaje extends JPanel {
         boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         boton.setToolTipText("Elegir " + nombre);
         boton.getAccessibleContext().setAccessibleName(nombre);
-        boton.addActionListener(evento -> onPersonajeSelected.accept(fabrica.get()));
+        boton.addActionListener(
+            evento -> onPersonajeSelected.accept(PersonajeFactory.crearPersonaje(clave))
+        );
         return boton;
-    }
-
-    private String obtenerHabilidadEspecial(Personaje.TipoRata tipo) {
-        return switch (tipo) {
-            case GRIS -> "DOBLE SALTO";
-            case BLANCA -> "HADOUKEN";
-            case NEGRA -> "LÁMPARA DE FUEGO";
-            case VERDE -> "CHARCO DE ÁCIDO";
-        };
     }
 }
