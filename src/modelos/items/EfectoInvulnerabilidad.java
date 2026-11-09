@@ -1,6 +1,8 @@
 package modelos.items;
 
 import modelos.personajes.Personaje;
+import modelos.personajes.EstadisticasRata;
+import modelos.personajes.Invulnerabilidad;
 
 public final class EfectoInvulnerabilidad implements EfectoTemporal {
     private static final RecompensaPowerUp RECOMPENSA = new RecompensaPowerUp(1_000, false);
@@ -17,11 +19,14 @@ public final class EfectoInvulnerabilidad implements EfectoTemporal {
 
     @Override
     public void aplicar(Personaje personaje) {
-        personaje.setInvulnerable(true);
     }
 
     @Override
     public void revertir(Personaje personaje) {
-        personaje.setInvulnerable(false);
+    }
+
+    @Override
+    public EstadisticasRata decorarEstadisticas(EstadisticasRata estadisticas) {
+        return new Invulnerabilidad(estadisticas);
     }
 }

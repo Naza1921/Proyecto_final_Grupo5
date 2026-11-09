@@ -57,13 +57,9 @@ public final class GestorEfectosTemporales {
 
         long ahora = System.nanoTime();
         long duracionNanos = TimeUnit.MILLISECONDS.toNanos(powerUp.getDuracion());
-        EfectoActivo anterior = efectosActivos.put(
+        efectosActivos.put(
             categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos)
         );
-        if (anterior != null) {
-            anterior.efecto.revertir(personaje);
-        }
-        nuevoEfecto.aplicar(personaje);
         reconstruirEstadisticas();
     }
 
@@ -75,7 +71,6 @@ public final class GestorEfectosTemporales {
         while (iterador.hasNext()) {
             EfectoActivo activo = iterador.next().getValue();
             if (ahora - activo.iniciadoEnNanos >= activo.duracionNanos) {
-                activo.efecto.revertir(personaje);
                 iterador.remove();
                 cambio = true;
             }
@@ -106,9 +101,6 @@ public final class GestorEfectosTemporales {
     }
 
     public void limpiar() {
-        for (EfectoActivo activo : efectosActivos.values()) {
-            activo.efecto.revertir(personaje);
-        }
         efectosActivos.clear();
         pausaIniciadaEnNanos = 0;
         pausado = false;

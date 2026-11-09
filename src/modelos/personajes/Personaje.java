@@ -16,7 +16,6 @@ public abstract class Personaje {
     private boolean enElAire;
     private boolean mirandoIzquierda;
     private boolean agachada;
-    private boolean invulnerable;
     private double estamina;
     private final double estaminaMaxima;
     private double velocidadY = 0;
@@ -137,9 +136,6 @@ public abstract class Personaje {
         this.estadisticasActuales = estadisticas;
     }
 
-    public void setInvulnerable(boolean invulnerable) {
-        this.invulnerable = invulnerable;
-    }
     public void setEstamina(double estamina) {
         if (!Double.isFinite(estamina)) {
             throw new IllegalArgumentException("La estamina debe ser un número finito");
@@ -200,7 +196,7 @@ public abstract class Personaje {
 
         @Override
         public boolean esInvulnerable() {
-            return invulnerable;
+            return false;
         }
     }
     
