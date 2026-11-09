@@ -3,8 +3,9 @@ package vista;
 import java.awt.*;
 import java.util.function.Consumer;
 import javax.swing.*;
+import modelos.personajes.CatalogoFabricasRata;
+import modelos.personajes.FabricaRata;
 import modelos.personajes.Personaje;
-import modelos.personajes.PersonajeFactory;
 
 // Presenta cada rata en una tarjeta y comunica la elección al controlador.
 public class PanelSeleccionPersonaje extends JPanel {
@@ -44,9 +45,9 @@ public class PanelSeleccionPersonaje extends JPanel {
 
         JPanel tarjetas = new JPanel(new GridLayout(2, 2, 18, 16));
         tarjetas.setOpaque(false);
-        for (String clave : PersonajeFactory.clavesDisponibles()) {
-            Personaje muestra = PersonajeFactory.crearPersonaje(clave);
-            tarjetas.add(crearBoton(clave, muestra));
+        for (FabricaRata fabrica : CatalogoFabricasRata.obtenerFabricas()) {
+            Personaje muestra = fabrica.crearRata();
+            tarjetas.add(crearBoton(fabrica, muestra));
         }
 
         add(tarjetas, BorderLayout.CENTER);
@@ -66,7 +67,7 @@ public class PanelSeleccionPersonaje extends JPanel {
         g2.dispose();
     }
 
-    private JButton crearBoton(String clave, Personaje muestra) {
+    private JButton crearBoton(FabricaRata fabrica, Personaje muestra) {
         String nombre = muestra.getNombre();
         JButton boton = new JButton(
             "<html><center>" + nombre
@@ -107,7 +108,7 @@ public class PanelSeleccionPersonaje extends JPanel {
         boton.setToolTipText("Elegir " + nombre);
         boton.getAccessibleContext().setAccessibleName(nombre);
         boton.addActionListener(
-            evento -> onPersonajeSelected.accept(PersonajeFactory.crearPersonaje(clave))
+            evento -> onPersonajeSelected.accept(fabrica.crearRata())
         );
         return boton;
     }

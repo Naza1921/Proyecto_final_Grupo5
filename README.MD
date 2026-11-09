@@ -107,27 +107,34 @@ en bucle mediante JavaFX Media. Los audios estan en `src/assets/audio/`.
 
 ### En el juego utilizamos varios tipos de `Patrones de Diseño` 
 
-####  simple Factory: `Creación de personaje `
- El problema que se nos presento cuando nos toco trabajar en el código fue ver que en varias parte del código como por ejemplo ; `PanelDeSeleccion`  y `ProncipalControlador` se encontraba el código para instanciar a la rata seleccionada por esta razón decidimos que era mejor  aplicar el patrón Factory que permite centralizar la creación de objetos tipo personaje ( cada rata ) pero llegamos a una concusión diferente cuando nos planteamos que capaz no era necesario la aplicación de este patrón ya que no teníamos pensado ampliar la cantidad de ratas. Pero si necesitábamos centralizarla llegamos a la solución de aplicar un simple Factory.
+#### Factory Method: creación de personajes
 
-**En este proyecto se utiliza como una Simple Factory para centralizar la creación de personajes.**
-
-`PersonajeFactory` es una Simple Factory que centraliza la creación de las subclases de `Personaje`. Mantiene un registro `LinkedHashMap<String, Supplier<Personaje>>`, indexado por la clave de sprite que define cada rata. No usa un enum ni un `switch` para seleccionar la clase:
+`FabricaRata` es el creador abstracto y declara el método de fábrica `crearPersonaje()`. Cada creador concreto implementa ese método y devuelve una subclase de `Personaje`. `CatalogoFabricasRata` mantiene la lista inmutable de creadores disponibles, y el panel usa `crearRata()` para obtener el producto:
 
 ```java
-private static final LinkedHashMap<String, Supplier<Personaje>> FABRICAS =
-    new LinkedHashMap<>();
+package modelos.personajes;
 
-private static void registrar(Supplier<Personaje> fabrica) {
-    Personaje muestra = fabrica.get();
-    FABRICAS.put(muestra.getClaveSprite(), fabrica);
+public abstract class FabricaRata {
+    protected abstract Personaje crearPersonaje();
+
+    public final Personaje crearRata() {
+        Personaje personaje = crearPersonaje();
+        if (personaje == null) {
+            throw new IllegalStateException("La fábrica no puede crear una rata nula");
+        }
+        String claveSprite = personaje.getClaveSprite();
+        if (claveSprite == null || claveSprite.isBlank()) {
+            throw new IllegalStateException("La rata creada debe tener una clave de sprite");
+        }
+        return personaje;
+    }
 }
 ```
 **Por qué es útil para el juego:**
 
-- Mantiene en un único lugar el registro de claves y fábricas de personajes.
-- Evita repetir condicionales de creación en las vistas y controladores.
-- Para agregar una rata nueva, se crea su subclase, se agrega una línea al registro de la fábrica y se registran sus sprites en `CatalogoSpritesRatas`.
+- Cada creador concreto decide qué subclase de `Personaje` crear sin usar un `switch`.
+- El panel trabaja con la abstracción `FabricaRata` y no necesita conocer la clase concreta.
+- Para agregar una rata nueva, se crea su clase de rata, una clase creadora, una línea en `CatalogoFabricasRata` y sus sprites en `CatalogoSpritesRatas`.
 
 
 
