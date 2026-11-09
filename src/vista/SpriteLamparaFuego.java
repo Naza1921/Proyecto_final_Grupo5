@@ -5,9 +5,11 @@ import java.awt.image.BufferedImage;
 
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
-import modelos.personajes.LamparaFuego;
+import modelos.personajes.EfectoHabilidad;
+import modelos.personajes.EtapaEfecto;
 
-public final class SpriteLamparaFuego {
+public final class SpriteLamparaFuego implements SpriteEfecto {
+    private static final String CLAVE_SPRITE = "lampara_fuego";
     private static final String RUTA_LAMPARA =
         "assets/rata_negra/lampara_cayendo_splash_fuego_8frames_transparente.png";
     private static final String RUTA_FUEGO =
@@ -15,9 +17,6 @@ public final class SpriteLamparaFuego {
     private static final long DURACION_FRAME_LAMPARA_NANOS = 100_000_000L;
     private static final long DURACION_FRAME_FUEGO_NANOS = 140_000_000L;
     private static final int CANTIDAD_FRAMES_LAMPARA = 5;
-    private static final int ANCHO_DIBUJO_LAMPARA = 36;
-    private static final int ALTO_DIBUJO_LAMPARA = 36;
-
     private final GestorAnimacionSprite animacionLampara;
     private final GestorAnimacionSprite animacionFuego;
 
@@ -41,33 +40,44 @@ public final class SpriteLamparaFuego {
         );
     }
 
-    public void actualizar() {
+    @Override
+    public String getClaveSprite() {
+        return CLAVE_SPRITE;
+    }
+
+    @Override
+    public void actualizarAnimacion() {
         animacionLampara.actualizar();
         animacionFuego.actualizar();
     }
 
-    public void dibujar(Graphics2D graficos, LamparaFuego habilidad) {
+    @Override
+    public void actualizar(EfectoHabilidad efecto) {
+    }
+
+    @Override
+    public void dibujar(Graphics2D graficos, EfectoHabilidad habilidad) {
         if (graficos == null || habilidad == null) {
             throw new IllegalArgumentException("Se requieren los gráficos y la lámpara");
         }
-        switch (habilidad.getEstado()) {
+        switch (habilidad.getEtapa()) {
             case VOLANDO -> dibujarAjustado(
                 graficos,
                 animacionLampara.getFrameActual(),
-                habilidad.getXLampara(),
-                habilidad.getYLampara(),
-                ANCHO_DIBUJO_LAMPARA,
-                ALTO_DIBUJO_LAMPARA
+                habilidad.getX(),
+                habilidad.getY(),
+                habilidad.getAncho(),
+                habilidad.getAlto()
             );
             case FUEGO -> dibujarAjustado(
                 graficos,
                 animacionFuego.getFrameActual(),
-                habilidad.getXFuego(),
-                habilidad.getYFuego(),
-                LamparaFuego.ANCHO_FUEGO,
-                LamparaFuego.ALTO_FUEGO
+                habilidad.getX(),
+                habilidad.getY(),
+                habilidad.getAncho(),
+                habilidad.getAlto()
             );
-            case PREPARANDO, TERMINADA -> { }
+            case PREPARANDO, ACTIVO, TERMINADA -> { }
         }
     }
 

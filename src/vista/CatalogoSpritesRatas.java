@@ -3,9 +3,18 @@ package vista;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.ToLongFunction;
 import recursos.CargadorRecursos;
 
 final class CatalogoSpritesRatas {
+    private static final long DURACION_FRAME_NANOS = 160_000_000L;
+    private static final long DURACION_ANIMACION_PREPARACION_NANOS = 1_500_000_000L;
+    private static final Map<String, Double> AJUSTES_BASE = Map.of("verde", 1.0);
+    private static final Map<String, ToLongFunction<Integer>> DURACIONES_HABILIDAD = Map.of(
+        "blanca", cantidadFrames -> 60_000_000L,
+        "verde", cantidadFrames -> DURACION_ANIMACION_PREPARACION_NANOS / cantidadFrames,
+        "negra", cantidadFrames -> DURACION_ANIMACION_PREPARACION_NANOS / cantidadFrames
+    );
     private static final Map<String, Map<SpritesRatas.Accion, DefinicionSprite>> DEFINICIONES =
         new HashMap<>();
 
@@ -107,6 +116,19 @@ final class CatalogoSpritesRatas {
     static boolean tiene(String clave, SpritesRatas.Accion accion) {
         Map<SpritesRatas.Accion, DefinicionSprite> porAccion = DEFINICIONES.get(clave);
         return porAccion != null && porAccion.containsKey(accion);
+    }
+
+    static double obtenerAjusteBase(String clave) {
+        return AJUSTES_BASE.getOrDefault(clave, 0.0);
+    }
+
+    static long obtenerDuracionFrameHabilidad(String clave, int cantidadFrames) {
+        if (clave == null || cantidadFrames <= 0) {
+            throw new IllegalArgumentException("Se requieren la clave y una cantidad válida de frames");
+        }
+        return DURACIONES_HABILIDAD.getOrDefault(
+            clave, cantidad -> DURACION_FRAME_NANOS
+        ).applyAsLong(cantidadFrames);
     }
 
     private static void registrar(String clave, SpritesRatas.Accion accion,

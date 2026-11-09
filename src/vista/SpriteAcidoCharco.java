@@ -4,10 +4,11 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import controlador.GestorAnimacionSprite;
-import modelos.personajes.CharcoAcido;
+import modelos.personajes.EfectoHabilidad;
 import recursos.CargadorRecursos;
 
-public final class SpriteAcidoCharco {
+public final class SpriteAcidoCharco implements SpriteEfecto {
+    private static final String CLAVE_SPRITE = "charco_acido";
     private static final String RUTA_HOJA = "assets/rata_verde/acido_5frames_transparente.png";
     private static final int CANTIDAD_FRAMES = 5;
     private static final int ANCHO_DIBUJO = 72;
@@ -16,30 +17,41 @@ public final class SpriteAcidoCharco {
 
     private final BufferedImage[] frames;
     private GestorAnimacionSprite animacion;
-    private CharcoAcido charcoAnimado;
+    private EfectoHabilidad efectoAnimado;
 
     public SpriteAcidoCharco() {
         frames = cargarFrames();
     }
 
-    public void actualizar(CharcoAcido charco) {
-        if (charco == null) {
-            throw new IllegalArgumentException("Se requiere el charco que se va a animar");
+    @Override
+    public String getClaveSprite() {
+        return CLAVE_SPRITE;
+    }
+
+    @Override
+    public void actualizarAnimacion() {
+    }
+
+    @Override
+    public void actualizar(EfectoHabilidad efecto) {
+        if (efecto == null) {
+            throw new IllegalArgumentException("Se requiere el efecto que se va a animar");
         }
-        if (charco != charcoAnimado) {
-            charcoAnimado = charco;
+        if (efecto != efectoAnimado) {
+            efectoAnimado = efecto;
             animacion = new GestorAnimacionSprite(frames, DURACION_FRAME_NANOS);
         } else {
             animacion.actualizar();
         }
     }
 
-    public void dibujar(Graphics2D graficos, CharcoAcido charco) {
-        if (graficos == null || charco == null) {
-            throw new IllegalArgumentException("Se requieren los gráficos y el charco de ácido");
+    @Override
+    public void dibujar(Graphics2D graficos, EfectoHabilidad efecto) {
+        if (graficos == null || efecto == null) {
+            throw new IllegalArgumentException("Se requieren los gráficos y el efecto de ácido");
         }
-        if (charco != charcoAnimado) {
-            actualizar(charco);
+        if (efecto != efectoAnimado) {
+            actualizar(efecto);
         }
         double escala = Math.min(
             (double) ANCHO_DIBUJO / animacion.getAncho(),
@@ -47,8 +59,8 @@ public final class SpriteAcidoCharco {
         );
         int ancho = (int) Math.round(animacion.getAncho() * escala);
         int alto = (int) Math.round(animacion.getAlto() * escala);
-        int x = (int) Math.round(charco.getX() + CharcoAcido.ANCHO / 2.0 - ancho / 2.0);
-        int y = (int) Math.round(charco.getY() + CharcoAcido.ALTO - alto);
+        int x = (int) Math.round(efecto.getX() + efecto.getAncho() / 2.0 - ancho / 2.0);
+        int y = (int) Math.round(efecto.getY() + efecto.getAlto() - alto);
         graficos.drawImage(animacion.getFrameActual(), x, y, ancho, alto, null);
     }
 

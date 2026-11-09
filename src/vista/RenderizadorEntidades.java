@@ -15,18 +15,12 @@ import modelos.enemigos.ProyectilAcido;
 import modelos.enemigos.fantasma;
 import modelos.enemigos.ratainfestada;
 import modelos.partida.ConfiguracionPartida;
-import modelos.personajes.CharcoAcido;
-import modelos.personajes.LamparaFuego;
+import modelos.personajes.EfectoHabilidad;
 import modelos.personajes.Personaje;
 import modelos.personajes.ProyectilEspecial;
-import modelos.personajes.rata_negra;
-import modelos.personajes.rata_verde;
 
 final class RenderizadorEntidades {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
-    private static final long DURACION_ANIMACION_PREPARACION_NANOS = 1_500_000_000L;
-    private static final long DURACION_FRAME_HABILIDAD_BLANCA_NANOS = 60_000_000L;
-    private static final double AJUSTE_BASE_RATA_VERDE = 1.0;
 
     private final Personaje jugador;
     private final Runnable alTerminarAnimacionMuerte;
@@ -44,8 +38,8 @@ final class RenderizadorEntidades {
     private final GestorAnimacionSprite animacionFantasmaIzquierda;
     private final BufferedImage[] framesMuerteFantasma;
     private final SpriteProyectilStun spriteProyectilStun = new SpriteProyectilStun();
-    private final SpriteAcidoCharco spriteAcidoCharco = new SpriteAcidoCharco();
-    private final SpriteLamparaFuego spriteLamparaFuego = new SpriteLamparaFuego();
+    private final CatalogoSpritesEfectos catalogoSpritesEfectos =
+        new CatalogoSpritesEfectos();
     private final SpriteAcido spriteAcido = new SpriteAcido();
     private List<fantasma> fantasmas = List.of();
     private List<ratainfestada> ratasInfestadas = List.of();
@@ -126,10 +120,11 @@ final class RenderizadorEntidades {
 
         spriteAcido.actualizar();
         spriteProyectilStun.actualizar();
-        spriteLamparaFuego.actualizar();
-        if (jugador instanceof rata_verde rataVerde
-                && rataVerde.getCharcoAcido() != null) {
-            spriteAcidoCharco.actualizar(rataVerde.getCharcoAcido());
+        List<EfectoHabilidad> efectos = jugador.getEfectosHabilidad();
+        catalogoSpritesEfectos.actualizarAnimaciones();
+        for (EfectoHabilidad efecto : efectos) {
+            SpriteEfecto sprite = catalogoSpritesEfectos.obtener(efecto.getClaveSprite());
+            sprite.actualizar(efecto);
         }
         actualizarSpritesRatasInfestadas();
 
@@ -248,17 +243,8 @@ final class RenderizadorEntidades {
     }
 
     private void dibujarHabilidades(Graphics2D g) {
-        if (jugador instanceof rata_verde rataVerde) {
-            CharcoAcido charcoAcido = rataVerde.getCharcoAcido();
-            if (charcoAcido != null) {
-                spriteAcidoCharco.dibujar(g, charcoAcido);
-            }
-        }
-        if (jugador instanceof rata_negra rataNegra) {
-            LamparaFuego lamparaFuego = rataNegra.getLamparaFuego();
-            if (lamparaFuego != null) {
-                spriteLamparaFuego.dibujar(g, lamparaFuego);
-            }
+        for (EfectoHabilidad efecto : jugador.getEfectosHabilidad()) {
+            catalogoSpritesEfectos.obtener(efecto.getClaveSprite()).dibujar(g, efecto);
         }
     }
 
@@ -334,8 +320,7 @@ final class RenderizadorEntidades {
                 jugador.getX() - (anchoDibujo - ConfiguracionPartida.ANCHO_JUGADOR) / 2.0
             );
         }
-        double ajusteBase = jugador.getTipoRata() == Personaje.TipoRata.VERDE
-            ? AJUSTE_BASE_RATA_VERDE : 0;
+        double ajusteBase = CatalogoSpritesRatas.obtenerAjusteBase(jugador.getClaveSprite());
         int yDibujo = (int) Math.round(
             jugador.getY() + ConfiguracionPartida.ALTO_JUGADOR
                 - (ultimaFilaVisibleRata + 1) * (double) altoDibujo / cuadro.getHeight()
@@ -392,11 +377,9 @@ final class RenderizadorEntidades {
         if (accion != SpritesRatas.Accion.HAB_ESPECIAL) {
             return DURACION_FRAME_NANOS;
         }
-        return switch (jugador.getTipoRata()) {
-            case BLANCA -> DURACION_FRAME_HABILIDAD_BLANCA_NANOS;
-            case VERDE, NEGRA -> DURACION_ANIMACION_PREPARACION_NANOS / cantidadFrames;
-            case GRIS -> DURACION_FRAME_NANOS;
-        };
+        return CatalogoSpritesRatas.obtenerDuracionFrameHabilidad(
+            jugador.getClaveSprite(), cantidadFrames
+        );
     }
 
     private BufferedImage obtenerFrameRata() {
