@@ -14,6 +14,16 @@ public class rata_verde extends Personaje {
     }
 
     @Override
+    public String getClaveSprite() {
+        return "verde";
+    }
+
+    @Override
+    public String getDescripcionHabilidad() {
+        return "CHARCO DE ÁCIDO";
+    }
+
+    @Override
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
         return tirarAcido();
     }
@@ -41,6 +51,12 @@ public class rata_verde extends Personaje {
 
     public CharcoAcido getCharcoAcido() {
         return charcoAcido != null && charcoAcido.estaVisible() ? charcoAcido : null;
+    }
+
+    @Override
+    public List<EfectoHabilidad> getEfectosHabilidad() {
+        return charcoAcido != null && charcoAcido.estaVisible()
+            ? List.of(charcoAcido) : List.of();
     }
 
     public void limpiarCharcoAcido() {

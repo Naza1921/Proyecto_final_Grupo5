@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import modelos.enemigos.enemigo;
 
-public final class CharcoAcido {
+public final class CharcoAcido implements EfectoHabilidad {
     public static final double ANCHO = 70;
     public static final double ALTO = 12;
 
@@ -72,11 +72,36 @@ public final class CharcoAcido {
             && objetivo.getY() + objetivo.getAltoColision() > y;
     }
 
+    @Override
     public double getX() {
         return x;
     }
 
+    @Override
     public double getY() {
         return y;
+    }
+
+    @Override
+    public String getClaveSprite() {
+        return "charco_acido";
+    }
+
+    @Override
+    public double getAncho() {
+        return ANCHO;
+    }
+
+    @Override
+    public double getAlto() {
+        return ALTO;
+    }
+
+    @Override
+    public EtapaEfecto getEtapa() {
+        if (System.nanoTime() < apareceEnNanos) {
+            return EtapaEfecto.PREPARANDO;
+        }
+        return estaActivo() ? EtapaEfecto.ACTIVO : EtapaEfecto.TERMINADA;
     }
 }

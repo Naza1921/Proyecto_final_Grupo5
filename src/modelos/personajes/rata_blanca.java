@@ -16,6 +16,16 @@ public class rata_blanca extends Personaje {
     }
 
     @Override
+    public String getClaveSprite() {
+        return "blanca";
+    }
+
+    @Override
+    public String getDescripcionHabilidad() {
+        return "HADOUKEN";
+    }
+
+    @Override
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
         return tirarStun();
     }

@@ -11,6 +11,16 @@ public class rata_gris extends Personaje {
     }
 
     @Override
+    public String getClaveSprite() {
+        return "gris";
+    }
+
+    @Override
+    public String getDescripcionHabilidad() {
+        return "DOBLE SALTO";
+    }
+
+    @Override
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
         return false;
     }

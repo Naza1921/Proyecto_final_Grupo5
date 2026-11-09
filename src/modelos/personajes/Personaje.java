@@ -117,6 +117,8 @@ public abstract class Personaje {
     public double getX() { return x; }
     public double getY() { return y; }
     public String getNombre() { return nombre; }
+    public abstract String getClaveSprite();
+    public abstract String getDescripcionHabilidad();
     public TipoRata getTipoRata() { return tipoRata; }
     public boolean estaEnElAire() { return enElAire; }
     public boolean estaAgachada() { return agachada; }
@@ -159,6 +161,10 @@ public abstract class Personaje {
     }
 
     public List<ProyectilEspecial> getProyectilesEspeciales() {
+        return List.of();
+    }
+
+    public List<EfectoHabilidad> getEfectosHabilidad() {
         return List.of();
     }
 

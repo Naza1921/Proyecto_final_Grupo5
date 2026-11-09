@@ -6,13 +6,15 @@ import java.util.List;
 import java.util.Set;
 import modelos.enemigos.enemigo;
 
-public final class LamparaFuego {
+public final class LamparaFuego implements EfectoHabilidad {
     public enum Estado {
         PREPARANDO, VOLANDO, FUEGO, TERMINADA
     }
 
     public static final double ANCHO_FUEGO = 60;
     public static final double ALTO_FUEGO = 36;
+    public static final double ANCHO_LAMPARA = 36;
+    public static final double ALTO_LAMPARA = 36;
 
     private static final double DISTANCIA_VUELO = 150;
     private static final double ALTURA_ARCO = 65;
@@ -96,6 +98,41 @@ public final class LamparaFuego {
 
     public Estado getEstado() {
         return estado;
+    }
+
+    @Override
+    public String getClaveSprite() {
+        return "lampara_fuego";
+    }
+
+    @Override
+    public double getX() {
+        return estado == Estado.FUEGO ? getXFuego() : getXLampara();
+    }
+
+    @Override
+    public double getY() {
+        return estado == Estado.FUEGO ? getYFuego() : getYLampara();
+    }
+
+    @Override
+    public double getAncho() {
+        return estado == Estado.FUEGO ? ANCHO_FUEGO : ANCHO_LAMPARA;
+    }
+
+    @Override
+    public double getAlto() {
+        return estado == Estado.FUEGO ? ALTO_FUEGO : ALTO_LAMPARA;
+    }
+
+    @Override
+    public EtapaEfecto getEtapa() {
+        return switch (estado) {
+            case PREPARANDO -> EtapaEfecto.PREPARANDO;
+            case VOLANDO -> EtapaEfecto.VOLANDO;
+            case FUEGO -> EtapaEfecto.FUEGO;
+            case TERMINADA -> EtapaEfecto.TERMINADA;
+        };
     }
 
     public double getXLampara() {

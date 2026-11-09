@@ -14,6 +14,16 @@ public class rata_negra extends Personaje {
     }
 
     @Override
+    public String getClaveSprite() {
+        return "negra";
+    }
+
+    @Override
+    public String getDescripcionHabilidad() {
+        return "LÁMPARA DE FUEGO";
+    }
+
+    @Override
     public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
         return tirarLampara();
     }
@@ -38,6 +48,11 @@ public class rata_negra extends Personaje {
 
     public LamparaFuego getLamparaFuego() {
         return lamparaFuego;
+    }
+
+    @Override
+    public List<EfectoHabilidad> getEfectosHabilidad() {
+        return lamparaFuego == null ? List.of() : List.of(lamparaFuego);
     }
 
     public void limpiarLamparaFuego() {
