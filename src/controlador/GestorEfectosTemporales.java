@@ -51,7 +51,7 @@ public final class GestorEfectosTemporales {
         }
 
         if (nuevoEfecto.esInstantaneo()) {
-            nuevoEfecto.aplicar(personaje);
+            nuevoEfecto.aplicarInstantaneo(personaje);
             return;
         }
 

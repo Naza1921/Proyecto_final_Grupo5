@@ -17,18 +17,11 @@ public final class EfectoCuracion implements EfectoTemporal {
     }
 
     @Override
-    public void aplicar(Personaje personaje) {
+    public void aplicarInstantaneo(Personaje personaje) {
         if (personaje == null) {
             throw new IllegalArgumentException("Se requiere un personaje para recuperar vida");
         }
         personaje.recuperarVida(CANTIDAD_CURACION);
-    }
-
-    @Override
-    public void revertir(Personaje personaje) {
-        if (personaje == null) {
-            throw new IllegalArgumentException("Se requiere un personaje para revertir el efecto");
-        }
     }
 
     @Override

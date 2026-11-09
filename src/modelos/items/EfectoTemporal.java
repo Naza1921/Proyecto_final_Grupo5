@@ -6,8 +6,10 @@ import modelos.personajes.EstadisticasRata;
 public interface EfectoTemporal {
     CategoriaEfectoTemporal getCategoria();
     RecompensaPowerUp getRecompensa();
-    void aplicar(Personaje personaje);
-    void revertir(Personaje personaje);
+
+    default void aplicarInstantaneo(Personaje personaje) {
+        throw new IllegalStateException("El efecto no es instantáneo");
+    }
 
     default EstadisticasRata decorarEstadisticas(EstadisticasRata estadisticas) {
         return estadisticas;

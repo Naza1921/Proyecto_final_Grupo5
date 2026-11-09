@@ -11,9 +11,4 @@ public final class MejoraVelocidad extends DecoradorEstadisticas {
     public double getVelocidad() {
         return super.getVelocidad() * MULTIPLICADOR;
     }
-
-    @Override
-    public boolean esInvulnerable() {
-        return super.esInvulnerable();
-    }
 }
