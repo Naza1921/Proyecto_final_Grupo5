@@ -1,9 +1,9 @@
 package modelos.personajes;
 
-import modelos.enemigos.enemigo;
 import java.util.List;
+import modelos.enemigos.enemigo;
 
-public abstract class Personaje {
+public abstract class Personaje implements PersonajeDecorable {
    
     private final String nombre;
     private final TipoRata tipoRata;
@@ -87,7 +87,7 @@ public abstract class Personaje {
         velocidadY = Math.min(velocidadY + GRAVEDAD, VELOCIDAD_MAXIMA_CAIDA);
         y += velocidadY;
     }
-
+    @Override 
     public void recibirDanio(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("El daño no puede ser negativo");
@@ -123,7 +123,9 @@ public abstract class Personaje {
     public boolean estaMirandoIzquierda() { return mirandoIzquierda; }
     public double getEstamina() { return estamina; }
     public double getEstaminaMaxima() { return estaminaMaxima; }
+    @Override 
     public double getVelocidad() { return velocidad * multiplicadorVelocidadTemporal; }
+
     public double getFuerzaSalto() { return fuerzaSalto; }
     public double getVelocidadY(){return velocidadY;}
     public boolean esInvulnerable() { return invulnerable; }

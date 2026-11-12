@@ -7,7 +7,7 @@ public class rata_gris extends Personaje {
     private boolean segundoSaltoDisponible = true;
 
     public rata_gris(String nombre) {
-        super(nombre, TipoRata.GRIS, 120, 5, 8, 100);
+        super(nombre, TipoRata.GRIS, 1000, 5, 8, 100);
     }
 
     @Override
