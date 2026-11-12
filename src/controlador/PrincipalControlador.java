@@ -48,6 +48,8 @@ public class PrincipalControlador {
     private final CreadorPartida creadorPartida;
     private CardLayout cardLayout;
     private JPanel contenedor;
+    private boolean cargandoPuntajes;
+    private boolean guardandoPuntaje;
 
     public PrincipalControlador() {
         this(new ServicioPuntajes(
@@ -127,17 +129,46 @@ public class PrincipalControlador {
     }
 
     private void mostrarTablero() {
-        try {
-            tableroPuntajes.mostrarResultados(servicioPuntajes.listarMejoresPuntajes());
-            cardLayout.show(contenedor, VISTA_TABLERO);
-        } catch (SQLException excepcion) {
-            JOptionPane.showMessageDialog(
-                ventana,
-                "No se pudo cargar el tablero de puntajes: " + excepcion.getMessage(),
-                "Error de base de datos",
-                JOptionPane.ERROR_MESSAGE
-            );
+        if (cargandoPuntajes) {
+            return;
         }
+        cargandoPuntajes = true;
+        menuPrincipal.getBtnRanking().setEnabled(false);
+        new SwingWorker<java.util.List<persistencia.ResultadoPuntaje>, Void>() {
+            @Override
+            protected java.util.List<persistencia.ResultadoPuntaje> doInBackground()
+                    throws Exception {
+                return servicioPuntajes.listarMejoresPuntajes();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    tableroPuntajes.mostrarResultados(get());
+                    cardLayout.show(contenedor, VISTA_TABLERO);
+                } catch (InterruptedException excepcion) {
+                    Thread.currentThread().interrupt();
+                    JOptionPane.showMessageDialog(
+                        ventana,
+                        "No se pudo cargar el tablero de puntajes: " + excepcion.getMessage(),
+                        "Error de base de datos",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                } catch (java.util.concurrent.ExecutionException excepcion) {
+                    Throwable causa = excepcion.getCause();
+                    JOptionPane.showMessageDialog(
+                        ventana,
+                        "No se pudo cargar el tablero de puntajes: "
+                            + (causa == null ? excepcion.getMessage() : causa.getMessage()),
+                        "Error de base de datos",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                } finally {
+                    cargandoPuntajes = false;
+                    menuPrincipal.getBtnRanking().setEnabled(true);
+                }
+            }
+        }.execute();
     }
 
     private void configurarBotonesMenu() {
@@ -204,7 +235,8 @@ public class PrincipalControlador {
             JOptionPane.QUESTION_MESSAGE
         );
         if (respuesta == JOptionPane.YES_OPTION) {
-            guardarResultadoPartida();
+            guardarResultadoPartida(this::mostrarMenu);
+            return;
         }
         mostrarMenu();
     }
@@ -259,6 +291,14 @@ public class PrincipalControlador {
     }
 
     private void guardarResultadoPartida() {
+        guardarResultadoPartida(null);
+    }
+
+    private void guardarResultadoPartida(Runnable alTerminar) {
+        if (guardandoPuntaje) {
+            return;
+        }
+        guardandoPuntaje = true;
         String nombre = JOptionPane.showInputDialog(
             ventana,
             "Ingresá tu nombre para guardar el puntaje:",
@@ -271,6 +311,7 @@ public class PrincipalControlador {
                 "Puntaje no guardado",
                 JOptionPane.INFORMATION_MESSAGE
             );
+            finalizarGuardadoPuntaje(alTerminar);
             return;
         }
         if (nombre.isBlank()) {
@@ -280,31 +321,61 @@ public class PrincipalControlador {
                 "Nombre inválido",
                 JOptionPane.WARNING_MESSAGE
             );
+            finalizarGuardadoPuntaje(alTerminar);
             return;
         }
 
-        try {
-            boolean nuevoMejorPuntaje = servicioPuntajes.guardarMejorPuntaje(
-                nombre,
-                controladorPartida.obtenerPuntaje(),
-                controladorPartida.obtenerTiempoPartidaSegundos()
-            );
-            String mensaje = nuevoMejorPuntaje
-                ? "Puntaje guardado correctamente."
-                : "No superaste tu mejor puntaje anterior; se conservó el registro existente.";
-            JOptionPane.showMessageDialog(
-                ventana,
-                mensaje,
-                "Resultado de la partida",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-        } catch (SQLException excepcion) {
-            JOptionPane.showMessageDialog(
-                ventana,
-                "No se pudo guardar el puntaje en SQLite: " + excepcion.getMessage(),
-                "Error de base de datos",
-                JOptionPane.ERROR_MESSAGE
-            );
+        int puntuacion = controladorPartida.obtenerPuntaje();
+        long tiempoSegundos = controladorPartida.obtenerTiempoPartidaSegundos();
+        new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() throws SQLException {
+                return servicioPuntajes.guardarMejorPuntaje(
+                    nombre, puntuacion, tiempoSegundos
+                );
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    boolean nuevoMejorPuntaje = get();
+                    String mensaje = nuevoMejorPuntaje
+                        ? "Puntaje guardado correctamente."
+                        : "No superaste tu mejor puntaje anterior; se conservó el registro existente.";
+                    JOptionPane.showMessageDialog(
+                        ventana,
+                        mensaje,
+                        "Resultado de la partida",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                } catch (InterruptedException excepcion) {
+                    Thread.currentThread().interrupt();
+                    JOptionPane.showMessageDialog(
+                        ventana,
+                        "No se pudo guardar el puntaje en SQLite: " + excepcion.getMessage(),
+                        "Error de base de datos",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                } catch (java.util.concurrent.ExecutionException excepcion) {
+                    Throwable causa = excepcion.getCause();
+                    JOptionPane.showMessageDialog(
+                        ventana,
+                        "No se pudo guardar el puntaje en SQLite: "
+                            + (causa == null ? excepcion.getMessage() : causa.getMessage()),
+                        "Error de base de datos",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                } finally {
+                    finalizarGuardadoPuntaje(alTerminar);
+                }
+            }
+        }.execute();
+    }
+
+    private void finalizarGuardadoPuntaje(Runnable alTerminar) {
+        guardandoPuntaje = false;
+        if (alTerminar != null) {
+            alTerminar.run();
         }
     }
 }
