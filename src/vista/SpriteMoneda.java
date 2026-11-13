@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
@@ -25,6 +26,10 @@ public final class SpriteMoneda {
     private static final int ALTO_FRAME = 91;
 
     private final GestorAnimacionSprite animacion;
+
+    static List<String> rutasImagenes() {
+        return List.of(RUTA_HOJA);
+    }
 
     public SpriteMoneda() {
         BufferedImage hoja = CargadorRecursos.cargarImagen(RUTA_HOJA);

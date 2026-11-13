@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
@@ -18,6 +19,10 @@ public final class SpriteLamparaFuego implements SpriteEfecto {
     private static final int CANTIDAD_FRAMES_LAMPARA = 5;
     private final GestorAnimacionSprite animacionLampara;
     private final GestorAnimacionSprite animacionFuego;
+
+    static List<String> rutasImagenes() {
+        return List.of(RUTA_LAMPARA, RUTA_FUEGO);
+    }
 
     public SpriteLamparaFuego() {
         BufferedImage hojaLampara = CargadorRecursos.cargarImagen(RUTA_LAMPARA);

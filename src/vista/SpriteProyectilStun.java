@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
@@ -15,6 +16,10 @@ public final class SpriteProyectilStun {
     private static final long DURACION_FRAME_NANOS = 100_000_000L;
 
     private final GestorAnimacionSprite animacion;
+
+    static List<String> rutasImagenes() {
+        return List.of(RUTA_HOJA);
+    }
 
     public SpriteProyectilStun() {
         BufferedImage hoja = CargadorRecursos.cargarImagen(RUTA_HOJA);

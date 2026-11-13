@@ -1,6 +1,7 @@
 package vista;
 
 import java.awt.image.BufferedImage;
+import java.util.List;
 import recursos.CargadorRecursos;
 
 public final class SpritesFantasma {
@@ -19,6 +20,10 @@ public final class SpritesFantasma {
     private static final int CANTIDAD_CUADROS_MUERTE = 3;
 
     private SpritesFantasma() {
+    }
+
+    static List<String> rutasImagenes() {
+        return List.of(RUTA_HOJA);
     }
 
     public static BufferedImage[] cargarPatrulla(boolean haciaDerecha) {

@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import modelos.enemigos.ProyectilAcido;
 import recursos.CargadorRecursos;
 
@@ -15,6 +16,10 @@ public final class SpriteAcido {
     private final BufferedImage[] frames;
     private int indiceFrame;
     private long inicioFrameNanos = System.nanoTime();
+
+    static List<String> rutasImagenes() {
+        return List.of(RUTA_HOJA);
+    }
 
     public SpriteAcido() {
         frames = cargarFrames();

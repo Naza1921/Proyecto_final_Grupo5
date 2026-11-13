@@ -24,6 +24,18 @@ public class levelmanager implements EstadoNivel {
 
     };
 
+    static List<String> rutasImagenes() {
+        List<String> rutas = new ArrayList<>();
+        for (String[] rutasPiso : RUTAS) {
+            for (String ruta : rutasPiso) {
+                if (ruta != null) {
+                    rutas.add(ruta);
+                }
+            }
+        }
+        return List.copyOf(rutas);
+    }
+
     private level[][] niveles;
     private int piso = 0, seccion = 0;
 

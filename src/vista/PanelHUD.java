@@ -2,12 +2,16 @@ package vista;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.Locale;
 
 import recursos.CargadorRecursos;
 import modelos.personajes.Personaje;
 
 public class PanelHUD {
+    private static final String RUTA_BARRA_VIDA = "/assets/Hud/sprite_barra_vida_2.png";
+    private static final String RUTA_PUNTAJE = "assets/Hud/puntaje_proyecto.png";
+    private static final String RUTA_TEMPORIZADOR = "assets/temporizador.png";
     private final SpriteSheet barraVidaSprite;
     private final BufferedImage spritePuntaje;
     private final BufferedImage spriteTemporizador;
@@ -31,10 +35,18 @@ public class PanelHUD {
     private static final Color COLOR_NOMBRE = Color.WHITE;
     private static final Font FUENTE_NOMBRE = new Font("Arial", Font.BOLD, 14);
 
+    static List<String> rutasImagenes() {
+        return List.of(
+            RUTA_BARRA_VIDA,
+            RUTA_PUNTAJE,
+            RUTA_TEMPORIZADOR
+        );
+    }
+
     public PanelHUD() {
-        barraVidaSprite = new SpriteSheet("/assets/Hud/sprite_barra_vida_2.png", 10);
-        spritePuntaje = CargadorRecursos.cargarImagen("assets/Hud/puntaje_proyecto.png");
-        spriteTemporizador = CargadorRecursos.cargarImagen("assets/temporizador.png");
+        barraVidaSprite = new SpriteSheet(RUTA_BARRA_VIDA, 10);
+        spritePuntaje = CargadorRecursos.cargarImagen(RUTA_PUNTAJE);
+        spriteTemporizador = CargadorRecursos.cargarImagen(RUTA_TEMPORIZADOR);
     }
 
     public void dibujar(Graphics2D g, Personaje jugador, int puntaje,

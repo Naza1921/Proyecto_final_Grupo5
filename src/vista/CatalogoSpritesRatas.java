@@ -128,6 +128,14 @@ final class CatalogoSpritesRatas {
         return porAccion != null && porAccion.containsKey(accion);
     }
 
+    static List<String> rutasImagenes() {
+        return DEFINICIONES.values().stream()
+            .flatMap(porAccion -> porAccion.values().stream())
+            .map(definicion -> definicion.ruta)
+            .distinct()
+            .toList();
+    }
+
     static double obtenerAjusteBase(String clave) {
         return AJUSTES_BASE.getOrDefault(clave, 0.0);
     }

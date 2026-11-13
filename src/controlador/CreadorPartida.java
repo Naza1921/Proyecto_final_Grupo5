@@ -14,11 +14,21 @@ import modelos.partida.Puntaje;
 import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import recursos.CargadorRecursos;
+import vista.CatalogoImagenesPartida;
 import vista.PanelJuego;
 
 final class CreadorPartida {
     private static final double ANCHO_FANTASMA = 36;
     private static final double ALTO_FANTASMA = 41;
+    private static final String RUTA_TUTORIAL_CONTROLES =
+        "assets/tutorial_controles.png";
+    private static final List<String> FONDOS_JUEGO = List.of(
+        "assets/escenarios/Nivel_1_Piso_mayor.png",
+        "assets/escenarios/Nivel_2_Cocina.png",
+        "assets/escenarios/Nivel_3_Gran_Salon.png",
+        "assets/escenarios/Nivel_4_Pasillo_oscuro.png",
+        "assets/escenarios/Nivel_5_Server_Room.png"
+    );
 
     private final GestorEfectosSonido efectosSonido;
 
@@ -62,7 +72,7 @@ final class CreadorPartida {
         levelmanager niveles = new levelmanager();
         BufferedImage[] fondosJuego = cargarFondosJuego();
         BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
-            "assets/tutorial_controles.png"
+            RUTA_TUTORIAL_CONTROLES
         );
         PanelJuego panelJuego = new PanelJuego(
             jugador, puntaje, fantasmas, ratasInfestadas, niveles,
@@ -100,17 +110,18 @@ final class CreadorPartida {
         );
     }
 
+    static List<String> rutasImagenesPrecarga() {
+        List<String> rutas = new ArrayList<>(levelmanager.rutasImagenes());
+        rutas.addAll(FONDOS_JUEGO);
+        rutas.add(RUTA_TUTORIAL_CONTROLES);
+        rutas.addAll(CatalogoImagenesPartida.rutasPrecarga());
+        return rutas.stream().distinct().toList();
+    }
+
     private static BufferedImage[] cargarFondosJuego() {
-        String[] rutas = {
-            "assets/escenarios/Nivel_1_Piso_mayor.png",
-            "assets/escenarios/Nivel_2_Cocina.png",
-            "assets/escenarios/Nivel_3_Gran_Salon.png",
-            "assets/escenarios/Nivel_4_Pasillo_oscuro.png",
-            "assets/escenarios/Nivel_5_Server_Room.png"
-        };
-        BufferedImage[] fondos = new BufferedImage[rutas.length];
-        for (int indice = 0; indice < rutas.length; indice++) {
-            fondos[indice] = CargadorRecursos.cargarImagen(rutas[indice]);
+        BufferedImage[] fondos = new BufferedImage[FONDOS_JUEGO.size()];
+        for (int indice = 0; indice < FONDOS_JUEGO.size(); indice++) {
+            fondos[indice] = CargadorRecursos.cargarImagen(FONDOS_JUEGO.get(indice));
         }
         return fondos;
     }

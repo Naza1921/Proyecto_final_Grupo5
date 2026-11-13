@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import controlador.GestorAnimacionSprite;
 import modelos.personajes.EfectoHabilidad;
@@ -18,6 +19,10 @@ public final class SpriteAcidoCharco implements SpriteEfecto {
     private final BufferedImage[] frames;
     private GestorAnimacionSprite animacion;
     private EfectoHabilidad efectoAnimado;
+
+    static List<String> rutasImagenes() {
+        return List.of(RUTA_HOJA);
+    }
 
     public SpriteAcidoCharco() {
         frames = cargarFrames();

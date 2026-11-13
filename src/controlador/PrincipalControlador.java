@@ -3,10 +3,13 @@ package controlador;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.*;
 import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
 import persistencia.SQLitePuntajeDAO;
+import recursos.CargadorRecursos;
 import servicios.ServicioPuntajes;
 import vista.MenuPrincipal;
 import vista.MenuAjustesVista;
@@ -46,10 +49,16 @@ public class PrincipalControlador {
     private final ServicioPuntajes servicioPuntajes;
     private final GestorEfectosSonido efectosSonido;
     private final CreadorPartida creadorPartida;
+    private final ExecutorService precargadorImagenes = Executors.newSingleThreadExecutor(tarea -> {
+        Thread hilo = new Thread(tarea, "precarga-imagenes");
+        hilo.setDaemon(true);
+        return hilo;
+    });
     private CardLayout cardLayout;
     private JPanel contenedor;
     private boolean cargandoPuntajes;
     private boolean guardandoPuntaje;
+    private boolean precargaIniciada;
 
     public PrincipalControlador() {
         this(new ServicioPuntajes(
@@ -113,6 +122,7 @@ public class PrincipalControlador {
             @Override
             public void windowClosing(java.awt.event.WindowEvent evento) {
                 efectosSonido.close();
+                precargadorImagenes.shutdownNow();
             }
         });
         ventana.setVisible(true);
@@ -122,6 +132,22 @@ public class PrincipalControlador {
 
     private void mostrarMenu() {
         cardLayout.show(contenedor, VISTA_MENU);
+        iniciarPrecargaImagenes();
+    }
+
+    private void iniciarPrecargaImagenes() {
+        if (precargaIniciada) {
+            return;
+        }
+        precargaIniciada = true;
+        precargadorImagenes.execute(() -> {
+            try {
+                CargadorRecursos.precargar(CreadorPartida.rutasImagenesPrecarga());
+            } catch (RuntimeException error) {
+                System.err.println("No se pudieron preparar las imágenes de la partida: "
+                    + error.getMessage());
+            }
+        });
     }
 
     private void mostrarSeleccion() {

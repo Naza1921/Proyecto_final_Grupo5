@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import modelos.escenario.levels.level;
 import modelos.partida.ConfiguracionPartida;
 import recursos.CargadorRecursos;
@@ -11,6 +12,10 @@ final class RenderizadorNivel {
 
     private final BufferedImage[] spritesNivel;
     private final BufferedImage[] spritesAgujero = new BufferedImage[3];
+
+    static List<String> rutasImagenes() {
+        return List.of(CargadorRecursos.NIVEL_ATLAS, CargadorRecursos.AGUJERO_ATLAS);
+    }
 
     RenderizadorNivel() {
         BufferedImage atlasNivel = CargadorRecursos.cargarImagen(

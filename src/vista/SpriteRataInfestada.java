@@ -2,11 +2,10 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
-import javax.imageio.ImageIO;
+import recursos.CargadorRecursos;
 
 public class SpriteRataInfestada {
     public enum Animacion {
@@ -42,6 +41,10 @@ public class SpriteRataInfestada {
     private Animacion animacionActual = Animacion.QUIETA;
     private int frameActual;
     private long tiempoAcumuladoMs;
+
+    static List<String> rutasImagenes() {
+        return List.of(RUTA_SPRITE);
+    }
 
     public SpriteRataInfestada() {
         BufferedImage hoja = cargarHoja();
@@ -143,16 +146,9 @@ public class SpriteRataInfestada {
     }
 
     private BufferedImage cargarHoja() {
-        try (InputStream entrada = getClass().getResourceAsStream(RUTA_SPRITE)) {
-            if (entrada == null) {
-                throw new IllegalArgumentException("No se encontró el recurso: " + RUTA_SPRITE);
-            }
-            BufferedImage hoja = ImageIO.read(entrada);
-            if (hoja == null) {
-                throw new IllegalArgumentException("El recurso no es una imagen válida: " + RUTA_SPRITE);
-            }
-            return hoja;
-        } catch (IOException | IllegalArgumentException e) {
+        try {
+            return CargadorRecursos.cargarImagen(RUTA_SPRITE);
+        } catch (RuntimeException e) {
             throw new RuntimeException("No se pudo cargar la animación de la rata infestada.", e);
         }
     }
