@@ -1,12 +1,13 @@
 package modelos.items;
-
+import modelos.personajes.PersonajeDecorable;
 public class DecoradorVelocidad extends DecoradorBase {
-    
-    public DecoradorVelocidad(modelos.personajes.PersonajeDecorable personajeDecorado) {
+   
+    private final double  MultiVelocidad=1.5;
+
+    public DecoradorVelocidad(PersonajeDecorable personajeDecorado) {
         super(personajeDecorado);
     }
 
-private final double  MultiVelocidad=1.5;
 
 @Override 
 public double getVelocidad() {
