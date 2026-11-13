@@ -138,75 +138,57 @@ public abstract class FabricaRata {
 
 
 
-#### Strategy: efectos temporales de power-ups
-![Diagrama del Juego](docs/diagrama_del_patron_strategy.png)
+#### Decorator: efectos temporales sobre las estadísticas de la rata
+![Diagrama del patrón Decorator](docs/diagrama_del_patron_decorator.png)
 
-`EfectoTemporal` define el contrato de una estrategia: cada efecto declara su categoría y cómo aplicarse y revertirse sobre un `Personaje`. Las clases `EfectoVelocidad`, `EfectoLento` y `EfectoInvulnerabilidad` implementan ese contrato.
+`EstadisticasRata` es el componente: define `getVelocidad()` y `esInvulnerable()`. La clase interna `EstadisticasRataBase` de `Personaje` es el componente concreto y ofrece las estadísticas iniciales. `DecoradorEstadisticas` implementa la misma interfaz, guarda la instancia envuelta y delega en ella. `MejoraVelocidad`, `LentitudTemporal` e `Invulnerabilidad` son decoradores concretos que modifican una de esas respuestas.
+
+`GestorEfectosTemporales.reconstruirEstadisticas()` parte de `Personaje.getEstadisticasBase()`, envuelve las estadísticas con un decorador por cada efecto activo y entrega el resultado a `Personaje.actualizarEstadisticas()`. Cada efecto (`EfectoVelocidad`, `EfectoLento` y `EfectoInvulnerabilidad`) crea su decorador mediante `decorarEstadisticas()`.
+
+`EfectoTemporal` es el contrato del efecto del power-up: define su categoría, su recompensa y cómo aplicar efectos instantáneos o crear un decorador de estadísticas. El gestor mantiene como máximo un efecto activo por categoría; por eso, activar otro efecto de la misma categoría lo reemplaza.
+
 ```java
-public interface EfectoTemporal {
-    CategoriaEfectoTemporal getCategoria();
-    void aplicar(Personaje personaje);
-    void revertir(Personaje personaje);
+public abstract class DecoradorEstadisticas implements EstadisticasRata {
+    private final EstadisticasRata envuelta;
+
+    protected DecoradorEstadisticas(EstadisticasRata envuelta) {
+        if (envuelta == null) {
+            throw new IllegalArgumentException("Se requieren estadísticas para decorar");
+        }
+        this.envuelta = envuelta;
+    }
+
+    @Override
+    public double getVelocidad() {
+        return envuelta.getVelocidad();
+    }
 }
 ```
-Cada objeto `PowerUp` contiene una estrategia y una duración en milisegundos. Por ejemplo, `PowerUpVelocidad` se construye con un `EfectoVelocidad`:
-
 
 ```java
-public final class EfectoVelocidad implements EfectoTemporal {
+public final class MejoraVelocidad extends DecoradorEstadisticas {
     private static final double MULTIPLICADOR = 1.5;
 
-    @Override
-    public CategoriaEfectoTemporal getCategoria() {
-        return CategoriaEfectoTemporal.VELOCIDAD;
+    public MejoraVelocidad(EstadisticasRata envuelta) {
+        super(envuelta);
     }
 
     @Override
-    public void aplicar(Personaje personaje) {
-        personaje.setMultiplicadorVelocidadTemporal(MULTIPLICADOR);
-    }
-
-    @Override
-    public void revertir(Personaje personaje) {
-        personaje.setMultiplicadorVelocidadTemporal(1.0);
+    public double getVelocidad() {
+        return super.getVelocidad() * MULTIPLICADOR;
     }
 }
 ```
 
-`GestorEfectosTemporales` activa la estrategia, guarda cuándo comenzó y la revierte cuando termina su duración:
-La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de juego. Los efectos de velocidad comparten categoría: si se activa `EfectoLento` mientras está activo `EfectoVelocidad`, el primero se revierte y el nuevo lo reemplaza. Si se vuelve a activar el mismo efecto, se renueva su duración. La invulnerabilidad pertenece a otra categoría, por lo que puede coexistir con cualquiera de los efectos de velocidad.
-
-```java
-public void activar(PowerUp powerUp) {
-    if (powerUp == null || powerUp.getEfecto() == null || powerUp.getDuracion() <= 0) {
-        throw new IllegalArgumentException("El power-up debe tener efecto y duración válidos");
-    }
-    EfectoTemporal nuevoEfecto = powerUp.getEfecto();
-    CategoriaEfectoTemporal categoria = nuevoEfecto.getCategoria();
-
-    long ahora = System.nanoTime();
-    long duracionNanos = TimeUnit.MILLISECONDS.toNanos(powerUp.getDuracion());
-    EfectoActivo anterior = efectosActivos.get(categoria);
-
-    if (anterior != null && anterior.efecto.getClass() != nuevoEfecto.getClass()) {
-        anterior.efecto.revertir(personaje);
-        efectosActivos.remove(categoria);
-        anterior = null;
-    }
-    if (anterior == null) {
-        nuevoEfecto.aplicar(personaje);
-    }
-    efectosActivos.put(categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos));
-}
-```
 **Por qué es útil para el juego:**
 
-- Cada efecto tiene su propia implementación y puede cambiarse sin añadir una cadena de condiciones a `Personaje` o al controlador de partida.
-- Permite incorporar efectos nuevos implementando `EfectoTemporal`, por ejemplo salto triple o controles invertidos, cuando se implementen esas mecánicas.
-- Centraliza la activación, renovación, reemplazo y vencimiento de los efectos temporales.
+- Los cambios se agregan envolviendo estadísticas; `Personaje` consulta la abstracción `EstadisticasRata` sin agregar condicionales por cada efecto.
+- Pueden coexistir efectos de distintas categorías, por ejemplo, uno de velocidad y uno de defensa. Los efectos de la misma categoría se reemplazan entre sí.
+- Al vencer un efecto o limpiar los activos, el gestor reconstruye la cadena desde las estadísticas base, en lugar de deshacer cambios directamente sobre el personaje.
 
+**Por qué es Decorator y no Strategy:** cada decorador envuelve un objeto con el mismo contrato y agrega comportamiento que puede combinarse con otras capas. En cambio, aquí el efecto asociado al power-up se fija cuando se crea (`PowerUpVelocidad` crea `EfectoVelocidad`, por ejemplo); el gestor recompone decoradores, no intercambia un algoritmo para una misma tarea.
 
-[Patrones de diseño STRATEGY](https://refactoring.guru/es/design-patterns/strategy)
+[Patrón de diseño Decorator](https://refactoring.guru/es/design-patterns/decorator)
 
 ### Persistencia SQLite: DAO y Singleton
 Persistencia de puntajes: Singleton y DAO
