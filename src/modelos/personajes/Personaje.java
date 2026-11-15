@@ -1,10 +1,27 @@
 package modelos.personajes;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import modelos.enemigos.enemigo;
 
 public abstract class Personaje implements PersonajeDecorable {
    
+    private final PersonajeDecorable componenteBase = new PersonajeDecorable() {
+        @Override
+        public double getVelocidad() {
+            return velocidad;
+        }
+
+        @Override
+        public void recibirDanio(int cantidad) {
+            vida = Math.max(0, vida - cantidad);
+        }
+    };
+    private final Map<Object, Function<PersonajeDecorable, PersonajeDecorable>> decoradores =
+        new LinkedHashMap<>();
+    private PersonajeDecorable componenteActual = componenteBase;
     private final String nombre;
     private final TipoRata tipoRata;
     private int vida;
@@ -12,13 +29,10 @@ public abstract class Personaje implements PersonajeDecorable {
     private double x;
     private double y;
     private double velocidad;
-    private final double velocidadBase;
-    private double multiplicadorVelocidadTemporal = 1.0;
     private final double fuerzaSalto;
     private boolean enElAire;
     private boolean mirandoIzquierda;
     private boolean agachada;
-    private boolean invulnerable;
     private double estamina;
     private final double estaminaMaxima;
     private double velocidadY = 0;
@@ -44,7 +58,6 @@ public abstract class Personaje implements PersonajeDecorable {
         this.x = 0;
         this.y = 0;
         this.velocidad = velocidad;
-        this.velocidadBase = velocidad;
         this.fuerzaSalto = fuerzaSalto;
         this.enElAire = false;
         this.agachada = false;
@@ -92,10 +105,7 @@ public abstract class Personaje implements PersonajeDecorable {
         if (cantidad < 0) {
             throw new IllegalArgumentException("El daño no puede ser negativo");
         }
-        if (invulnerable) {
-            return;
-        }
-        vida = Math.max(0, vida - cantidad);
+        componenteActual.recibirDanio(cantidad);
     }
 
     public void recuperarVida(int cantidad) {
@@ -124,21 +134,42 @@ public abstract class Personaje implements PersonajeDecorable {
     public double getEstamina() { return estamina; }
     public double getEstaminaMaxima() { return estaminaMaxima; }
     @Override 
-    public double getVelocidad() { return velocidad * multiplicadorVelocidadTemporal; }
+    public double getVelocidad() { return componenteActual.getVelocidad(); }
 
     public double getFuerzaSalto() { return fuerzaSalto; }
     public double getVelocidadY(){return velocidadY;}
-    public boolean esInvulnerable() { return invulnerable; }
 
-    public void setMultiplicadorVelocidadTemporal(double multiplicador) {
-        if (!Double.isFinite(multiplicador) || multiplicador <= 0) {
-            throw new IllegalArgumentException("El multiplicador de velocidad debe ser finito y positivo");
+    public final void agregarDecorador(
+            Object identificador,
+            Function<PersonajeDecorable, PersonajeDecorable> crearDecorador) {
+        if (identificador == null || crearDecorador == null) {
+            throw new IllegalArgumentException("Se requiere identificar el decorador y su constructor");
         }
-        this.multiplicadorVelocidadTemporal = multiplicador;
+        decoradores.put(identificador, crearDecorador);
+        reconstruirComponenteActual();
     }
-    public void setInvulnerable(boolean invulnerable) {
-        this.invulnerable = invulnerable;
+
+    public final void quitarDecorador(Object identificador) {
+        if (identificador == null) {
+            throw new IllegalArgumentException("Se requiere identificar el decorador");
+        }
+        if (decoradores.remove(identificador) != null) {
+            reconstruirComponenteActual();
+        }
     }
+
+    private void reconstruirComponenteActual() {
+        PersonajeDecorable componente = componenteBase;
+        for (Function<PersonajeDecorable, PersonajeDecorable> crearDecorador
+                : decoradores.values()) {
+            componente = crearDecorador.apply(componente);
+            if (componente == null) {
+                throw new IllegalStateException("El constructor de un decorador devolvió null");
+            }
+        }
+        componenteActual = componente;
+    }
+
     public void setEstamina(double estamina) {
         if (!Double.isFinite(estamina)) {
             throw new IllegalArgumentException("La estamina debe ser un número finito");

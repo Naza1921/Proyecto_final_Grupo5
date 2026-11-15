@@ -3,17 +3,13 @@ package modelos.items;
 import modelos.personajes.Personaje;
 
 public interface PowerUp {
-    EfectoTemporal getEfecto();
+    CategoriaEfectoTemporal getCategoria();
+    RecompensaPowerUp getRecompensa();
     long getDuracion();
     double getX();
     double getY();
     boolean colisionaCon(Personaje personaje);
-
-    default void aplicarEfecto(Personaje personaje) {
-        getEfecto().aplicar(personaje);
-    }
-
-    default void revertirEfecto(Personaje personaje) {
-        getEfecto().revertir(personaje);
-    }
+    boolean esInstantaneo();
+    void aplicarEfecto(Personaje personaje);
+    void revertirEfecto(Personaje personaje);
 }

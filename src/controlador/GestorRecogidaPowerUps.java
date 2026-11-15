@@ -85,7 +85,7 @@ final class GestorRecogidaPowerUps {
     }
 
     private boolean recogerSiColisiona(PowerUp powerUp) {
-        RecompensaPowerUp recompensa = powerUp.getEfecto().getRecompensa();
+        RecompensaPowerUp recompensa = powerUp.getRecompensa();
         if (!gestorEfectos.recogerSiColisiona(powerUp)) {
             return false;
         }

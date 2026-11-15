@@ -22,8 +22,8 @@ public final class SpritesPowerUps {
     }
 
     public static BufferedImage cargar(PowerUp powerUp) {
-        if (powerUp == null || powerUp.getEfecto() == null) {
-            throw new IllegalArgumentException("Se requiere un power-up con efecto");
+        if (powerUp == null || powerUp.getCategoria() == null) {
+            throw new IllegalArgumentException("Se requiere un power-up válido");
         }
         BufferedImage sprite = SPRITES.get(powerUp.getClass());
         if (sprite == null) {

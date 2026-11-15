@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import modelos.items.CategoriaEfectoTemporal;
-import modelos.items.EfectoTemporal;
 import modelos.items.PowerUp;
 import modelos.personajes.Personaje;
 
@@ -36,51 +35,59 @@ public final class GestorEfectosTemporales {
     }
 
     public void activar(PowerUp powerUp) {
-        if (powerUp == null || powerUp.getEfecto() == null
+        if (powerUp == null || powerUp.getCategoria() == null || powerUp.getRecompensa() == null
                 || powerUp.getDuracion() < 0
-                || (powerUp.getDuracion() == 0 && !powerUp.getEfecto().esInstantaneo())
-                || (powerUp.getDuracion() > 0 && powerUp.getEfecto().esInstantaneo())) {
-            throw new IllegalArgumentException("El power-up debe tener efecto y duración válidos");
+                || (powerUp.getDuracion() == 0 && !powerUp.esInstantaneo())
+                || (powerUp.getDuracion() > 0 && powerUp.esInstantaneo())) {
+            throw new IllegalArgumentException("El power-up debe tener categoría y duración válidas");
         }
 
-        EfectoTemporal nuevoEfecto = powerUp.getEfecto();
-        CategoriaEfectoTemporal categoria = nuevoEfecto.getCategoria();
-        if (categoria == null) {
-            throw new IllegalArgumentException("El efecto debe pertenecer a una categoría");
-        }
-
-        if (nuevoEfecto.esInstantaneo()) {
-            nuevoEfecto.aplicar(personaje);
+        if (powerUp.esInstantaneo()) {
+            powerUp.aplicarEfecto(personaje);
             return;
         }
 
         long ahora = System.nanoTime();
         long duracionNanos = TimeUnit.MILLISECONDS.toNanos(powerUp.getDuracion());
+        CategoriaEfectoTemporal categoria = powerUp.getCategoria();
         EfectoActivo anterior = efectosActivos.get(categoria);
 
-        if (anterior != null && anterior.efecto.getClass() != nuevoEfecto.getClass()) {
-            anterior.efecto.revertir(personaje);
-            efectosActivos.remove(categoria);
-            anterior = null;
+        if (anterior != null && anterior.powerUp.getClass() == powerUp.getClass()) {
+            long transcurrido = Math.max(0, ahora - anterior.iniciadoEnNanos);
+            long restante = Math.max(0, anterior.duracionNanos - transcurrido);
+            anterior.iniciadoEnNanos = ahora;
+            anterior.duracionNanos = sumarSaturando(restante, duracionNanos);
+            return;
         }
 
-        if (anterior == null) {
-            nuevoEfecto.aplicar(personaje);
+        if (anterior != null) {
+            anterior.powerUp.revertirEfecto(personaje);
+            efectosActivos.remove(categoria);
         }
-        efectosActivos.put(categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos));
+        powerUp.aplicarEfecto(personaje);
+        efectosActivos.put(categoria, new EfectoActivo(powerUp, ahora, duracionNanos));
     }
 
     public void actualizar() {
+        if (pausado) {
+            return;
+        }
         long ahora = System.nanoTime();
         Iterator<Map.Entry<CategoriaEfectoTemporal, EfectoActivo>> iterador =
             efectosActivos.entrySet().iterator();
         while (iterador.hasNext()) {
             EfectoActivo activo = iterador.next().getValue();
             if (ahora - activo.iniciadoEnNanos >= activo.duracionNanos) {
-                activo.efecto.revertir(personaje);
+                activo.powerUp.revertirEfecto(personaje);
                 iterador.remove();
             }
         }
+    }
+
+    private static long sumarSaturando(long primerValor, long segundoValor) {
+        return Long.MAX_VALUE - primerValor < segundoValor
+            ? Long.MAX_VALUE
+            : primerValor + segundoValor;
     }
 
     public void pausar() {
@@ -105,7 +112,7 @@ public final class GestorEfectosTemporales {
 
     public void limpiar() {
         for (EfectoActivo activo : efectosActivos.values()) {
-            activo.efecto.revertir(personaje);
+            activo.powerUp.revertirEfecto(personaje);
         }
         efectosActivos.clear();
         pausaIniciadaEnNanos = 0;
@@ -120,12 +127,12 @@ public final class GestorEfectosTemporales {
     }
 
     private static final class EfectoActivo {
-        private final EfectoTemporal efecto;
+        private final PowerUp powerUp;
         private long iniciadoEnNanos;
-        private final long duracionNanos;
+        private long duracionNanos;
 
-        private EfectoActivo(EfectoTemporal efecto, long iniciadoEnNanos, long duracionNanos) {
-            this.efecto = efecto;
+        private EfectoActivo(PowerUp powerUp, long iniciadoEnNanos, long duracionNanos) {
+            this.powerUp = powerUp;
             this.iniciadoEnNanos = iniciadoEnNanos;
             this.duracionNanos = duracionNanos;
         }
