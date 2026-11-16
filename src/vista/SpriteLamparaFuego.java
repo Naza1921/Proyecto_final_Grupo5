@@ -3,9 +3,9 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import aplicacion.HabilidadVista;
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
-import modelos.personajes.LamparaFuego;
 
 public final class SpriteLamparaFuego {
     private static final String RUTA_LAMPARA =
@@ -46,28 +46,28 @@ public final class SpriteLamparaFuego {
         animacionFuego.actualizar();
     }
 
-    public void dibujar(Graphics2D graficos, LamparaFuego habilidad) {
+    public void dibujar(Graphics2D graficos, HabilidadVista habilidad) {
         if (graficos == null || habilidad == null) {
             throw new IllegalArgumentException("Se requieren los gráficos y la lámpara");
         }
-        switch (habilidad.getEstado()) {
+        switch (habilidad.estado()) {
             case VOLANDO -> dibujarAjustado(
                 graficos,
                 animacionLampara.getFrameActual(),
-                habilidad.getXLampara(),
-                habilidad.getYLampara(),
-                ANCHO_DIBUJO_LAMPARA,
-                ALTO_DIBUJO_LAMPARA
+                habilidad.x(),
+                habilidad.y(),
+                habilidad.ancho(),
+                habilidad.alto()
             );
             case FUEGO -> dibujarAjustado(
                 graficos,
                 animacionFuego.getFrameActual(),
-                habilidad.getXFuego(),
-                habilidad.getYFuego(),
-                LamparaFuego.ANCHO_FUEGO,
-                LamparaFuego.ALTO_FUEGO
+                habilidad.x(),
+                habilidad.y(),
+                habilidad.ancho(),
+                habilidad.alto()
             );
-            case PREPARANDO, TERMINADA -> { }
+            case PREPARANDO, ACTIVA -> { }
         }
     }
 

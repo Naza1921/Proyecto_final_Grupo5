@@ -3,9 +3,9 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import aplicacion.MonedaVista;
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
-import modelos.items.Moneda;
 
 public final class SpriteMoneda {
     private static final String RUTA_HOJA = "assets/powerUp/monedas.png";
@@ -56,14 +56,14 @@ public final class SpriteMoneda {
         animacion.actualizar();
     }
 
-    public void dibujar(Graphics2D graficos, Moneda moneda) {
+    public void dibujar(Graphics2D graficos, MonedaVista moneda) {
         if (graficos == null || moneda == null) {
             throw new IllegalArgumentException("Se requieren los gráficos y la moneda");
         }
         graficos.drawImage(
             animacion.getFrameActual(),
-            (int) Math.round(moneda.getX() - ANCHO_DIBUJO / 2.0),
-            (int) Math.round(moneda.getY() - ALTO_DIBUJO / 2.0),
+            (int) Math.round(moneda.x() - ANCHO_DIBUJO / 2.0),
+            (int) Math.round(moneda.y() - ALTO_DIBUJO / 2.0),
             ANCHO_DIBUJO,
             ALTO_DIBUJO,
             null

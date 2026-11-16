@@ -9,16 +9,14 @@ import java.util.Collections;
 import java.util.List;
 import javax.swing.*;
 
+import aplicacion.EnemigoVista;
+import aplicacion.JugadorVista;
+import aplicacion.MonedaVista;
+import aplicacion.NivelVista;
+import aplicacion.PowerUpVista;
 import aplicacion.VistaPartida;
 import aplicacion.EstadoNivel;
-import modelos.enemigos.fantasma;
-import modelos.enemigos.ratainfestada;
 import modelos.partida.ConfiguracionPartida;
-import modelos.partida.Puntaje;
-import modelos.escenario.levels.level;
-import modelos.personajes.Personaje;
-import modelos.items.PowerUp;
-import modelos.items.Moneda;
 
 public final class PanelJuego extends JPanel implements VistaPartida {
     private static final double ZOOM_CAMARA = 2.0;
@@ -30,32 +28,30 @@ public final class PanelJuego extends JPanel implements VistaPartida {
     private static final int TUTORIAL_CONTROLES_Y =
         ConfiguracionPartida.POSICION_INICIAL_Y + 125;
 
-    private final Personaje jugador;
+    private JugadorVista jugador;
     private final EstadoNivel estadoNivel;
     private final RenderizadorNivel renderizadorNivel;
     private final Camara camara = new Camara(ZOOM_CAMARA, SUAVIZADO_CAMARA_SEGUNDOS);
     private final PanelHUD hud;
-    private List<PowerUp> powerUps = Collections.emptyList();
-    private List<Moneda> monedas = Collections.emptyList();
+    private List<PowerUpVista> powerUps = Collections.emptyList();
+    private List<MonedaVista> monedas = Collections.emptyList();
     private final SpriteMoneda spriteMoneda;
     private final RenderizadorEntidades renderizadorEntidades;
     private long tiempoPartidaMillis;
     private int puntajePresentado;
     private boolean nivelCompletado;
+    private boolean pantallaCompleta;
     private Runnable alCerrarNivelCompletado;
     private final BufferedImage[] fondosPorPiso;
     private final BufferedImage tutorialControles;
 
-public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fantasmas,
-                  List<ratainfestada> ratasInfestadas, EstadoNivel estadoNivel,
+public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> enemigos,
+                  EstadoNivel estadoNivel,
                   Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
                   BufferedImage tutorialControles) {
-    if (jugador == null || modeloPuntaje == null || fantasmas == null
-            || ratasInfestadas == null
-            || fantasmas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
-            || ratasInfestadas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
-            || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
-            || ratasInfestadas.stream().anyMatch(rata -> rata == null)
+    if (jugador == null || puntajeInicial < 0 || enemigos == null
+            || enemigos.size() > 6
+            || enemigos.stream().anyMatch(enemigo -> enemigo == null)
             || estadoNivel == null
             || alTerminarAnimacionMuerte == null
             || fondosPorPiso == null
@@ -67,12 +63,12 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
     this.jugador = jugador;
     this.estadoNivel = estadoNivel;
     this.renderizadorNivel = new RenderizadorNivel();
-    this.puntajePresentado = modeloPuntaje.getTotal();
+    this.puntajePresentado = puntajeInicial;
     this.fondosPorPiso = fondosPorPiso.clone();
     this.tutorialControles = tutorialControles;
     this.spriteMoneda = new SpriteMoneda();
     this.renderizadorEntidades = new RenderizadorEntidades(
-        jugador, fantasmas, ratasInfestadas, alTerminarAnimacionMuerte, this::repaint
+        jugador, enemigos, alTerminarAnimacionMuerte, this::repaint
     );
     this.hud = new PanelHUD();
 
@@ -107,7 +103,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
 
     public void actualizarPresentacion() {
         spriteMoneda.actualizar();
-        renderizadorEntidades.actualizar();
+        renderizadorEntidades.actualizar(jugador);
     }
 
     public void mostrarAnimacionHabilidad() {
@@ -122,11 +118,11 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
         renderizadorEntidades.mostrarAnimacionDanio();
     }
 
-    public void actualizarPowerUps(List<PowerUp> powerUps) {
+    public void actualizarPowerUps(List<PowerUpVista> powerUps) {
         if (powerUps == null) {
             throw new IllegalArgumentException("La lista de power-ups debe ser válida");
         }
-        for (PowerUp powerUp : powerUps) {
+        for (PowerUpVista powerUp : powerUps) {
             if (powerUp == null) {
                 throw new IllegalArgumentException("La lista de power-ups debe ser válida");
             }
@@ -135,7 +131,7 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
         repaint();
     }
 
-    public void actualizarMonedas(List<Moneda> monedas) {
+    public void actualizarMonedas(List<MonedaVista> monedas) {
         if (monedas == null || monedas.stream().anyMatch(moneda -> moneda == null)) {
             throw new IllegalArgumentException("La lista de monedas debe ser válida");
         }
@@ -143,16 +139,23 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
         repaint();
     }
 
-    public void actualizarEnemigosVisibles(
-            List<fantasma> fantasmas, List<ratainfestada> ratasInfestadas) {
-        renderizadorEntidades.actualizarEnemigosVisibles(fantasmas, ratasInfestadas);
+    public void actualizarJugador(JugadorVista jugador) {
+        if (jugador == null) {
+            throw new IllegalArgumentException("Se requieren los datos visuales del jugador");
+        }
+        this.jugador = jugador;
+        repaint();
     }
 
-    public void mostrarMuerteFantasma(fantasma enemigo) {
+    public void actualizarEnemigosVisibles(List<EnemigoVista> enemigos) {
+        renderizadorEntidades.actualizarEnemigosVisibles(enemigos);
+    }
+
+    public void mostrarMuerteFantasma(EnemigoVista enemigo) {
         renderizadorEntidades.mostrarMuerteFantasma(enemigo);
     }
 
-    public void mostrarMuerteRataInfestada(ratainfestada rata) {
+    public void mostrarMuerteRataInfestada(EnemigoVista rata) {
         renderizadorEntidades.mostrarMuerteRataInfestada(rata);
     }
 
@@ -172,21 +175,24 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
         repaint();
     }
 
-@Override
-protected void paintComponent(Graphics g) {
+        public void setPantallaCompleta(boolean pantallaCompleta) {
+            this.pantallaCompleta = pantallaCompleta;
+            repaint();
+        }
+
+    @Override
+    protected void paintComponent(Graphics g) {
 super.paintComponent(g);
 Graphics2D g2 = (Graphics2D) g;
 
 AffineTransform transformacionPantalla = g2.getTransform();
-level nivelActual = estadoNivel.getNivel();
+NivelVista nivelActual = estadoNivel.getNivelVista();
 double anchoMundo = nivelActual.getAncho() * ConfiguracionPartida.TAM_TILE;
 double altoMundo = nivelActual.getAlto() * ConfiguracionPartida.TAM_TILE;
-java.awt.Window ventana = SwingUtilities.getWindowAncestor(this);
-boolean pantallaCompleta = ventana instanceof JFrame && ((JFrame) ventana).isUndecorated();
 camara.setZoom(pantallaCompleta ? ZOOM_CAMARA_PANTALLA_COMPLETA : ZOOM_CAMARA);
 g2.transform(camara.actualizar(
-    jugador.getX() + ConfiguracionPartida.ANCHO_JUGADOR / 2.0,
-    jugador.getY() + ConfiguracionPartida.ALTO_JUGADOR / 2.0,
+    jugador.x() + ConfiguracionPartida.ANCHO_JUGADOR / 2.0,
+    jugador.y() + ConfiguracionPartida.ALTO_JUGADOR / 2.0,
     getWidth(),
     getHeight(),
     anchoMundo,
@@ -197,7 +203,7 @@ g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 BufferedImage fondoPiso = fondosPorPiso[estadoNivel.getPiso() - 1];
 g2.drawImage(fondoPiso, 0, 0, (int) anchoMundo, (int) altoMundo, this);
-renderizadorNivel.dibujar(g2, nivelActual, estadoNivel.esUltimaSeccion());
+renderizadorNivel.dibujar(g2, nivelActual);
 if (estadoNivel.esPrimeraSeccion()) {
     g2.drawImage(
         tutorialControles,
@@ -261,12 +267,12 @@ renderizadorEntidades.dibujar(g2);
     }
 
     private void dibujarPowerUps(Graphics2D g2) {
-        for (PowerUp powerUp : powerUps) {
+        for (PowerUpVista powerUp : powerUps) {
             BufferedImage sprite = SpritesPowerUps.cargar(powerUp);
             g2.drawImage(
                 sprite,
-                (int) Math.round(powerUp.getX() - 15),
-                (int) Math.round(powerUp.getY() - 15),
+                (int) Math.round(powerUp.x() - 15),
+                (int) Math.round(powerUp.y() - 15),
                 30,
                 30,
                 this
@@ -275,7 +281,7 @@ renderizadorEntidades.dibujar(g2);
     }
 
     private void dibujarMonedas(Graphics2D g2) {
-        for (Moneda moneda : monedas) {
+        for (MonedaVista moneda : monedas) {
             spriteMoneda.dibujar(g2, moneda);
         }
     }

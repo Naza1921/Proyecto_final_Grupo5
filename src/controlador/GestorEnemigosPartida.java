@@ -94,6 +94,10 @@ final class GestorEnemigosPartida {
         return enemigosActivos;
     }
 
+    void actualizarVista() {
+        actualizarVistaEnemigos.accept(fantasmasVisibles, ratasInfestadasVisibles);
+    }
+
     void registrarEnemigosDerrotados(
             IntConsumer sumarPuntos,
             Consumer<fantasma> mostrarMuerteFantasma,

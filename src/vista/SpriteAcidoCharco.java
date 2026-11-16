@@ -3,8 +3,8 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import aplicacion.HabilidadVista;
 import controlador.GestorAnimacionSprite;
-import modelos.personajes.CharcoAcido;
 import recursos.CargadorRecursos;
 
 public final class SpriteAcidoCharco {
@@ -16,29 +16,29 @@ public final class SpriteAcidoCharco {
 
     private final BufferedImage[] frames;
     private GestorAnimacionSprite animacion;
-    private CharcoAcido charcoAnimado;
+    private long idCharcoAnimado = -1;
 
     public SpriteAcidoCharco() {
         frames = cargarFrames();
     }
 
-    public void actualizar(CharcoAcido charco) {
+    public void actualizar(HabilidadVista charco) {
         if (charco == null) {
             throw new IllegalArgumentException("Se requiere el charco que se va a animar");
         }
-        if (charco != charcoAnimado) {
-            charcoAnimado = charco;
+        if (charco.id() != idCharcoAnimado) {
+            idCharcoAnimado = charco.id();
             animacion = new GestorAnimacionSprite(frames, DURACION_FRAME_NANOS);
         } else {
             animacion.actualizar();
         }
     }
 
-    public void dibujar(Graphics2D graficos, CharcoAcido charco) {
+    public void dibujar(Graphics2D graficos, HabilidadVista charco) {
         if (graficos == null || charco == null) {
             throw new IllegalArgumentException("Se requieren los gráficos y el charco de ácido");
         }
-        if (charco != charcoAnimado) {
+        if (charco.id() != idCharcoAnimado) {
             actualizar(charco);
         }
         double escala = Math.min(
@@ -47,8 +47,8 @@ public final class SpriteAcidoCharco {
         );
         int ancho = (int) Math.round(animacion.getAncho() * escala);
         int alto = (int) Math.round(animacion.getAlto() * escala);
-        int x = (int) Math.round(charco.getX() + CharcoAcido.ANCHO / 2.0 - ancho / 2.0);
-        int y = (int) Math.round(charco.getY() + CharcoAcido.ALTO - alto);
+        int x = (int) Math.round(charco.x() + charco.ancho() / 2.0 - ancho / 2.0);
+        int y = (int) Math.round(charco.y() + charco.alto() - alto);
         graficos.drawImage(animacion.getFrameActual(), x, y, ancho, alto, null);
     }
 

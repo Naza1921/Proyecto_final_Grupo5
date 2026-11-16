@@ -5,8 +5,8 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import aplicacion.TipoRataVista;
 import recursos.CargadorRecursos;
-import modelos.personajes.Personaje.TipoRata;
 
 // Relacionamos cada tipo y acción con las hojas de sprites de la rata.
 public final class SpritesRatas {
@@ -19,21 +19,21 @@ public final class SpritesRatas {
     private SpritesRatas() {
     }
 
-    public static SpriteSheet cargar(TipoRata tipo) {
+    public static SpriteSheet cargar(TipoRataVista tipo) {
         if (tipo == null) {
             throw new IllegalArgumentException("Se requiere el tipo de rata para cargar sus sprites");
         }
         return cargarHoja(tipo, Accion.QUIETA);
     }
 
-    public static BufferedImage[] cargarFrames(TipoRata tipo, Accion accion) {
-        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRata.BLANCA) {
+    public static BufferedImage[] cargarFrames(TipoRataVista tipo, Accion accion) {
+        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRataVista.BLANCA) {
             return cargarFramesHabilidadBlanca();
         }
-        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRata.VERDE) {
+        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRataVista.VERDE) {
             return cargarFramesHabilidadVerde();
         }
-        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRata.NEGRA) {
+        if (accion == Accion.HAB_ESPECIAL && tipo == TipoRataVista.NEGRA) {
             return cargarFramesHabilidadNegra();
         }
         return crearFramesAlineados(cargarHoja(tipo, accion), FILA_IDLE);
@@ -126,12 +126,12 @@ public final class SpritesRatas {
         return alineados;
     }
 
-    private static SpriteSheet cargarHoja(TipoRata tipo, Accion accion) {
+    private static SpriteSheet cargarHoja(TipoRataVista tipo, Accion accion) {
         return CatalogoSpritesRatas.cargar(tipo, accion);
     }
 
     // Devuelve el primer cuadro de la fila de reposo, ajustado sin deformar el sprite.
-    public static BufferedImage crearVistaIdle(TipoRata tipo, int ancho, int alto) {
+    public static BufferedImage crearVistaIdle(TipoRataVista tipo, int ancho, int alto) {
         BufferedImage frame = crearFramesAlineados(cargar(tipo), FILA_IDLE)[0];
         BufferedImage vista = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = vista.createGraphics();

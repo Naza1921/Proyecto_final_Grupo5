@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import modelos.items.Moneda;
 import modelos.personajes.Personaje;
-import aplicacion.VistaPartida;
 
 final class GestorMonedasPartida {
     private static final int PUNTOS_MONEDA = 100;
@@ -16,7 +16,7 @@ final class GestorMonedasPartida {
     private final Personaje jugador;
     private final ControladorPuntaje controladorPuntaje;
     private final GestorEfectosSonido efectosSonido;
-    private final VistaPartida vista;
+    private final Consumer<List<Moneda>> actualizarVista;
     private final Runnable actualizarPuntajePresentado;
     private int seccionPresentada = -1;
 
@@ -25,10 +25,10 @@ final class GestorMonedasPartida {
             Personaje jugador,
             ControladorPuntaje controladorPuntaje,
             GestorEfectosSonido efectosSonido,
-            VistaPartida vista,
+            Consumer<List<Moneda>> actualizarVista,
             Runnable actualizarPuntajePresentado) {
         if (monedasPorSeccion == null || jugador == null || controladorPuntaje == null
-                || efectosSonido == null || vista == null
+                || efectosSonido == null || actualizarVista == null
                 || actualizarPuntajePresentado == null) {
             throw new IllegalArgumentException("Se requieren datos válidos para gestionar las monedas");
         }
@@ -36,7 +36,7 @@ final class GestorMonedasPartida {
         this.jugador = jugador;
         this.controladorPuntaje = controladorPuntaje;
         this.efectosSonido = efectosSonido;
-        this.vista = vista;
+        this.actualizarVista = actualizarVista;
         this.actualizarPuntajePresentado = actualizarPuntajePresentado;
     }
 
@@ -47,7 +47,7 @@ final class GestorMonedasPartida {
 
         List<Moneda> monedas = monedasPorSeccion.get(seccionActual);
         if (seccionActual != seccionPresentada) {
-            vista.actualizarMonedas(monedas == null ? List.of() : monedas);
+            actualizarVista.accept(monedas == null ? List.of() : monedas);
             seccionPresentada = seccionActual;
         }
         if (monedas == null) {
@@ -66,7 +66,7 @@ final class GestorMonedasPartida {
             }
         }
         if (inventarioModificado) {
-            vista.actualizarMonedas(monedas);
+            actualizarVista.accept(monedas);
             actualizarPuntajePresentado.run();
         }
     }

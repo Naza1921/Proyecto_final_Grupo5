@@ -5,22 +5,20 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.Timer;
 
+import aplicacion.EnemigoVista;
+import aplicacion.HabilidadVista;
+import aplicacion.JugadorVista;
+import aplicacion.ProyectilVista;
+import aplicacion.TipoRataVista;
 import controlador.GestorAnimacionSprite;
-import modelos.enemigos.ProyectilAcido;
-import modelos.enemigos.fantasma;
-import modelos.enemigos.ratainfestada;
 import modelos.partida.ConfiguracionPartida;
-import modelos.personajes.CharcoAcido;
-import modelos.personajes.LamparaFuego;
-import modelos.personajes.Personaje;
-import modelos.personajes.ProyectilEspecial;
-import modelos.personajes.rata_negra;
-import modelos.personajes.rata_verde;
 
 final class RenderizadorEntidades {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
@@ -28,12 +26,11 @@ final class RenderizadorEntidades {
     private static final long DURACION_FRAME_HABILIDAD_BLANCA_NANOS = 60_000_000L;
     private static final double AJUSTE_BASE_RATA_VERDE = 1.0;
 
-    private final Personaje jugador;
+    private JugadorVista jugador;
     private final Runnable alTerminarAnimacionMuerte;
     private final Runnable solicitarRepintado;
-    private final Map<fantasma, Long> iniciosMuerteFantasmaNanos = new IdentityHashMap<>();
-    private final Map<ratainfestada, EstadoSpriteRata> estadosSpriteRata =
-        new IdentityHashMap<>();
+    private final Map<Long, Long> iniciosMuerteFantasmaNanos = new HashMap<>();
+    private final Map<Long, EstadoSpriteRata> estadosSpriteRata = new HashMap<>();
     private final Map<SpritesRatas.Accion, GestorAnimacionSprite> animacionesRata =
         new EnumMap<>(SpritesRatas.Accion.class);
     private final BufferedImage[] framesMuerte;
@@ -47,8 +44,7 @@ final class RenderizadorEntidades {
     private final SpriteAcidoCharco spriteAcidoCharco = new SpriteAcidoCharco();
     private final SpriteLamparaFuego spriteLamparaFuego = new SpriteLamparaFuego();
     private final SpriteAcido spriteAcido = new SpriteAcido();
-    private List<fantasma> fantasmas = List.of();
-    private List<ratainfestada> ratasInfestadas = List.of();
+    private List<EnemigoVista> enemigos = List.of();
     private SpritesRatas.Accion accionAnimacionRata = SpritesRatas.Accion.QUIETA;
     private double ultimaXPresentada;
     private boolean mirandoIzquierda;
@@ -59,46 +55,45 @@ final class RenderizadorEntidades {
     private boolean listenersAnimacionConfigurados;
     private long finAnimacionHabilidadNanos;
 
-    RenderizadorEntidades(Personaje jugador, List<fantasma> fantasmas,
-                          List<ratainfestada> ratasInfestadas,
+    RenderizadorEntidades(JugadorVista jugador, List<EnemigoVista> enemigos,
                           Runnable alTerminarAnimacionMuerte,
                           Runnable solicitarRepintado) {
-        if (jugador == null || fantasmas == null || ratasInfestadas == null
+        if (jugador == null || enemigos == null
                 || alTerminarAnimacionMuerte == null || solicitarRepintado == null) {
-            throw new IllegalArgumentException("Se requieren modelos y acciones de renderizado");
+            throw new IllegalArgumentException("Se requieren datos y acciones de renderizado");
         }
         this.jugador = jugador;
         this.alTerminarAnimacionMuerte = alTerminarAnimacionMuerte;
         this.solicitarRepintado = solicitarRepintado;
-        actualizarEnemigosVisibles(fantasmas, ratasInfestadas);
+        actualizarEnemigosVisibles(enemigos);
 
         for (SpritesRatas.Accion accion : SpritesRatas.Accion.values()) {
             if (accion == SpritesRatas.Accion.MUERTE
                     || accion == SpritesRatas.Accion.RECIBIR_DANIO
-                    || !CatalogoSpritesRatas.tiene(jugador.getTipoRata(), accion)) {
+                    || !CatalogoSpritesRatas.tiene(jugador.tipo(), accion)) {
                 continue;
             }
-            BufferedImage[] frames = SpritesRatas.cargarFrames(jugador.getTipoRata(), accion);
+            BufferedImage[] frames = SpritesRatas.cargarFrames(jugador.tipo(), accion);
             animacionesRata.put(
                 accion,
                 new GestorAnimacionSprite(frames, obtenerDuracionFrame(accion, frames.length))
             );
         }
         framesMuerte = SpritesRatas.cargarFrames(
-            jugador.getTipoRata(), SpritesRatas.Accion.MUERTE
+            jugador.tipo(), SpritesRatas.Accion.MUERTE
         );
         temporizadorAnimacionMuerte = new Timer(
             (int) (DURACION_FRAME_NANOS / 1_000_000L), null
         );
         temporizadorAnimacionMuerte.setCoalesce(true);
         framesDanio = SpritesRatas.cargarFrames(
-            jugador.getTipoRata(), SpritesRatas.Accion.RECIBIR_DANIO
+            jugador.tipo(), SpritesRatas.Accion.RECIBIR_DANIO
         );
         temporizadorAnimacionDanio = new Timer(
             (int) (DURACION_FRAME_NANOS / 1_000_000L), null
         );
         temporizadorAnimacionDanio.setCoalesce(true);
-        ultimaXPresentada = jugador.getX();
+        ultimaXPresentada = jugador.x();
         animacionFantasmaDerecha = new GestorAnimacionSprite(
             SpritesFantasma.cargarPatrulla(true), 180_000_000L
         );
@@ -116,8 +111,12 @@ final class RenderizadorEntidades {
         return obtenerFrameRata().getHeight();
     }
 
-    void actualizar() {
-        double xActual = jugador.getX();
+    void actualizar(JugadorVista jugador) {
+        if (jugador == null || jugador.tipo() != this.jugador.tipo()) {
+            throw new IllegalArgumentException("Se requieren datos del mismo jugador");
+        }
+        this.jugador = jugador;
+        double xActual = jugador.x();
         double desplazamientoX = xActual - ultimaXPresentada;
         if (Math.abs(desplazamientoX) > 0.01) {
             mirandoIzquierda = desplazamientoX < 0;
@@ -127,9 +126,10 @@ final class RenderizadorEntidades {
         spriteAcido.actualizar();
         spriteProyectilStun.actualizar();
         spriteLamparaFuego.actualizar();
-        if (jugador instanceof rata_verde rataVerde
-                && rataVerde.getCharcoAcido() != null) {
-            spriteAcidoCharco.actualizar(rataVerde.getCharcoAcido());
+        for (HabilidadVista habilidad : jugador.habilidades()) {
+            if (habilidad.tipo() == HabilidadVista.Tipo.CHARCO_ACIDO) {
+                spriteAcidoCharco.actualizar(habilidad);
+            }
         }
         actualizarSpritesRatasInfestadas();
 
@@ -201,36 +201,38 @@ final class RenderizadorEntidades {
         solicitarRepintado.run();
     }
 
-    void actualizarEnemigosVisibles(
-            List<fantasma> fantasmas, List<ratainfestada> ratasInfestadas) {
-        if (fantasmas == null || ratasInfestadas == null
-                || fantasmas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
-                || ratasInfestadas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
-                || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
-                || ratasInfestadas.stream().anyMatch(rata -> rata == null)) {
+    void actualizarEnemigosVisibles(List<EnemigoVista> enemigos) {
+        if (enemigos == null || enemigos.size() > 6
+                || enemigos.stream().anyMatch(enemigo -> enemigo == null)) {
             throw new IllegalArgumentException("Las listas de enemigos deben ser válidas");
         }
-        this.fantasmas = List.copyOf(fantasmas);
-        this.ratasInfestadas = List.copyOf(ratasInfestadas);
-        iniciosMuerteFantasmaNanos.clear();
-        estadosSpriteRata.clear();
-        for (ratainfestada rata : this.ratasInfestadas) {
-            estadosSpriteRata.put(rata, new EstadoSpriteRata(rata.getX()));
+        this.enemigos = List.copyOf(enemigos);
+        Set<Long> idsPresentes = new HashSet<>();
+        for (EnemigoVista enemigo : this.enemigos) {
+            idsPresentes.add(enemigo.id());
+            if (enemigo.tipo() == EnemigoVista.Tipo.RATA_INFESTADA) {
+                estadosSpriteRata.computeIfAbsent(
+                    enemigo.id(), ignorado -> new EstadoSpriteRata(enemigo.x())
+                );
+            }
         }
+        estadosSpriteRata.keySet().retainAll(idsPresentes);
+        iniciosMuerteFantasmaNanos.keySet().retainAll(idsPresentes);
         solicitarRepintado.run();
     }
 
-    void mostrarMuerteFantasma(fantasma enemigo) {
-        if (enemigo == null || !fantasmas.contains(enemigo)) {
+    void mostrarMuerteFantasma(EnemigoVista enemigo) {
+        if (enemigo == null || enemigo.tipo() != EnemigoVista.Tipo.FANTASMA
+                || enemigos.stream().noneMatch(actual -> actual.id() == enemigo.id())) {
             throw new IllegalArgumentException("Se requiere un fantasma visible");
         }
-        iniciosMuerteFantasmaNanos.putIfAbsent(enemigo, System.nanoTime());
+        iniciosMuerteFantasmaNanos.putIfAbsent(enemigo.id(), System.nanoTime());
         solicitarRepintado.run();
     }
 
-    void mostrarMuerteRataInfestada(ratainfestada rata) {
-        EstadoSpriteRata estado = estadosSpriteRata.get(rata);
-        if (estado == null) {
+    void mostrarMuerteRataInfestada(EnemigoVista rata) {
+        EstadoSpriteRata estado = rata == null ? null : estadosSpriteRata.get(rata.id());
+        if (estado == null || rata.tipo() != EnemigoVista.Tipo.RATA_INFESTADA) {
             throw new IllegalArgumentException("Se requiere una rata infestada visible");
         }
         estado.sprite.setAnimacion(SpriteRataInfestada.Animacion.MUERTE);
@@ -242,36 +244,33 @@ final class RenderizadorEntidades {
         dibujarFantasmas(g);
         dibujarRatasInfestadas(g);
         dibujarJugador(g);
-        for (ProyectilEspecial proyectil : jugador.getProyectilesEspeciales()) {
+        for (ProyectilVista proyectil : jugador.proyectiles()) {
             spriteProyectilStun.dibujar(g, proyectil);
         }
     }
 
     private void dibujarHabilidades(Graphics2D g) {
-        if (jugador instanceof rata_verde rataVerde) {
-            CharcoAcido charcoAcido = rataVerde.getCharcoAcido();
-            if (charcoAcido != null) {
-                spriteAcidoCharco.dibujar(g, charcoAcido);
-            }
-        }
-        if (jugador instanceof rata_negra rataNegra) {
-            LamparaFuego lamparaFuego = rataNegra.getLamparaFuego();
-            if (lamparaFuego != null) {
-                spriteLamparaFuego.dibujar(g, lamparaFuego);
+        for (HabilidadVista habilidad : jugador.habilidades()) {
+            switch (habilidad.tipo()) {
+                case CHARCO_ACIDO -> spriteAcidoCharco.dibujar(g, habilidad);
+                case LAMPARA_FUEGO -> spriteLamparaFuego.dibujar(g, habilidad);
             }
         }
     }
 
     private void dibujarFantasmas(Graphics2D g) {
-        for (fantasma enemigo : fantasmas) {
+        for (EnemigoVista enemigo : enemigos) {
+            if (enemigo.tipo() != EnemigoVista.Tipo.FANTASMA) {
+                continue;
+            }
             BufferedImage cuadro;
-            if (enemigo.estavivo()) {
-                GestorAnimacionSprite animacion = enemigo.estaMoviendoseDerecha()
+            if (enemigo.vivo()) {
+                GestorAnimacionSprite animacion = enemigo.moviendoseDerecha()
                     ? animacionFantasmaDerecha : animacionFantasmaIzquierda;
                 cuadro = animacion.getFrameActual();
             } else {
                 long inicioMuerte = iniciosMuerteFantasmaNanos.computeIfAbsent(
-                    enemigo, ignorado -> System.nanoTime()
+                    enemigo.id(), ignorado -> System.nanoTime()
                 );
                 long transcurrido = System.nanoTime() - inicioMuerte;
                 int indice = (int) Math.min(
@@ -281,24 +280,27 @@ final class RenderizadorEntidades {
                 cuadro = framesMuerteFantasma[indice];
             }
             g.drawImage(
-                cuadro, (int) enemigo.getX(), (int) enemigo.getY(),
-                (int) enemigo.getAncho(), (int) enemigo.getAlto(), null
+                cuadro, (int) enemigo.x(), (int) enemigo.y(),
+                (int) enemigo.ancho(), (int) enemigo.alto(), null
             );
         }
     }
 
     private void dibujarRatasInfestadas(Graphics2D g) {
-        for (ratainfestada rata : ratasInfestadas) {
-            EstadoSpriteRata estado = estadosSpriteRata.get(rata);
+        for (EnemigoVista rata : enemigos) {
+            if (rata.tipo() != EnemigoVista.Tipo.RATA_INFESTADA) {
+                continue;
+            }
+            EstadoSpriteRata estado = estadosSpriteRata.get(rata.id());
             estado.sprite.dibujar(
                 g,
-                (int) Math.round(rata.getX()),
-                (int) Math.round(rata.getY()),
-                ConfiguracionPartida.ANCHO_JUGADOR,
-                ConfiguracionPartida.ALTO_JUGADOR
+                (int) Math.round(rata.x()),
+                (int) Math.round(rata.y()),
+                (int) rata.ancho(),
+                (int) rata.alto()
             );
-            if (rata.estavivo()) {
-                for (ProyectilAcido proyectil : rata.getProyectilesAcido()) {
+            if (rata.vivo()) {
+                for (ProyectilVista proyectil : rata.proyectiles()) {
                     spriteAcido.dibujar(g, proyectil);
                 }
             }
@@ -328,16 +330,16 @@ final class RenderizadorEntidades {
             ultimaFilaVisibleRata = obtenerUltimaFilaVisible(cuadro);
             frameBaseCalculada = cuadro;
         }
-        int xDibujo = (int) jugador.getX();
+        int xDibujo = (int) jugador.x();
         if (mostrandoHabilidad) {
             xDibujo = (int) Math.round(
-                jugador.getX() - (anchoDibujo - ConfiguracionPartida.ANCHO_JUGADOR) / 2.0
+                jugador.x() - (anchoDibujo - ConfiguracionPartida.ANCHO_JUGADOR) / 2.0
             );
         }
-        double ajusteBase = jugador.getTipoRata() == Personaje.TipoRata.VERDE
+        double ajusteBase = jugador.tipo() == TipoRataVista.VERDE
             ? AJUSTE_BASE_RATA_VERDE : 0;
         int yDibujo = (int) Math.round(
-            jugador.getY() + ConfiguracionPartida.ALTO_JUGADOR
+            jugador.y() + ConfiguracionPartida.ALTO_JUGADOR
                 - (ultimaFilaVisibleRata + 1) * (double) altoDibujo / cuadro.getHeight()
                 + ajusteBase
         );
@@ -354,11 +356,14 @@ final class RenderizadorEntidades {
 
     private void actualizarSpritesRatasInfestadas() {
         long ahora = System.nanoTime();
-        for (ratainfestada rata : ratasInfestadas) {
-            EstadoSpriteRata estado = estadosSpriteRata.get(rata);
-            double desplazamientoX = rata.getX() - estado.ultimaX;
+        for (EnemigoVista rata : enemigos) {
+            if (rata.tipo() != EnemigoVista.Tipo.RATA_INFESTADA) {
+                continue;
+            }
+            EstadoSpriteRata estado = estadosSpriteRata.get(rata.id());
+            double desplazamientoX = rata.x() - estado.ultimaX;
             SpriteRataInfestada.Animacion animacion;
-            if (!rata.estavivo()) {
+            if (!rata.vivo()) {
                 animacion = SpriteRataInfestada.Animacion.MUERTE;
             } else if (Math.abs(desplazamientoX) > 0.01) {
                 animacion = desplazamientoX < 0
@@ -371,15 +376,15 @@ final class RenderizadorEntidades {
             long deltaMilisegundos = (ahora - estado.ultimaActualizacionNanos) / 1_000_000L;
             estado.sprite.actualizar(deltaMilisegundos);
             estado.ultimaActualizacionNanos = ahora;
-            estado.ultimaX = rata.getX();
+            estado.ultimaX = rata.x();
         }
     }
 
     private SpritesRatas.Accion obtenerAccionAnimacion(double desplazamientoX) {
-        if (jugador.estaEnElAire()) {
+        if (jugador.enElAire()) {
             return SpritesRatas.Accion.SALTAR;
         }
-        if (jugador.estaAgachada()) {
+        if (jugador.agachado()) {
             return SpritesRatas.Accion.AGACHADA;
         }
         if (Math.abs(desplazamientoX) > 0.01) {
@@ -392,7 +397,7 @@ final class RenderizadorEntidades {
         if (accion != SpritesRatas.Accion.HAB_ESPECIAL) {
             return DURACION_FRAME_NANOS;
         }
-        return switch (jugador.getTipoRata()) {
+        return switch (jugador.tipo()) {
             case BLANCA -> DURACION_FRAME_HABILIDAD_BLANCA_NANOS;
             case VERDE, NEGRA -> DURACION_ANIMACION_PREPARACION_NANOS / cantidadFrames;
             case GRIS -> DURACION_FRAME_NANOS;

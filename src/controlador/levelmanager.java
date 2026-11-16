@@ -3,6 +3,7 @@ package controlador;
 import java.util.ArrayList;
 import java.util.List;
 
+import aplicacion.NivelVista;
 import aplicacion.EstadoNivel;
 import modelos.escenario.levels.level;
 import recursos.CargadorRecursos;
@@ -26,6 +27,7 @@ public class levelmanager implements EstadoNivel {
 
     private level[][] niveles;
     private int piso = 0, seccion = 0;
+    private NivelVista nivelVistaActual;
 
     public levelmanager() {
         niveles = new level[RUTAS.length][];
@@ -39,8 +41,17 @@ public class levelmanager implements EstadoNivel {
         }
     }
 
-    @Override
     public level getNivel() { return niveles[piso][seccion]; }
+
+    @Override
+    public NivelVista getNivelVista() {
+        if (nivelVistaActual == null) {
+            nivelVistaActual = PresentadorPartida.presentarNivel(
+                getNivel(), esUltimaSeccion()
+            );
+        }
+        return nivelVistaActual;
+    }
 
     @Override
     public int getPiso() { return piso + 1; }
@@ -77,6 +88,7 @@ public class levelmanager implements EstadoNivel {
     public boolean cambiarSeccion(int delta) {
         if (!existe(piso, seccion + delta)) return false;
         seccion += delta;
+        nivelVistaActual = null;
         return true;
     }
 
@@ -88,6 +100,7 @@ public class levelmanager implements EstadoNivel {
         if (!hayPisoSiguiente()) return false;
         piso++;
         seccion = 0;
+        nivelVistaActual = null;
         return true;
     }
 

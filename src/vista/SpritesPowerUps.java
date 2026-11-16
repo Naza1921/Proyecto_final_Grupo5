@@ -2,30 +2,28 @@ package vista;
 
 import java.awt.image.BufferedImage;
 import java.util.Map;
+import aplicacion.PowerUpVista;
+import aplicacion.TipoPowerUpVista;
 import recursos.CargadorRecursos;
-import modelos.items.PowerUp;
-import modelos.items.PowerUpLento;
-import modelos.items.PowerUpPizza;
-import modelos.items.PowerUpVelocidad;
-import modelos.items.PowerUpVida;
 
 public final class SpritesPowerUps {
     private static final int TAMANO_SPRITE = 30;
-    private static final Map<Class<? extends PowerUp>, BufferedImage> SPRITES = Map.of(
-        PowerUpVelocidad.class, cargar("/assets/powerUp/cafe.png"),
-        PowerUpLento.class, cargar("/assets/powerUp/QuesoconMoho(powerUplento).jpeg"),
-        PowerUpVida.class, cargar("/assets/powerUp/Queso(vida).jpeg"),
-        PowerUpPizza.class, cargar("/assets/powerUp/Pizza(powerupinvulnerabilidad).png")
+    private static final Map<TipoPowerUpVista, BufferedImage> SPRITES = Map.of(
+        TipoPowerUpVista.VELOCIDAD, cargar("/assets/powerUp/cafe.png"),
+        TipoPowerUpVista.LENTO, cargar("/assets/powerUp/QuesoconMoho(powerUplento).jpeg"),
+        TipoPowerUpVista.VIDA, cargar("/assets/powerUp/Queso(vida).jpeg"),
+        TipoPowerUpVista.INVULNERABILIDAD,
+            cargar("/assets/powerUp/Pizza(powerupinvulnerabilidad).png")
     );
 
     private SpritesPowerUps() {
     }
 
-    public static BufferedImage cargar(PowerUp powerUp) {
-        if (powerUp == null || powerUp.getEfecto() == null) {
-            throw new IllegalArgumentException("Se requiere un power-up con efecto");
+    public static BufferedImage cargar(PowerUpVista powerUp) {
+        if (powerUp == null) {
+            throw new IllegalArgumentException("Se requiere un power-up");
         }
-        BufferedImage sprite = SPRITES.get(powerUp.getClass());
+        BufferedImage sprite = SPRITES.get(powerUp.tipo());
         if (sprite == null) {
             throw new IllegalArgumentException(
                 "No hay un sprite configurado para " + powerUp.getClass().getSimpleName()

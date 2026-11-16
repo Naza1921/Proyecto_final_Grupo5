@@ -4,8 +4,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Locale;
 
+import aplicacion.JugadorVista;
 import recursos.CargadorRecursos;
-import modelos.personajes.Personaje;
 
 public class PanelHUD {
     private final SpriteSheet barraVidaSprite;
@@ -37,7 +37,7 @@ public class PanelHUD {
         spriteTemporizador = CargadorRecursos.cargarImagen("assets/temporizador.png");
     }
 
-    public void dibujar(Graphics2D g, Personaje jugador, int puntaje,
+    public void dibujar(Graphics2D g, JugadorVista jugador, int puntaje,
                         long tiempoPartidaMillis, int anchoPanel) {
         // Si todavía no se eligió personaje no hay nada que dibujar
         if (jugador == null) return;
@@ -56,14 +56,14 @@ public class PanelHUD {
         }
     }
 
-    private void dibujarNombre(Graphics2D g, Personaje jugador) {
+    private void dibujarNombre(Graphics2D g, JugadorVista jugador) {
         g.setColor(COLOR_NOMBRE);
         g.setFont(FUENTE_NOMBRE);
-        g.drawString(jugador.getNombre(), HUD_X, HUD_Y);
+        g.drawString(jugador.nombre(), HUD_X, HUD_Y);
     }
 
 
-    private void dibujarBarraVida(Graphics2D g, Personaje jugador) {
+    private void dibujarBarraVida(Graphics2D g, JugadorVista jugador) {
         int frameVida = calcularFrameVida(jugador);
         BufferedImage frame = barraVidaSprite.getFrame(frameVida);
         BufferedImage contorno = barraVidaSprite.getContorno(frameVida);
@@ -145,16 +145,16 @@ public class PanelHUD {
     }
 
     // Elige el frame de la barra según el porcentaje de vida
-    private int calcularFrameVida(Personaje jugador) {
-        double porcentajeVida = (double) jugador.getVida() / jugador.getVidaMaxima();
+    private int calcularFrameVida(JugadorVista jugador) {
+        double porcentajeVida = (double) jugador.vida() / jugador.vidaMaxima();
         int frameVida = (int) Math.ceil(porcentajeVida * barraVidaSprite.getCantidadFrames()) - 1;
         // Asegurarse de que frameVida esté dentro del rango válido
         return Math.max(0, Math.min(frameVida, barraVidaSprite.getCantidadFrames() - 1));
     }
 
     // Opacidad del halo (de 0 a 1) según la estamina actual respecto del máximo de cada rata
-    private float calcularOpacidadEstamina(Personaje jugador) {
-        double porcentajeEstamina = jugador.getEstamina() / jugador.getEstaminaMaxima();
+    private float calcularOpacidadEstamina(JugadorVista jugador) {
+        double porcentajeEstamina = jugador.estamina() / jugador.estaminaMaxima();
         return (float) Math.max(0, Math.min(1, porcentajeEstamina));
     }
 }

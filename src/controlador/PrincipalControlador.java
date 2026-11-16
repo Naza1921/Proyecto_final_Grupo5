@@ -4,7 +4,9 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.sql.SQLException;
 import javax.swing.*;
+import aplicacion.TipoRataVista;
 import modelos.personajes.Personaje;
+import modelos.personajes.PersonajeFactory;
 import persistencia.ConexionSQLite;
 import persistencia.SQLitePuntajeDAO;
 import servicios.ServicioPuntajes;
@@ -43,6 +45,7 @@ public class PrincipalControlador {
     private MenuAjustesVista panelAjustes;
     private ControladorMenuAjustes controladorMenuAjustes;
     private ReproductorMusica reproductorMusica;
+    private boolean pantallaCompleta;
     private final ServicioPuntajes servicioPuntajes;
     private final GestorEfectosSonido efectosSonido;
     private final CreadorPartida creadorPartida;
@@ -97,6 +100,7 @@ public class PrincipalControlador {
             new RepositorioAjustes(),
             this::mostrarErrorAjustes,
             this::mostrarConfirmacionAjustes,
+            this::actualizarEstadoPantallaCompleta,
             this::mostrarMenu
         );
         configurarBotonesMenu();
@@ -120,6 +124,13 @@ public class PrincipalControlador {
 
     private void mostrarMenu() {
         cardLayout.show(contenedor, VISTA_MENU);
+    }
+
+    private void actualizarEstadoPantallaCompleta(boolean activar) {
+        pantallaCompleta = activar;
+        if (panelJuego != null) {
+            panelJuego.setPantallaCompleta(activar);
+        }
     }
 
     private void mostrarSeleccion() {
@@ -227,7 +238,7 @@ public class PrincipalControlador {
         );
     }
 
-    private void iniciarJuego(Personaje personajeElegido) {
+    private void iniciarJuego(TipoRataVista tipoElegido) {
         if (controladorPartida != null) {
             controladorPartida.detener();
         }
@@ -238,7 +249,16 @@ public class PrincipalControlador {
             contenedor.remove(panelJuego);
         }
 
-        this.jugador = personajeElegido;
+        this.jugador = PersonajeFactory.crearPersonaje(
+            "Rata " + tipoElegido.name().charAt(0)
+                + tipoElegido.name().substring(1).toLowerCase(java.util.Locale.ROOT),
+            switch (tipoElegido) {
+                case BLANCA -> Personaje.TipoRata.BLANCA;
+                case GRIS -> Personaje.TipoRata.GRIS;
+                case NEGRA -> Personaje.TipoRata.NEGRA;
+                case VERDE -> Personaje.TipoRata.VERDE;
+            }
+        );
         CreadorPartida.PartidaCreada partida = creadorPartida.crear(
             jugador,
             this::mostrarMenuGameOver,
@@ -246,6 +266,7 @@ public class PrincipalControlador {
             this::guardarResultadoPartida
         );
         panelJuego = partida.panelJuego();
+        panelJuego.setPantallaCompleta(pantallaCompleta);
         gestorEfectos = partida.gestorEfectos();
         controladorPartida = partida.controladorPartida();
         controladorTecladoRata = partida.controladorTecladoRata();

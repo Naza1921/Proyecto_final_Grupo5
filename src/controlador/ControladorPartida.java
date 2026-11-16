@@ -26,6 +26,7 @@ public final class ControladorPartida implements SeccionListener {
     private final GestorEfectosSonido efectosSonido;
     private final ControladorPuntaje controladorPuntaje;
     private final VistaPartida panelJuego;
+    private final PresentadorPartida presentador;
     private final levelmanager niveles;
     private final ColisionNivel colisionNivel;
     private final GestorSecciones gestorSecciones;
@@ -48,6 +49,7 @@ public final class ControladorPartida implements SeccionListener {
                               GestorEfectosSonido efectosSonido,
                               ControladorPuntaje controladorPuntaje,
                               VistaPartida panelJuego,
+                              PresentadorPartida presentador,
                               levelmanager niveles,
                               Map<Integer, List<PowerUp>> powerUpsPorNivel,
                               Map<Integer, List<Moneda>> monedasPorSeccion,
@@ -57,7 +59,8 @@ public final class ControladorPartida implements SeccionListener {
                               Runnable alCompletarNivel) {
         if (controladorRata == null || gestorControles == null
                 || gestorEfectos == null || efectosSonido == null
-                || controladorPuntaje == null || panelJuego == null || niveles == null
+                || controladorPuntaje == null || panelJuego == null || presentador == null
+                || niveles == null
                 || powerUpsPorNivel == null || monedasPorSeccion == null
                 || jugador == null || fantasmas == null || ratasInfestadas == null
                 || fantasmas.size() > level.MAX_ENEMIGOS_POR_TIPO
@@ -75,13 +78,19 @@ public final class ControladorPartida implements SeccionListener {
         this.efectosSonido = efectosSonido;
         this.controladorPuntaje = controladorPuntaje;
         this.panelJuego = panelJuego;
+        this.presentador = presentador;
         this.niveles = niveles;
         this.jugador = jugador;
         ConfiguradorEnemigosSeccion configuradorEnemigos =
             new ConfiguradorEnemigosSeccion(fantasmas, ratasInfestadas);
         this.gestorEnemigos = new GestorEnemigosPartida(
             configuradorEnemigos,
-            this.panelJuego::actualizarEnemigosVisibles,
+            (fantasmasVisibles, ratasInfestadasVisibles) ->
+                this.panelJuego.actualizarEnemigosVisibles(
+                    this.presentador.presentarEnemigos(
+                        fantasmasVisibles, ratasInfestadasVisibles
+                    )
+                ),
             this.jugador,
             this.niveles
         );
@@ -107,7 +116,9 @@ public final class ControladorPartida implements SeccionListener {
             controladorPuntaje::agregarPuntos,
             controladorPuntaje::penalizar,
             efectosSonido::reproducir,
-            panelJuego::actualizarPowerUps,
+            powerUps -> panelJuego.actualizarPowerUps(
+                presentador.presentarPowerUps(powerUps)
+            ),
             this::actualizarPuntajePresentado
         );
         this.gestorMonedas = new GestorMonedasPartida(
@@ -115,12 +126,15 @@ public final class ControladorPartida implements SeccionListener {
             jugador,
             controladorPuntaje,
             efectosSonido,
-            panelJuego,
+            monedas -> panelJuego.actualizarMonedas(
+                presentador.presentarMonedas(monedas)
+            ),
             this::actualizarPuntajePresentado
         );
         configurarEnemigosVisibles(niveles.getSeccion());
         actualizarPowerUpsVisibles();
         actualizarMonedasVisibles();
+        panelJuego.actualizarJugador(presentador.presentar(jugador));
     }
 
     private void actualizarMonedasVisibles() {
@@ -242,8 +256,11 @@ private void actualizar() {
         PENALIZACION_GOLPE_FANTASMA
     );
     jugador.actualizarHabilidad(enemigosActivos);
+    gestorEnemigos.actualizarVista();
     registrarEnemigosDerrotados();
+    panelJuego.actualizarJugador(presentador.presentar(jugador));
     if (!jugador.estaViva()) {
+        panelJuego.actualizarPresentacion();
         panelJuego.mostrarAnimacionMuerte();
         reproducirSonidoMuerte();
         detener();
@@ -274,8 +291,12 @@ private void actualizarTiempoPartida() {
 private void registrarEnemigosDerrotados() {
     gestorEnemigos.registrarEnemigosDerrotados(
         this::agregarPuntos,
-        panelJuego::mostrarMuerteFantasma,
-        panelJuego::mostrarMuerteRataInfestada
+        enemigo -> panelJuego.mostrarMuerteFantasma(
+            presentador.presentarEnemigo(enemigo)
+        ),
+        rata -> panelJuego.mostrarMuerteRataInfestada(
+            presentador.presentarEnemigo(rata)
+        )
     );
 }
 

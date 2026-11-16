@@ -2,77 +2,77 @@ package vista;
 
 import java.util.EnumMap;
 import java.util.Map;
+import aplicacion.TipoRataVista;
 import recursos.CargadorRecursos;
-import modelos.personajes.Personaje.TipoRata;
 
 final class CatalogoSpritesRatas {
-    private static final Map<TipoRata, Map<SpritesRatas.Accion, DefinicionSprite>> DEFINICIONES =
-        new EnumMap<>(TipoRata.class);
+    private static final Map<TipoRataVista, Map<SpritesRatas.Accion, DefinicionSprite>> DEFINICIONES =
+        new EnumMap<>(TipoRataVista.class);
 
     static {
-        registrar(TipoRata.BLANCA, SpritesRatas.Accion.QUIETA,
+        registrar(TipoRataVista.BLANCA, SpritesRatas.Accion.QUIETA,
             "/assets/rata_blanca/rata_blanca_v2_quieta.jpg", 4);
-        registrar(TipoRata.BLANCA, SpritesRatas.Accion.CAMINAR,
+        registrar(TipoRataVista.BLANCA, SpritesRatas.Accion.CAMINAR,
             "/assets/rata_blanca/rata_blanca_v2_caminar.jpg", 6);
-        registrar(TipoRata.BLANCA, SpritesRatas.Accion.SALTAR,
+        registrar(TipoRataVista.BLANCA, SpritesRatas.Accion.SALTAR,
             "/assets/rata_blanca/rata_blanca_v2_salta.jpg", 7);
-        registrar(TipoRata.BLANCA, SpritesRatas.Accion.AGACHADA,
+        registrar(TipoRataVista.BLANCA, SpritesRatas.Accion.AGACHADA,
             "/assets/rata_blanca/rata_blanca_v2_agache.jpg", 6);
-        registrar(TipoRata.BLANCA, SpritesRatas.Accion.MUERTE,
+        registrar(TipoRataVista.BLANCA, SpritesRatas.Accion.MUERTE,
             "/assets/rata_blanca/rata_blanca_v2_muerte.jpg", 10);
-        registrar(TipoRata.BLANCA, SpritesRatas.Accion.RECIBIR_DANIO,
+        registrar(TipoRataVista.BLANCA, SpritesRatas.Accion.RECIBIR_DANIO,
             "/assets/rata_blanca/rata_blanca_v2_recibir_danio.png", 10);
-        registrar(TipoRata.BLANCA, SpritesRatas.Accion.HAB_ESPECIAL,
+        registrar(TipoRataVista.BLANCA, SpritesRatas.Accion.HAB_ESPECIAL,
             "assets/rata_blanca/Animacion_de_ataque_energetico_del_raton.png", 12);
 
-        registrar(TipoRata.NEGRA, SpritesRatas.Accion.QUIETA,
+        registrar(TipoRataVista.NEGRA, SpritesRatas.Accion.QUIETA,
             "/assets/rata_negra/rata_negra_v2_quieta.jpg", 1);
-        registrar(TipoRata.NEGRA, SpritesRatas.Accion.AGACHADA,
+        registrar(TipoRataVista.NEGRA, SpritesRatas.Accion.AGACHADA,
             "/assets/rata_negra/rata_negra_v2_quieta.jpg", 1);
-        registrar(TipoRata.NEGRA, SpritesRatas.Accion.CAMINAR,
+        registrar(TipoRataVista.NEGRA, SpritesRatas.Accion.CAMINAR,
             "/assets/rata_negra/rata_negra_v2_caminar.jpg", 8);
-        registrar(TipoRata.NEGRA, SpritesRatas.Accion.SALTAR,
+        registrar(TipoRataVista.NEGRA, SpritesRatas.Accion.SALTAR,
             "/assets/rata_negra/rata_negra_v2_salta.jpg", 10);
-        registrar(TipoRata.NEGRA, SpritesRatas.Accion.MUERTE,
+        registrar(TipoRataVista.NEGRA, SpritesRatas.Accion.MUERTE,
             "/assets/rata_negra/rata_negra_v2_muerte.jpg", 10);
-        registrar(TipoRata.NEGRA, SpritesRatas.Accion.RECIBIR_DANIO,
+        registrar(TipoRataVista.NEGRA, SpritesRatas.Accion.RECIBIR_DANIO,
             "/assets/rata_negra/rata_negra_v2_recibir_danio.jpg", 10);
-        registrar(TipoRata.NEGRA, SpritesRatas.Accion.HAB_ESPECIAL,
+        registrar(TipoRataVista.NEGRA, SpritesRatas.Accion.HAB_ESPECIAL,
             "/assets/rata_negra/rata_peste_lanzando_lampara_8x2_transparente.png", 16);
 
-        registrar(TipoRata.GRIS, SpritesRatas.Accion.QUIETA,
+        registrar(TipoRataVista.GRIS, SpritesRatas.Accion.QUIETA,
             "/assets/rata_sprites_gris/rata_gris_v2_quieta.jpg", 4);
-        registrar(TipoRata.GRIS, SpritesRatas.Accion.CAMINAR,
+        registrar(TipoRataVista.GRIS, SpritesRatas.Accion.CAMINAR,
             "/assets/rata_sprites_gris/rata_gris_v2_camina.jpg", 6);
-        registrar(TipoRata.GRIS, SpritesRatas.Accion.SALTAR,
+        registrar(TipoRataVista.GRIS, SpritesRatas.Accion.SALTAR,
             "/assets/rata_sprites_gris/rata_gris_v2_salta.jpg", 6);
-        registrar(TipoRata.GRIS, SpritesRatas.Accion.AGACHADA,
+        registrar(TipoRataVista.GRIS, SpritesRatas.Accion.AGACHADA,
             "/assets/rata_sprites_gris/rata_gris_v2_agache.jpg", 6);
-        registrar(TipoRata.GRIS, SpritesRatas.Accion.MUERTE,
+        registrar(TipoRataVista.GRIS, SpritesRatas.Accion.MUERTE,
             "/assets/rata_sprites_gris/rata_gris_v2_muerte.jpg", 10);
-        registrar(TipoRata.GRIS, SpritesRatas.Accion.RECIBIR_DANIO,
+        registrar(TipoRataVista.GRIS, SpritesRatas.Accion.RECIBIR_DANIO,
             "/assets/rata_sprites_gris/rata_gris_v2_recibir_danio.jpg", 10);
 
-        registrar(TipoRata.VERDE, SpritesRatas.Accion.QUIETA,
+        registrar(TipoRataVista.VERDE, SpritesRatas.Accion.QUIETA,
             "/assets/rata_verde/rata_verde_v2_quieta.jpg", 4);
-        registrar(TipoRata.VERDE, SpritesRatas.Accion.CAMINAR,
+        registrar(TipoRataVista.VERDE, SpritesRatas.Accion.CAMINAR,
             "/assets/rata_verde/rata_verde_v2_corre.jpg", 6);
-        registrar(TipoRata.VERDE, SpritesRatas.Accion.SALTAR,
+        registrar(TipoRataVista.VERDE, SpritesRatas.Accion.SALTAR,
             "/assets/rata_verde/rata_verde_v2_salta.jpg", 7);
-        registrar(TipoRata.VERDE, SpritesRatas.Accion.AGACHADA,
+        registrar(TipoRataVista.VERDE, SpritesRatas.Accion.AGACHADA,
             "/assets/rata_verde/rata_verde_v2_agacha.jpg", 6);
-        registrar(TipoRata.VERDE, SpritesRatas.Accion.MUERTE,
+        registrar(TipoRataVista.VERDE, SpritesRatas.Accion.MUERTE,
             "/assets/rata_verde/rata_verde_v2_muerte.jpg", 10);
-        registrar(TipoRata.VERDE, SpritesRatas.Accion.RECIBIR_DANIO,
+        registrar(TipoRataVista.VERDE, SpritesRatas.Accion.RECIBIR_DANIO,
             "/assets/rata_verde/rata_verde_v2_recibir_danio.jpg", 10);
-        registrar(TipoRata.VERDE, SpritesRatas.Accion.HAB_ESPECIAL,
+        registrar(TipoRataVista.VERDE, SpritesRatas.Accion.HAB_ESPECIAL,
             "/assets/rata_verde/rata_lanzando_veneno_6x2_transparente.png", 12);
     }
 
     private CatalogoSpritesRatas() {
     }
 
-    static SpriteSheet cargar(TipoRata tipo, SpritesRatas.Accion accion) {
+    static SpriteSheet cargar(TipoRataVista tipo, SpritesRatas.Accion accion) {
         if (tipo == null || accion == null) {
             throw new IllegalArgumentException("Se requieren la rata y la acción de animación");
         }
@@ -104,12 +104,12 @@ final class CatalogoSpritesRatas {
         return new SpriteSheet(definicion.ruta, definicion.cantidadFrames);
     }
 
-    static boolean tiene(TipoRata tipo, SpritesRatas.Accion accion) {
+    static boolean tiene(TipoRataVista tipo, SpritesRatas.Accion accion) {
         Map<SpritesRatas.Accion, DefinicionSprite> porAccion = DEFINICIONES.get(tipo);
         return porAccion != null && porAccion.containsKey(accion);
     }
 
-    private static void registrar(TipoRata tipo, SpritesRatas.Accion accion,
+    private static void registrar(TipoRataVista tipo, SpritesRatas.Accion accion,
                                   String ruta, int cantidadFrames) {
         Map<SpritesRatas.Accion, DefinicionSprite> porAccion =
             DEFINICIONES.computeIfAbsent(tipo, clave -> new EnumMap<>(SpritesRatas.Accion.class));
@@ -118,7 +118,7 @@ final class CatalogoSpritesRatas {
         ));
     }
 
-    private static void registrar(TipoRata tipo, SpritesRatas.Accion accion,
+    private static void registrar(TipoRataVista tipo, SpritesRatas.Accion accion,
                                   String ruta, int cantidadFrames, int x, int y,
                                   int anchoRegion, int altoRegion) {
         Map<SpritesRatas.Accion, DefinicionSprite> porAccion =
@@ -128,7 +128,7 @@ final class CatalogoSpritesRatas {
         ));
     }
 
-    private static void registrar(TipoRata tipo, SpritesRatas.Accion accion,
+    private static void registrar(TipoRataVista tipo, SpritesRatas.Accion accion,
                                   String ruta, int[] limitesX, int y, int altoRegion) {
         Map<SpritesRatas.Accion, DefinicionSprite> porAccion =
             DEFINICIONES.computeIfAbsent(tipo, clave -> new EnumMap<>(SpritesRatas.Accion.class));

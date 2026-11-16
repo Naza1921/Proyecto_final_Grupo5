@@ -1,13 +1,11 @@
 package aplicacion;
 
 import java.util.List;
-import modelos.enemigos.fantasma;
-import modelos.enemigos.ratainfestada;
-import modelos.items.Moneda;
-import modelos.items.PowerUp;
 
 public interface VistaPartida {
-    void actualizarMonedas(List<Moneda> monedas);
+    void actualizarJugador(JugadorVista jugador);
+
+    void actualizarMonedas(List<MonedaVista> monedas);
 
     void mostrarAnimacionHabilidad();
 
@@ -21,17 +19,15 @@ public interface VistaPartida {
 
     void actualizarTiempoPartida(long tiempoPartidaMillis);
 
-    void mostrarMuerteFantasma(fantasma enemigo);
+    void mostrarMuerteFantasma(EnemigoVista enemigo);
 
-    void mostrarMuerteRataInfestada(ratainfestada rata);
+    void mostrarMuerteRataInfestada(EnemigoVista rata);
 
-    void actualizarEnemigosVisibles(
-        List<fantasma> fantasmas, List<ratainfestada> ratasInfestadas
-    );
+    void actualizarEnemigosVisibles(List<EnemigoVista> enemigos);
 
     void mostrarNivelCompletado();
 
     void mostrarNivelCompletado(Runnable alCerrar);
 
-    void actualizarPowerUps(List<PowerUp> powerUps);
+    void actualizarPowerUps(List<PowerUpVista> powerUps);
 }

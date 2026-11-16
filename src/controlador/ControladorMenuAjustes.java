@@ -33,6 +33,7 @@ public final class ControladorMenuAjustes {
     private final RepositorioAjustes repositorioAjustes;
     private final Consumer<String> notificadorError;
     private final Consumer<String> notificadorExito;
+    private final Consumer<Boolean> alCambiarPantallaCompleta;
     private final Runnable alVolver;
 
     private Rectangle limitesVentana;
@@ -46,6 +47,7 @@ public final class ControladorMenuAjustes {
             RepositorioAjustes repositorioAjustes,
             Consumer<String> notificadorError,
             Consumer<String> notificadorExito,
+            Consumer<Boolean> alCambiarPantallaCompleta,
             Runnable alVolver) {
         this.ventana = ventana;
         this.vista = vista;
@@ -53,6 +55,7 @@ public final class ControladorMenuAjustes {
         this.repositorioAjustes = repositorioAjustes;
         this.notificadorError = notificadorError;
         this.notificadorExito = notificadorExito;
+        this.alCambiarPantallaCompleta = alCambiarPantallaCompleta;
         this.alVolver = alVolver;
     }
 
@@ -169,5 +172,6 @@ public final class ControladorMenuAjustes {
         }
 
         ventana.setVisible(true);
+        alCambiarPantallaCompleta.accept(activar);
     }
 }

@@ -2,14 +2,13 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import modelos.enemigos.ProyectilAcido;
+import aplicacion.ProyectilVista;
 import recursos.CargadorRecursos;
 
 public final class SpriteAcido {
     private static final String RUTA_HOJA = "assets/arte_enemigos/acido_volando_5frames_transparente.png";
     private static final int CANTIDAD_FRAMES = 5;
     private static final int TAMANO_DIBUJO = 18;
-    private static final int TAMANO_HITBOX = 12;
     private static final long DURACION_FRAME_NANOS = 90_000_000L;
 
     private final BufferedImage[] frames;
@@ -30,17 +29,18 @@ public final class SpriteAcido {
         }
     }
 
-    public void dibujar(Graphics2D graficos, ProyectilAcido proyectil) {
+    public void dibujar(Graphics2D graficos, ProyectilVista proyectil) {
         if (graficos == null || proyectil == null) {
             throw new IllegalArgumentException("Se requieren los gráficos y el proyectil");
         }
 
-        int desplazamiento = (TAMANO_DIBUJO - TAMANO_HITBOX) / 2;
+        int desplazamientoX = (int) Math.round((TAMANO_DIBUJO - proyectil.ancho()) / 2.0);
+        int desplazamientoY = (int) Math.round((TAMANO_DIBUJO - proyectil.alto()) / 2.0);
         SpritesRatas.dibujarAjustado(
             graficos,
             frames[indiceFrame],
-            (int) Math.round(proyectil.getX()) - desplazamiento,
-            (int) Math.round(proyectil.getY()) - desplazamiento,
+            (int) Math.round(proyectil.x()) - desplazamientoX,
+            (int) Math.round(proyectil.y()) - desplazamientoY,
             TAMANO_DIBUJO,
             TAMANO_DIBUJO
         );

@@ -3,9 +3,9 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import aplicacion.ProyectilVista;
 import controlador.GestorAnimacionSprite;
 import recursos.CargadorRecursos;
-import modelos.personajes.ProyectilEspecial;
 
 public final class SpriteProyectilStun {
     private static final String RUTA_HOJA = "assets/rata_blanca/hadouken_en_aire.jfif";
@@ -37,12 +37,12 @@ public final class SpriteProyectilStun {
         animacion.actualizar();
     }
 
-    public void dibujar(Graphics2D graficos, ProyectilEspecial proyectil) {
+    public void dibujar(Graphics2D graficos, ProyectilVista proyectil) {
         if (graficos == null || proyectil == null) {
             throw new IllegalArgumentException("Se requieren los gráficos y el proyectil STUN");
         }
-        int x = (int) Math.round(proyectil.getX() + proyectil.getAncho() / 2.0 - TAMANO_DIBUJO / 2.0);
-        int y = (int) Math.round(proyectil.getY() + proyectil.getAlto() / 2.0 - TAMANO_DIBUJO / 2.0);
+        int x = (int) Math.round(proyectil.x() + proyectil.ancho() / 2.0 - TAMANO_DIBUJO / 2.0);
+        int y = (int) Math.round(proyectil.y() + proyectil.alto() / 2.0 - TAMANO_DIBUJO / 2.0);
         SpritesRatas.dibujarAjustado(
             graficos,
             animacion.getFrameActual(),

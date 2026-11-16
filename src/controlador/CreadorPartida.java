@@ -64,8 +64,9 @@ final class CreadorPartida {
         BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
             "assets/tutorial_controles.png"
         );
+        PresentadorPartida presentador = new PresentadorPartida();
         PanelJuego panelJuego = new PanelJuego(
-            jugador, puntaje, fantasmas, ratasInfestadas, niveles,
+            presentador.presentar(jugador), puntaje.getTotal(), List.of(), niveles,
             alTerminarAnimacionMuerte, fondosJuego, tutorialControles
         );
         Map<Integer, List<PowerUp>> powerUpsPorNivel =
@@ -73,7 +74,7 @@ final class CreadorPartida {
         Map<Integer, List<Moneda>> monedasPorSeccion = crearMonedasPorSeccion();
         ControladorPartida controladorPartida = new ControladorPartida(
             controladorRata, gestorControles, gestorEfectos, efectosSonido,
-            controladorPuntaje, panelJuego, niveles, powerUpsPorNivel,
+            controladorPuntaje, panelJuego, presentador, niveles, powerUpsPorNivel,
             monedasPorSeccion, jugador, fantasmas, ratasInfestadas, alCompletarNivel
         );
         ControladorTecladoRata controladorTecladoRata = new ControladorTecladoRata(

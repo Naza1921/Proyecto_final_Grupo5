@@ -2,12 +2,15 @@ package vista;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import modelos.escenario.levels.level;
+import aplicacion.NivelVista;
 import modelos.partida.ConfiguracionPartida;
 import recursos.CargadorRecursos;
 
 final class RenderizadorNivel {
     private static final int TAMANO_TILE_ATLAS = 32;
+    private static final int COLUMNAS_ATLAS = 7;
+    private static final int COLUMNA_AIRE = 6;
+    private static final int INDICE_AGUJERO_SIGUIENTE = 28;
 
     private final BufferedImage[] spritesNivel;
     private final BufferedImage[] spritesAgujero = new BufferedImage[3];
@@ -43,22 +46,22 @@ final class RenderizadorNivel {
         }
     }
 
-    void dibujar(Graphics2D graphics, level nivel, boolean esUltimaSeccion) {
+    void dibujar(Graphics2D graphics, NivelVista nivel) {
         int tamTile = ConfiguracionPartida.TAM_TILE;
         for (int fila = 0; fila < nivel.getAlto(); fila++) {
             for (int columna = 0; columna < nivel.getAncho(); columna++) {
-                int indiceSprite = nivel.getspriteindex(columna, fila);
-                if (indiceSprite >= level.AGUJERO_SIGUIENTE) {
+                int indiceSprite = nivel.getSpriteIndex(columna, fila);
+                if (indiceSprite >= INDICE_AGUJERO_SIGUIENTE) {
                     dibujarAgujero(
                         graphics,
                         columna * tamTile,
                         fila * tamTile,
                         indiceSprite,
-                        esUltimaSeccion
+                        nivel.esUltimaSeccion()
                     );
                     continue;
                 }
-                if (indiceSprite % level.COLUMNAS_ATLAS == level.COLUMNA_AIRE) {
+                if (indiceSprite % COLUMNAS_ATLAS == COLUMNA_AIRE) {
                     continue;
                 }
                 if (indiceSprite >= 0 && indiceSprite < spritesNivel.length) {
@@ -81,7 +84,7 @@ final class RenderizadorNivel {
             int y,
             int tipo,
             boolean esUltimaSeccion) {
-        int indiceSprite = tipo == level.AGUJERO_SIGUIENTE
+        int indiceSprite = tipo == INDICE_AGUJERO_SIGUIENTE
             ? (esUltimaSeccion ? 2 : 0)
             : 1;
         graphics.drawImage(
