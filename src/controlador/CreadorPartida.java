@@ -4,6 +4,13 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import javax.swing.SwingUtilities;
 import modelos.enemigos.fantasma;
 import modelos.enemigos.ratainfestada;
 import modelos.items.FabricaPowerUps;
@@ -29,16 +36,34 @@ final class CreadorPartida {
         this.efectosSonido = efectosSonido;
     }
 
-    PartidaCreada crear(
-            Personaje jugador,
+    PreparacionPartida preparar(
+            Supplier<Personaje> crearJugador,
             Runnable alTerminarAnimacionMuerte,
-            Runnable alPausar,
-            Runnable alCompletarNivel) {
-        if (jugador == null || alTerminarAnimacionMuerte == null
-                || alPausar == null || alCompletarNivel == null) {
-            throw new IllegalArgumentException("Se requieren el personaje y las acciones de la partida");
+            Consumer<ProgresoCarga> reportarProgreso) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException("La preparación debe ejecutarse fuera del EDT");
+        }
+        if (crearJugador == null || alTerminarAnimacionMuerte == null
+                || reportarProgreso == null) {
+            throw new IllegalArgumentException("Se requieren las acciones de preparación");
         }
 
+        return CargadorRecursos.observarCargas(
+            archivo -> reportarProgreso.accept(new ProgresoCarga(archivo)),
+            () -> prepararPartida(
+                crearJugador, alTerminarAnimacionMuerte, reportarProgreso
+            )
+        );
+    }
+
+    private PreparacionPartida prepararPartida(
+            Supplier<Personaje> crearJugador,
+            Runnable alTerminarAnimacionMuerte,
+            Consumer<ProgresoCarga> reportarProgreso) {
+        Personaje jugador = crearJugador.get();
+        if (jugador == null) {
+            throw new IllegalArgumentException("La selección no produjo un personaje");
+        }
         jugador.setX(ConfiguracionPartida.POSICION_INICIAL_X);
         jugador.setY(ConfiguracionPartida.POSICION_INICIAL_Y);
 
@@ -59,32 +84,73 @@ final class CreadorPartida {
             );
         }
 
-        levelmanager niveles = new levelmanager();
-        BufferedImage[] fondosJuego = cargarFondosJuego();
-        BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
-            "assets/tutorial_controles.png"
-        );
+        String[] rutasFondos = {
+            "assets/escenarios/Nivel_1_Piso_mayor.png",
+            "assets/escenarios/Nivel_2_Cocina.png",
+            "assets/escenarios/Nivel_3_Gran_Salon.png",
+            "assets/escenarios/Nivel_4_Pasillo_oscuro.png",
+            "assets/escenarios/Nivel_5_Server_Room.png"
+        };
+        ExecutorService grupoCargaFondos = Executors.newFixedThreadPool(2);
+        try {
+            List<CompletableFuture<BufferedImage>> tareasFondos =
+                cargarFondosEnParalelo(rutasFondos, grupoCargaFondos, reportarProgreso);
+
+            levelmanager niveles = new levelmanager();
+            Map<Integer, List<PowerUp>> powerUpsPorNivel =
+                FabricaPowerUps.crearPorNivel(niveles.getNiveles());
+            Map<Integer, List<Moneda>> monedasPorSeccion = crearMonedasPorSeccion();
+            BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
+                "assets/tutorial_controles.png"
+            );
+            PanelJuego.RecursosPreparados recursosVista = PanelJuego.prepararRecursos(
+                jugador, fantasmas, ratasInfestadas, alTerminarAnimacionMuerte
+            );
+            BufferedImage[] fondosJuego = obtenerFondosEnOrden(tareasFondos);
+            return new PreparacionPartida(
+                jugador, controladorRata, gestorControles, gestorEfectos,
+                puntaje, controladorPuntaje, fantasmas, ratasInfestadas, niveles,
+                powerUpsPorNivel, monedasPorSeccion, fondosJuego, tutorialControles,
+                recursosVista, alTerminarAnimacionMuerte
+            );
+        } finally {
+            grupoCargaFondos.shutdownNow();
+        }
+    }
+
+    PartidaCreada crear(
+            PreparacionPartida preparacion,
+            Runnable alPausar,
+            Runnable alCompletarNivel) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException("La vista debe crearse en el EDT");
+        }
+        if (preparacion == null || alPausar == null || alCompletarNivel == null) {
+            throw new IllegalArgumentException("Se requieren la preparación y las acciones de la partida");
+        }
         PanelJuego panelJuego = new PanelJuego(
-            jugador, puntaje, fantasmas, ratasInfestadas, niveles,
-            alTerminarAnimacionMuerte, fondosJuego, tutorialControles
+            preparacion.jugador, preparacion.puntaje,
+            preparacion.fantasmas, preparacion.ratasInfestadas, preparacion.niveles,
+            preparacion.alTerminarAnimacionMuerte, preparacion.fondosJuego,
+            preparacion.tutorialControles, preparacion.recursosVista
         );
-        Map<Integer, List<PowerUp>> powerUpsPorNivel =
-            FabricaPowerUps.crearPorNivel(niveles.getNiveles());
-        Map<Integer, List<Moneda>> monedasPorSeccion = crearMonedasPorSeccion();
         ControladorPartida controladorPartida = new ControladorPartida(
-            controladorRata, gestorControles, gestorEfectos, efectosSonido,
-            controladorPuntaje, panelJuego, niveles, powerUpsPorNivel,
-            monedasPorSeccion, jugador, fantasmas, ratasInfestadas, alCompletarNivel
+            preparacion.controladorRata, preparacion.gestorControles,
+            preparacion.gestorEfectos, efectosSonido,
+            preparacion.controladorPuntaje, panelJuego, preparacion.niveles,
+            preparacion.powerUpsPorNivel, preparacion.monedasPorSeccion,
+            preparacion.jugador, preparacion.fantasmas,
+            preparacion.ratasInfestadas, alCompletarNivel
         );
         ControladorTecladoRata controladorTecladoRata = new ControladorTecladoRata(
-            panelJuego,
-            gestorControles,
+            panelJuego, preparacion.gestorControles,
             alPausar,
             () -> efectosSonido.reproducir(GestorEfectosSonido.Efecto.SALTO),
             controladorPartida::activarHabilidad
         );
         return new PartidaCreada(
-            panelJuego, gestorEfectos, controladorPartida, controladorTecladoRata
+            panelJuego, preparacion.gestorEfectos,
+            controladorPartida, controladorTecladoRata
         );
     }
 
@@ -100,20 +166,63 @@ final class CreadorPartida {
         );
     }
 
-    private static BufferedImage[] cargarFondosJuego() {
-        String[] rutas = {
-            "assets/escenarios/Nivel_1_Piso_mayor.png",
-            "assets/escenarios/Nivel_2_Cocina.png",
-            "assets/escenarios/Nivel_3_Gran_Salon.png",
-            "assets/escenarios/Nivel_4_Pasillo_oscuro.png",
-            "assets/escenarios/Nivel_5_Server_Room.png"
-        };
-        BufferedImage[] fondos = new BufferedImage[rutas.length];
+    private static List<CompletableFuture<BufferedImage>> cargarFondosEnParalelo(
+            String[] rutas, ExecutorService grupoCarga,
+            Consumer<ProgresoCarga> reportarProgreso) {
+        reportarProgreso.accept(new ProgresoCarga(
+            "Cargando fondos (0 de " + rutas.length + ")"
+        ));
+        AtomicInteger fondosCargados = new AtomicInteger();
+        Object bloqueoProgreso = new Object();
+        List<CompletableFuture<BufferedImage>> tareas = new ArrayList<>(rutas.length);
         for (int indice = 0; indice < rutas.length; indice++) {
-            fondos[indice] = CargadorRecursos.cargarImagen(rutas[indice]);
+            String ruta = rutas[indice];
+            tareas.add(CompletableFuture.supplyAsync(() -> {
+                BufferedImage fondo = CargadorRecursos.cargarImagen(ruta);
+                synchronized (bloqueoProgreso) {
+                    int cantidadCargada = fondosCargados.incrementAndGet();
+                    reportarProgreso.accept(new ProgresoCarga(
+                        "Cargando fondos (" + cantidadCargada
+                            + " de " + rutas.length + ")"
+                    ));
+                }
+                return fondo;
+            }, grupoCarga));
+        }
+        return tareas;
+    }
+
+    private static BufferedImage[] obtenerFondosEnOrden(
+            List<CompletableFuture<BufferedImage>> tareas) {
+        CompletableFuture<?>[] tareasCompletadas =
+            tareas.toArray(CompletableFuture<?>[]::new);
+        CompletableFuture.allOf(tareasCompletadas).join();
+        BufferedImage[] fondos = new BufferedImage[tareas.size()];
+        for (int indice = 0; indice < tareas.size(); indice++) {
+            fondos[indice] = tareas.get(indice).join();
         }
         return fondos;
     }
+
+    record ProgresoCarga(String archivo) { }
+
+    record PreparacionPartida(
+        Personaje jugador,
+        ControladorRata controladorRata,
+        GestorControlesRatas gestorControles,
+        GestorEfectosTemporales gestorEfectos,
+        Puntaje puntaje,
+        ControladorPuntaje controladorPuntaje,
+        List<fantasma> fantasmas,
+        List<ratainfestada> ratasInfestadas,
+        levelmanager niveles,
+        Map<Integer, List<PowerUp>> powerUpsPorNivel,
+        Map<Integer, List<Moneda>> monedasPorSeccion,
+        BufferedImage[] fondosJuego,
+        BufferedImage tutorialControles,
+        PanelJuego.RecursosPreparados recursosVista,
+        Runnable alTerminarAnimacionMuerte
+    ) { }
 
     record PartidaCreada(
         PanelJuego panelJuego,

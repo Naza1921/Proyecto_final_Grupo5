@@ -7,11 +7,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.imageio.ImageIO;
 
 public final class CargadorRecursos {
     public static final String NIVEL_ATLAS = "assets/Nivel_Sprite_tablones.png";
     public static final String AGUJERO_ATLAS = "assets/Agujero_Sprite.png";
+    private static final ThreadLocal<Consumer<String>> OBSERVADOR_CARGA =
+        new ThreadLocal<>();
 
     private CargadorRecursos() { }
 
@@ -38,6 +42,7 @@ public final class CargadorRecursos {
     }
 
     public static BufferedImage cargarImagen(String nombreArchivo) {
+        informarInicioCarga(nombreArchivo);
         InputStream recurso = CargadorRecursos.class.getResourceAsStream(
             "/" + nombreArchivo
         );
@@ -72,6 +77,35 @@ public final class CargadorRecursos {
             throw new IllegalStateException(
                 "Failed to load image: " + nombreArchivo, error
             );
+        }
+    }
+
+    public static <T> T observarCargas(
+            Consumer<String> observador, Supplier<T> accion) {
+        if (observador == null || accion == null) {
+            throw new IllegalArgumentException("Se requieren el observador y la acción de carga");
+        }
+        Consumer<String> observadorAnterior = OBSERVADOR_CARGA.get();
+        OBSERVADOR_CARGA.set(observador);
+        try {
+            return accion.get();
+        } finally {
+            if (observadorAnterior == null) {
+                OBSERVADOR_CARGA.remove();
+            } else {
+                OBSERVADOR_CARGA.set(observadorAnterior);
+            }
+        }
+    }
+
+    public static void informarInicioCarga(String nombreArchivo) {
+        if (nombreArchivo == null || nombreArchivo.isBlank()) {
+            throw new IllegalArgumentException("Se requiere la ruta del recurso");
+        }
+        Consumer<String> observador = OBSERVADOR_CARGA.get();
+        if (observador != null) {
+            observador.accept(nombreArchivo.startsWith("/")
+                ? nombreArchivo.substring(1) : nombreArchivo);
         }
     }
 

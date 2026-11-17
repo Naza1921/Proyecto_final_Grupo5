@@ -3,6 +3,9 @@ package controlador;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import javax.swing.*;
 import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
@@ -11,6 +14,7 @@ import servicios.ServicioPuntajes;
 import vista.MenuPrincipal;
 import vista.MenuAjustesVista;
 import vista.PanelJuego;
+import vista.PanelCargaPartida;
 import vista.PanelSeleccionPersonaje;
 import vista.PantallaIntro;
 import vista.MenuPausa;
@@ -27,6 +31,7 @@ public class PrincipalControlador {
     private static final String VISTA_PAUSA = "pausa";
     private static final String VISTA_GAME_OVER = "gameOver";
     private static final String VISTA_TABLERO = "tablero";
+    private static final String VISTA_CARGA = "carga";
 
     private Personaje jugador;
     private JFrame ventana;
@@ -39,6 +44,7 @@ public class PrincipalControlador {
     private MenuPausa menuPausa;
     private MenuGameOver menuGameOver;
     private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
+    private PanelCargaPartida panelCarga;
     private PantallaIntro pantallaIntro;
     private MenuAjustesVista panelAjustes;
     private ControladorMenuAjustes controladorMenuAjustes;
@@ -48,6 +54,8 @@ public class PrincipalControlador {
     private final CreadorPartida creadorPartida;
     private CardLayout cardLayout;
     private JPanel contenedor;
+    private SwingWorker<CreadorPartida.PreparacionPartida, CreadorPartida.ProgresoCarga>
+        trabajadorCarga;
 
     public PrincipalControlador() {
         this(new ServicioPuntajes(
@@ -81,12 +89,14 @@ public class PrincipalControlador {
         menuGameOver = new MenuGameOver();
         panelAjustes = new MenuAjustesVista();
         panelSeleccion = new PanelSeleccionPersonaje(this::iniciarJuego);
+        panelCarga = new PanelCargaPartida();
 
         contenedor.add(pantallaIntro, VISTA_INTRO);
         contenedor.add(menuPrincipal, VISTA_MENU);
         contenedor.add(tableroPuntajes, VISTA_TABLERO);
         contenedor.add(panelAjustes, VISTA_AJUSTES);
         contenedor.add(panelSeleccion, VISTA_SELECCION);
+        contenedor.add(panelCarga, VISTA_CARGA);
         contenedor.add(menuPausa, VISTA_PAUSA);
         contenedor.add(menuGameOver, VISTA_GAME_OVER);
         reproductorMusica = new GestorMusica(this::mostrarErrorAjustes);
@@ -227,7 +237,10 @@ public class PrincipalControlador {
         );
     }
 
-    private void iniciarJuego(Personaje personajeElegido) {
+    private void iniciarJuego(Supplier<Personaje> crearPersonaje) {
+        if (trabajadorCarga != null) {
+            return;
+        }
         if (controladorPartida != null) {
             controladorPartida.detener();
         }
@@ -238,24 +251,76 @@ public class PrincipalControlador {
             contenedor.remove(panelJuego);
         }
 
-        this.jugador = personajeElegido;
-        CreadorPartida.PartidaCreada partida = creadorPartida.crear(
-            jugador,
-            this::mostrarMenuGameOver,
-            this::pausarJuego,
-            this::guardarResultadoPartida
+        if (crearPersonaje == null) {
+            throw new IllegalArgumentException("Se requiere la fábrica del personaje seleccionado");
+        }
+        panelCarga.iniciar();
+        cardLayout.show(contenedor, VISTA_CARGA);
+        trabajadorCarga = new SwingWorker<>() {
+            @Override
+            protected CreadorPartida.PreparacionPartida doInBackground() {
+                return creadorPartida.preparar(
+                    crearPersonaje,
+                    PrincipalControlador.this::mostrarMenuGameOver,
+                    progreso -> publish(progreso)
+                );
+            }
+
+            @Override
+            protected void process(List<CreadorPartida.ProgresoCarga> avances) {
+                if (!avances.isEmpty()) {
+                    CreadorPartida.ProgresoCarga avance = avances.get(avances.size() - 1);
+                    panelCarga.actualizar(avance.archivo());
+                }
+            }
+
+            @Override
+            protected void done() {
+                panelCarga.detener();
+                try {
+                    CreadorPartida.PreparacionPartida preparacion = get();
+                    CreadorPartida.PartidaCreada partida = creadorPartida.crear(
+                        preparacion,
+                        PrincipalControlador.this::pausarJuego,
+                        PrincipalControlador.this::guardarResultadoPartida
+                    );
+                    jugador = preparacion.jugador();
+                    panelJuego = partida.panelJuego();
+                    gestorEfectos = partida.gestorEfectos();
+                    controladorPartida = partida.controladorPartida();
+                    controladorTecladoRata = partida.controladorTecladoRata();
+
+                    contenedor.add(panelJuego, VISTA_JUEGO);
+                    cardLayout.show(contenedor, VISTA_JUEGO);
+                    panelJuego.requestFocusInWindow();
+                    controladorPartida.iniciar();
+                    reproductorMusica.habilitarReproduccion();
+                } catch (InterruptedException excepcion) {
+                    Thread.currentThread().interrupt();
+                    mostrarErrorCarga("Se interrumpió la preparación de la partida.");
+                } catch (ExecutionException excepcion) {
+                    Throwable causa = excepcion.getCause() == null
+                        ? excepcion : excepcion.getCause();
+                    mostrarErrorCarga(
+                        "No se pudo preparar la partida: " + causa.getMessage()
+                    );
+                } catch (RuntimeException excepcion) {
+                    mostrarErrorCarga(
+                        "No se pudo iniciar la partida: " + excepcion.getMessage()
+                    );
+                } finally {
+                    trabajadorCarga = null;
+                }
+            }
+        };
+        trabajadorCarga.execute();
+    }
+
+    private void mostrarErrorCarga(String mensaje) {
+        cardLayout.show(contenedor, VISTA_SELECCION);
+        JOptionPane.showMessageDialog(
+            ventana, mensaje, "Error al cargar la partida", JOptionPane.ERROR_MESSAGE
         );
-        panelJuego = partida.panelJuego();
-        gestorEfectos = partida.gestorEfectos();
-        controladorPartida = partida.controladorPartida();
-        controladorTecladoRata = partida.controladorTecladoRata();
-
-        contenedor.add(panelJuego, VISTA_JUEGO);
-        cardLayout.show(contenedor, VISTA_JUEGO);
-
-        panelJuego.requestFocusInWindow();
-        controladorPartida.iniciar();
-        reproductorMusica.habilitarReproduccion();
     }
 
     private void guardarResultadoPartida() {

@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.EnumMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import recursos.CargadorRecursos;
 
 public class SpriteRataInfestada {
     public enum Animacion {
@@ -143,6 +144,7 @@ public class SpriteRataInfestada {
     }
 
     private BufferedImage cargarHoja() {
+        CargadorRecursos.informarInicioCarga(RUTA_SPRITE);
         try (InputStream entrada = getClass().getResourceAsStream(RUTA_SPRITE)) {
             if (entrada == null) {
                 throw new IllegalArgumentException("No se encontró el recurso: " + RUTA_SPRITE);

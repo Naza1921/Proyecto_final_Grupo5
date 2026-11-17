@@ -50,6 +50,17 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
                   List<ratainfestada> ratasInfestadas, EstadoNivel estadoNivel,
                   Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
                   BufferedImage tutorialControles) {
+    this(
+        jugador, modeloPuntaje, fantasmas, ratasInfestadas, estadoNivel,
+        alTerminarAnimacionMuerte, fondosPorPiso, tutorialControles,
+        prepararRecursos(jugador, fantasmas, ratasInfestadas, alTerminarAnimacionMuerte)
+    );
+}
+
+public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fantasmas,
+                  List<ratainfestada> ratasInfestadas, EstadoNivel estadoNivel,
+                  Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
+                  BufferedImage tutorialControles, RecursosPreparados recursosPreparados) {
     if (jugador == null || modeloPuntaje == null || fantasmas == null
             || ratasInfestadas == null
             || fantasmas.size() > modelos.escenario.levels.level.MAX_ENEMIGOS_POR_TIPO
@@ -61,20 +72,20 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
             || fondosPorPiso == null
             || fondosPorPiso.length == 0
             || java.util.Arrays.stream(fondosPorPiso).anyMatch(fondo -> fondo == null)
-            || tutorialControles == null) {
+            || tutorialControles == null
+            || recursosPreparados == null) {
         throw new IllegalArgumentException("Se requieren el estado de partida y el nivel");
     }
     this.jugador = jugador;
     this.estadoNivel = estadoNivel;
-    this.renderizadorNivel = new RenderizadorNivel();
     this.puntajePresentado = modeloPuntaje.getTotal();
     this.fondosPorPiso = fondosPorPiso.clone();
     this.tutorialControles = tutorialControles;
-    this.spriteMoneda = new SpriteMoneda();
-    this.renderizadorEntidades = new RenderizadorEntidades(
-        jugador, fantasmas, ratasInfestadas, alTerminarAnimacionMuerte, this::repaint
-    );
-    this.hud = new PanelHUD();
+    this.renderizadorNivel = recursosPreparados.renderizadorNivel;
+    this.spriteMoneda = recursosPreparados.spriteMoneda;
+    this.renderizadorEntidades = recursosPreparados.renderizadorEntidades;
+    this.renderizadorEntidades.setSolicitarRepintado(this::repaint);
+    this.hud = recursosPreparados.hud;
 
     setPreferredSize(new Dimension(
         ConfiguracionPartida.COLS_NIVEL * ConfiguracionPartida.TAM_TILE,
@@ -96,6 +107,44 @@ public PanelJuego(Personaje jugador, Puntaje modeloPuntaje, List<fantasma> fanta
             cerrarNivelCompletado();
         }
     });
+}
+
+public static RecursosPreparados prepararRecursos(
+        Personaje jugador, List<fantasma> fantasmas,
+        List<ratainfestada> ratasInfestadas,
+        Runnable alTerminarAnimacionMuerte) {
+    if (jugador == null || fantasmas == null || ratasInfestadas == null
+            || alTerminarAnimacionMuerte == null) {
+        throw new IllegalArgumentException("Se requieren los datos para preparar la vista");
+    }
+
+    RenderizadorNivel renderizadorNivel = new RenderizadorNivel();
+    PanelHUD hud = new PanelHUD();
+    SpriteMoneda spriteMoneda = new SpriteMoneda();
+    RenderizadorEntidades renderizadorEntidades = new RenderizadorEntidades(
+        jugador, fantasmas, ratasInfestadas, alTerminarAnimacionMuerte, () -> { }
+    );
+    SpritesPowerUps.precargar();
+    return new RecursosPreparados(
+        renderizadorNivel, hud, spriteMoneda, renderizadorEntidades
+    );
+}
+
+public static final class RecursosPreparados {
+    private final RenderizadorNivel renderizadorNivel;
+    private final PanelHUD hud;
+    private final SpriteMoneda spriteMoneda;
+    private final RenderizadorEntidades renderizadorEntidades;
+
+    private RecursosPreparados(
+            RenderizadorNivel renderizadorNivel, PanelHUD hud,
+            SpriteMoneda spriteMoneda,
+            RenderizadorEntidades renderizadorEntidades) {
+        this.renderizadorNivel = renderizadorNivel;
+        this.hud = hud;
+        this.spriteMoneda = spriteMoneda;
+        this.renderizadorEntidades = renderizadorEntidades;
+    }
 }
     public double getAnchoSprite() {
         return renderizadorEntidades.getAnchoSprite();

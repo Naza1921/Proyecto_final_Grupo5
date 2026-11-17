@@ -13,9 +13,10 @@ public class PanelSeleccionPersonaje extends JPanel {
     private static final Color COLOR_ACENTO = new Color(255, 214, 133);
     private static final Color COLOR_FONDO_TARJETA = new Color(39, 31, 53, 235);
 
-    private final Consumer<Personaje> onPersonajeSelected;
+    private final Consumer<Supplier<Personaje>> onPersonajeSelected;
 
-    public PanelSeleccionPersonaje(Consumer<Personaje> onPersonajeSelected) {
+    public PanelSeleccionPersonaje(
+            Consumer<Supplier<Personaje>> onPersonajeSelected) {
         if (onPersonajeSelected == null) {
             throw new IllegalArgumentException("Se requiere una acción al seleccionar un personaje");
         }
@@ -111,7 +112,7 @@ public class PanelSeleccionPersonaje extends JPanel {
         boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         boton.setToolTipText("Elegir " + nombre);
         boton.getAccessibleContext().setAccessibleName(nombre);
-        boton.addActionListener(evento -> onPersonajeSelected.accept(fabrica.get()));
+        boton.addActionListener(evento -> onPersonajeSelected.accept(fabrica));
         return boton;
     }
 

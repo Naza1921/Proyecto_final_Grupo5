@@ -30,7 +30,7 @@ final class RenderizadorEntidades {
 
     private final Personaje jugador;
     private final Runnable alTerminarAnimacionMuerte;
-    private final Runnable solicitarRepintado;
+    private Runnable solicitarRepintado;
     private final Map<fantasma, Long> iniciosMuerteFantasmaNanos = new IdentityHashMap<>();
     private final Map<ratainfestada, EstadoSpriteRata> estadosSpriteRata =
         new IdentityHashMap<>();
@@ -106,6 +106,13 @@ final class RenderizadorEntidades {
             SpritesFantasma.cargarPatrulla(false), 180_000_000L
         );
         framesMuerteFantasma = SpritesFantasma.cargarMuerte();
+    }
+
+    void setSolicitarRepintado(Runnable solicitarRepintado) {
+        if (solicitarRepintado == null) {
+            throw new IllegalArgumentException("Se requiere una acción para solicitar el repintado");
+        }
+        this.solicitarRepintado = solicitarRepintado;
     }
 
     double getAnchoSprite() {
