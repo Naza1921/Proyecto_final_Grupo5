@@ -49,11 +49,23 @@ public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> e
                   EstadoNivel estadoNivel,
                   Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
                   BufferedImage tutorialControles) {
+    this(
+        jugador, puntajeInicial, enemigos, estadoNivel, alTerminarAnimacionMuerte,
+        fondosPorPiso, tutorialControles,
+        RecursosJuego.preparar(jugador, alTerminarAnimacionMuerte)
+    );
+}
+
+public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> enemigos,
+                  EstadoNivel estadoNivel,
+                  Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
+                  BufferedImage tutorialControles, RecursosJuego recursos) {
     if (jugador == null || puntajeInicial < 0 || enemigos == null
             || enemigos.size() > 6
             || enemigos.stream().anyMatch(enemigo -> enemigo == null)
             || estadoNivel == null
             || alTerminarAnimacionMuerte == null
+            || recursos == null
             || fondosPorPiso == null
             || fondosPorPiso.length == 0
             || java.util.Arrays.stream(fondosPorPiso).anyMatch(fondo -> fondo == null)
@@ -62,15 +74,15 @@ public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> e
     }
     this.jugador = jugador;
     this.estadoNivel = estadoNivel;
-    this.renderizadorNivel = new RenderizadorNivel();
+    this.renderizadorNivel = recursos.renderizadorNivel();
     this.puntajePresentado = puntajeInicial;
     this.fondosPorPiso = fondosPorPiso.clone();
     this.tutorialControles = tutorialControles;
-    this.spriteMoneda = new SpriteMoneda();
-    this.renderizadorEntidades = new RenderizadorEntidades(
-        jugador, enemigos, alTerminarAnimacionMuerte, this::repaint
-    );
-    this.hud = new PanelHUD();
+    this.spriteMoneda = recursos.spriteMoneda();
+    this.renderizadorEntidades = recursos.renderizadorEntidades();
+    this.renderizadorEntidades.setSolicitarRepintado(this::repaint);
+    this.renderizadorEntidades.actualizarEnemigosVisibles(enemigos);
+    this.hud = recursos.hud();
 
     setPreferredSize(new Dimension(
         ConfiguracionPartida.COLS_NIVEL * ConfiguracionPartida.TAM_TILE,

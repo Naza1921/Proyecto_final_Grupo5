@@ -15,6 +15,7 @@ import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import recursos.CargadorRecursos;
 import vista.PanelJuego;
+import vista.RecursosJuego;
 
 final class CreadorPartida {
     private static final double ANCHO_FANTASMA = 36;
@@ -29,12 +30,32 @@ final class CreadorPartida {
         this.efectosSonido = efectosSonido;
     }
 
+    PartidaPreparada preparar(
+            Personaje jugador,
+            Runnable alTerminarAnimacionMuerte) {
+        if (jugador == null || alTerminarAnimacionMuerte == null) {
+            throw new IllegalArgumentException("Se requieren el personaje y los datos de carga");
+        }
+
+        levelmanager niveles = new levelmanager();
+        BufferedImage[] fondosJuego = cargarFondosJuego();
+        BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
+            "assets/tutorial_controles.png"
+        );
+        RecursosJuego recursosJuego = RecursosJuego.preparar(
+            new PresentadorPartida().presentar(jugador),
+            alTerminarAnimacionMuerte
+        );
+        return new PartidaPreparada(niveles, fondosJuego, tutorialControles, recursosJuego);
+    }
+
     PartidaCreada crear(
             Personaje jugador,
+            PartidaPreparada preparacion,
             Runnable alTerminarAnimacionMuerte,
             Runnable alPausar,
             Runnable alCompletarNivel) {
-        if (jugador == null || alTerminarAnimacionMuerte == null
+        if (jugador == null || preparacion == null || alTerminarAnimacionMuerte == null
                 || alPausar == null || alCompletarNivel == null) {
             throw new IllegalArgumentException("Se requieren el personaje y las acciones de la partida");
         }
@@ -59,15 +80,12 @@ final class CreadorPartida {
             );
         }
 
-        levelmanager niveles = new levelmanager();
-        BufferedImage[] fondosJuego = cargarFondosJuego();
-        BufferedImage tutorialControles = CargadorRecursos.cargarImagen(
-            "assets/tutorial_controles.png"
-        );
+        levelmanager niveles = preparacion.niveles();
         PresentadorPartida presentador = new PresentadorPartida();
         PanelJuego panelJuego = new PanelJuego(
             presentador.presentar(jugador), puntaje.getTotal(), List.of(), niveles,
-            alTerminarAnimacionMuerte, fondosJuego, tutorialControles
+            alTerminarAnimacionMuerte, preparacion.fondosJuego(),
+            preparacion.tutorialControles(), preparacion.recursosJuego()
         );
         Map<Integer, List<PowerUp>> powerUpsPorNivel =
             FabricaPowerUps.crearPorNivel(niveles.getNiveles());
@@ -121,5 +139,12 @@ final class CreadorPartida {
         GestorEfectosTemporales gestorEfectos,
         ControladorPartida controladorPartida,
         ControladorTecladoRata controladorTecladoRata
+    ) { }
+
+    record PartidaPreparada(
+        levelmanager niveles,
+        BufferedImage[] fondosJuego,
+        BufferedImage tutorialControles,
+        RecursosJuego recursosJuego
     ) { }
 }

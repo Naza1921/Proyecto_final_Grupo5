@@ -10,6 +10,7 @@ import modelos.personajes.PersonajeFactory;
 import persistencia.ConexionSQLite;
 import persistencia.SQLitePuntajeDAO;
 import servicios.ServicioPuntajes;
+import recursos.CargadorRecursos;
 import vista.MenuPrincipal;
 import vista.MenuAjustesVista;
 import vista.PanelJuego;
@@ -25,6 +26,7 @@ public class PrincipalControlador {
     private static final String VISTA_MENU = "menu";
     private static final String VISTA_AJUSTES = "ajustes";
     private static final String VISTA_SELECCION = "seleccion";
+    private static final String VISTA_CARGA = "carga";
     private static final String VISTA_JUEGO = "juego";
     private static final String VISTA_PAUSA = "pausa";
     private static final String VISTA_GAME_OVER = "gameOver";
@@ -90,6 +92,7 @@ public class PrincipalControlador {
         contenedor.add(tableroPuntajes, VISTA_TABLERO);
         contenedor.add(panelAjustes, VISTA_AJUSTES);
         contenedor.add(panelSeleccion, VISTA_SELECCION);
+        contenedor.add(crearPantallaCarga(), VISTA_CARGA);
         contenedor.add(menuPausa, VISTA_PAUSA);
         contenedor.add(menuGameOver, VISTA_GAME_OVER);
         reproductorMusica = new GestorMusica(this::mostrarErrorAjustes);
@@ -259,12 +262,75 @@ public class PrincipalControlador {
                 case VERDE -> Personaje.TipoRata.VERDE;
             }
         );
-        CreadorPartida.PartidaCreada partida = creadorPartida.crear(
-            jugador,
-            this::mostrarMenuGameOver,
-            this::pausarJuego,
-            this::guardarResultadoPartida
+        cardLayout.show(contenedor, VISTA_CARGA);
+        Personaje jugadorElegido = jugador;
+        new SwingWorker<CreadorPartida.PartidaPreparada, Void>() {
+            @Override
+            protected CreadorPartida.PartidaPreparada doInBackground() {
+                return creadorPartida.preparar(
+                    jugadorElegido, PrincipalControlador.this::mostrarMenuGameOver
+                );
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    CreadorPartida.PartidaCreada partida = creadorPartida.crear(
+                        jugadorElegido, get(), PrincipalControlador.this::mostrarMenuGameOver,
+                        PrincipalControlador.this::pausarJuego,
+                        PrincipalControlador.this::guardarResultadoPartida
+                    );
+                    mostrarPartida(partida);
+                } catch (InterruptedException error) {
+                    Thread.currentThread().interrupt();
+                    mostrarErrorCarga(error);
+                } catch (java.util.concurrent.ExecutionException error) {
+                    mostrarErrorCarga(error.getCause() == null ? error : error.getCause());
+                } catch (IllegalArgumentException | IllegalStateException error) {
+                    mostrarErrorCarga(error);
+                }
+            }
+        }.execute();
+    }
+
+    private JPanel crearPantallaCarga() {
+        java.awt.image.BufferedImage imagen = CargadorRecursos.cargarImagen(
+            "assets/Pantalla_de_carga.png"
         );
+        JPanel pantalla = new JPanel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics graficos) {
+                super.paintComponent(graficos);
+                double escala = Math.min(
+                    getWidth() / (double) imagen.getWidth(),
+                    getHeight() / (double) imagen.getHeight()
+                );
+                int ancho = (int) Math.round(imagen.getWidth() * escala);
+                int alto = (int) Math.round(imagen.getHeight() * escala);
+                int x = (getWidth() - ancho) / 2;
+                int y = (getHeight() - alto) / 2;
+                java.awt.Graphics2D graficos2D = (java.awt.Graphics2D) graficos.create();
+                try {
+                    graficos2D.drawImage(imagen, x, y, ancho, alto, null);
+                } finally {
+                    graficos2D.dispose();
+                }
+            }
+        };
+        pantalla.setBackground(java.awt.Color.BLACK);
+        return pantalla;
+    }
+
+    private void mostrarErrorCarga(Throwable error) {
+        String detalle = error.getMessage();
+        if (detalle == null || detalle.isBlank()) {
+            detalle = error.getClass().getSimpleName();
+        }
+        mostrarErrorAjustes("No se pudo preparar la partida: " + detalle);
+        cardLayout.show(contenedor, VISTA_SELECCION);
+    }
+
+    private void mostrarPartida(CreadorPartida.PartidaCreada partida) {
         panelJuego = partida.panelJuego();
         panelJuego.setPantallaCompleta(pantallaCompleta);
         gestorEfectos = partida.gestorEfectos();

@@ -38,23 +38,49 @@ public class SpriteRataInfestada {
     };
     private static final int[] LIMITES_MUERTE = {0, 155, 270, 408, 560};
 
-    private final Map<Animacion, SpriteSheet> animaciones = new EnumMap<>(Animacion.class);
+    private static volatile Map<Animacion, SpriteSheet> animacionesCompartidas;
+    private final Map<Animacion, SpriteSheet> animaciones;
     private Animacion animacionActual = Animacion.QUIETA;
     private int frameActual;
     private long tiempoAcumuladoMs;
 
     public SpriteRataInfestada() {
+        animaciones = obtenerAnimaciones();
+    }
+
+    public static void precargar() {
+        obtenerAnimaciones();
+    }
+
+    private static Map<Animacion, SpriteSheet> obtenerAnimaciones() {
+        Map<Animacion, SpriteSheet> animaciones = animacionesCompartidas;
+        if (animaciones != null) {
+            return animaciones;
+        }
+        synchronized (SpriteRataInfestada.class) {
+            animaciones = animacionesCompartidas;
+            if (animaciones == null) {
+                animaciones = cargarAnimaciones();
+                animacionesCompartidas = animaciones;
+            }
+        }
+        return animaciones;
+    }
+
+    private static Map<Animacion, SpriteSheet> cargarAnimaciones() {
+        Map<Animacion, SpriteSheet> animaciones = new EnumMap<>(Animacion.class);
         BufferedImage hoja = cargarHoja();
-        agregarAnimacion(hoja, Animacion.QUIETA, LIMITES_QUIETA, 55, 105);
-        agregarAnimacion(hoja, Animacion.CAMINAR_DERECHA,
+        agregarAnimacion(animaciones, hoja, Animacion.QUIETA, LIMITES_QUIETA, 55, 105);
+        agregarAnimacion(animaciones, hoja, Animacion.CAMINAR_DERECHA,
             LIMITES_CAMINAR_DERECHA, 210, 82);
-        agregarAnimacion(hoja, Animacion.CAMINAR_IZQUIERDA,
+        agregarAnimacion(animaciones, hoja, Animacion.CAMINAR_IZQUIERDA,
             LIMITES_CAMINAR_IZQUIERDA, 350, 88);
-        agregarAnimacion(hoja, Animacion.CORRER_DERECHA, 9, 20, 490, 1490, 86);
-        agregarAnimacion(hoja, Animacion.CORRER_IZQUIERDA, 9, 25, 620, 1490, 88);
-        agregarAnimacion(hoja, Animacion.MORDER, 9, 25, 755, 1490, 90);
-        agregarAnimacion(hoja, Animacion.HERIDA, 2, 585, 900, 270, 110);
-        agregarAnimacion(hoja, Animacion.MUERTE, LIMITES_MUERTE, 885, 120);
+        agregarAnimacion(animaciones, hoja, Animacion.CORRER_DERECHA, 9, 20, 490, 1490, 86);
+        agregarAnimacion(animaciones, hoja, Animacion.CORRER_IZQUIERDA, 9, 25, 620, 1490, 88);
+        agregarAnimacion(animaciones, hoja, Animacion.MORDER, 9, 25, 755, 1490, 90);
+        agregarAnimacion(animaciones, hoja, Animacion.HERIDA, 2, 585, 900, 270, 110);
+        agregarAnimacion(animaciones, hoja, Animacion.MUERTE, LIMITES_MUERTE, 885, 120);
+        return Map.copyOf(animaciones);
     }
 
     public void setAnimacion(Animacion nuevaAnimacion) {
@@ -121,13 +147,16 @@ public class SpriteRataInfestada {
         graficos.drawImage(imagen, xDibujo, yDibujo, anchoDibujo, altoDibujo, null);
     }
 
-    private void agregarAnimacion(BufferedImage hoja, Animacion animacion, int cantidadFrames,
-                                  int x, int y, int ancho, int alto) {
+    private static void agregarAnimacion(
+            Map<Animacion, SpriteSheet> animaciones, BufferedImage hoja,
+            Animacion animacion, int cantidadFrames,
+            int x, int y, int ancho, int alto) {
         animaciones.put(animacion, new SpriteSheet(hoja, cantidadFrames, x, y, ancho, alto));
     }
 
-    private void agregarAnimacion(BufferedImage hoja, Animacion animacion, int[] limitesX,
-                                  int y, int alto) {
+    private static void agregarAnimacion(
+            Map<Animacion, SpriteSheet> animaciones, BufferedImage hoja,
+            Animacion animacion, int[] limitesX, int y, int alto) {
         animaciones.put(animacion, new SpriteSheet(hoja, limitesX, y, alto));
     }
 
@@ -142,8 +171,9 @@ public class SpriteRataInfestada {
         throw new IllegalStateException("El cuadro de la rata infestada está vacío");
     }
 
-    private BufferedImage cargarHoja() {
-        try (InputStream entrada = getClass().getResourceAsStream(RUTA_SPRITE)) {
+    private static BufferedImage cargarHoja() {
+        try (InputStream entrada =
+                SpriteRataInfestada.class.getResourceAsStream(RUTA_SPRITE)) {
             if (entrada == null) {
                 throw new IllegalArgumentException("No se encontró el recurso: " + RUTA_SPRITE);
             }

@@ -19,6 +19,10 @@ public final class SpritesPowerUps {
     private SpritesPowerUps() {
     }
 
+    public static void precargar() {
+        SPRITES.size();
+    }
+
     public static BufferedImage cargar(PowerUpVista powerUp) {
         if (powerUp == null) {
             throw new IllegalArgumentException("Se requiere un power-up");
