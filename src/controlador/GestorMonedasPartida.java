@@ -8,6 +8,7 @@ import java.util.Map;
 import modelos.items.Moneda;
 import modelos.personajes.Personaje;
 import aplicacion.VistaPartida;
+import servicios.audio.ReproductorEfectosSonido;
 
 final class GestorMonedasPartida {
     private static final int PUNTOS_MONEDA = 100;
@@ -15,7 +16,7 @@ final class GestorMonedasPartida {
     private final Map<Integer, List<Moneda>> monedasPorSeccion;
     private final Personaje jugador;
     private final ControladorPuntaje controladorPuntaje;
-    private final GestorEfectosSonido efectosSonido;
+    private final ReproductorEfectosSonido efectosSonido;
     private final VistaPartida vista;
     private final Runnable actualizarPuntajePresentado;
     private int seccionPresentada = -1;
@@ -24,7 +25,7 @@ final class GestorMonedasPartida {
             Map<Integer, List<Moneda>> monedasPorSeccion,
             Personaje jugador,
             ControladorPuntaje controladorPuntaje,
-            GestorEfectosSonido efectosSonido,
+            ReproductorEfectosSonido efectosSonido,
             VistaPartida vista,
             Runnable actualizarPuntajePresentado) {
         if (monedasPorSeccion == null || jugador == null || controladorPuntaje == null
@@ -61,7 +62,7 @@ final class GestorMonedasPartida {
             if (moneda.colisionaCon(jugador)) {
                 iterador.remove();
                 controladorPuntaje.agregarPuntos(PUNTOS_MONEDA);
-                efectosSonido.reproducir(GestorEfectosSonido.Efecto.MONEDA);
+                efectosSonido.reproducir(ReproductorEfectosSonido.Efecto.MONEDA);
                 inventarioModificado = true;
             }
         }

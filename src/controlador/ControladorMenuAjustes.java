@@ -3,30 +3,15 @@ package controlador;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.util.Map;
 import java.util.function.Consumer;
 import javax.swing.JFrame;
 import modelos.PreferenciasAjustes;
-import recursos.CargadorRecursos;
+import servicios.RepositorioAjustes;
+import servicios.audio.ReproductorMusica;
 import vista.MenuAjustesVista;
 
 public final class ControladorMenuAjustes {
-
-    private static final Map<Integer, String> CANCIONES = Map.of(
-            1, "assets/audio/alex-morgan-video-game-pixel-chiptune-music-583271.mp3",
-            2, "assets/audio/maksymmalko-game-game-music-581017.mp3",
-            3, "assets/audio/MCZ STH2HD.mpeg",
-            4, "assets/audio/MM MHX AA.mpeg",
-            5, "assets/audio/MM3 - Snake.mpeg"
-
-    );
-
     private final JFrame ventana;
     private final MenuAjustesVista vista;
     private final ReproductorMusica reproductorMusica;
@@ -78,12 +63,6 @@ public final class ControladorMenuAjustes {
         vista.addVolverListener(
             () -> alVolver.run()
         );
-        ventana.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent event) {
-                reproductorMusica.close();
-            }
-        });
         cargarPreferencias();
     }
 
@@ -128,17 +107,9 @@ public final class ControladorMenuAjustes {
     }
 
     private void seleccionarCancion(int numeroCancion) {
-        String recurso = CANCIONES.get(numeroCancion);
-        if (recurso == null) {
-            notificadorError.accept("La canción seleccionada no existe: " + numeroCancion);
-            return;
-        }
-
         try {
-            URL url = CargadorRecursos.obtenerUrlRecurso(recurso);
-            Path archivo = Path.of(url.toURI());
-            reproductorMusica.seleccionarCancion(archivo);
-        } catch (IllegalArgumentException | IOException | URISyntaxException error) {
+            reproductorMusica.seleccionarCancion(numeroCancion);
+        } catch (IOException error) {
             notificadorError.accept(error.getMessage());
         }
     }

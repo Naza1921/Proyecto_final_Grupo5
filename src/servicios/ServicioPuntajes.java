@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 import persistencia.PuntajeDAO;
 import persistencia.ResultadoPuntaje;
 
-public final class ServicioPuntajes implements AutoCloseable {
+public final class ServicioPuntajes implements OperacionesPuntaje {
     private static final int CANTIDAD_PUNTAJES_TABLERO = 10;
 
     private final PuntajeDAO puntajeDAO;
@@ -37,6 +37,7 @@ public final class ServicioPuntajes implements AutoCloseable {
             .toList();
     }
 
+    @Override
     public CompletableFuture<Boolean> guardarMejorPuntajeAsync(
             String nombre, int puntuacion, long tiempoSegundos) {
         return CompletableFuture.supplyAsync(() -> {
@@ -48,6 +49,7 @@ public final class ServicioPuntajes implements AutoCloseable {
         }, ejecutor);
     }
 
+    @Override
     public CompletableFuture<List<ResultadoPuntaje>> listarMejoresPuntajesAsync() {
         return CompletableFuture.supplyAsync(() -> {
             try {

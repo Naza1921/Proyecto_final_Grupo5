@@ -15,21 +15,23 @@ import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
 import recursos.CargadorRecursos;
 import vista.PanelJuego;
+import servicios.audio.ReproductorEfectosSonido;
 
-final class CreadorPartida {
+public final class CreadorPartida implements FabricaPartida {
     private static final double ANCHO_FANTASMA = 36;
     private static final double ALTO_FANTASMA = 41;
 
-    private final GestorEfectosSonido efectosSonido;
+    private final ReproductorEfectosSonido efectosSonido;
 
-    CreadorPartida(GestorEfectosSonido efectosSonido) {
+    public CreadorPartida(ReproductorEfectosSonido efectosSonido) {
         if (efectosSonido == null) {
             throw new IllegalArgumentException("Se requiere el gestor de efectos de sonido");
         }
         this.efectosSonido = efectosSonido;
     }
 
-    PartidaCreada crear(
+    @Override
+    public PartidaCreada crear(
             Personaje jugador,
             Runnable alTerminarAnimacionMuerte,
             Runnable alPausar,
@@ -80,7 +82,7 @@ final class CreadorPartida {
             panelJuego,
             gestorControles,
             alPausar,
-            () -> efectosSonido.reproducir(GestorEfectosSonido.Efecto.SALTO),
+            () -> efectosSonido.reproducir(ReproductorEfectosSonido.Efecto.SALTO),
             controladorPartida::activarHabilidad
         );
         return new PartidaCreada(
@@ -114,11 +116,4 @@ final class CreadorPartida {
         }
         return fondos;
     }
-
-    record PartidaCreada(
-        PanelJuego panelJuego,
-        GestorEfectosTemporales gestorEfectos,
-        ControladorPartida controladorPartida,
-        ControladorTecladoRata controladorTecladoRata
-    ) { }
 }

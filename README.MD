@@ -267,6 +267,30 @@ try (PreparedStatement sentencia =
 ```
 La consulta guarda el mejor resultado de cada jugador: reemplaza el anterior si la nueva puntuación es más alta o, en caso de empate, si se obtuvo en menos tiempo. La otra operación recupera los puntajes ordenados para mostrarlos en el tablero.
 
+### Operaciones de puntajes en segundo plano
+
+El servicio `ServicioPuntajes` ejecuta la lectura y el guardado mediante un único `ExecutorService`, en el hilo `persistencia-puntajes`. Así, las operaciones SQLite no bloquean el hilo de eventos de Swing (EDT). El uso de un único hilo conserva el orden entre lecturas y escrituras. `ControladorPuntajes` actualiza las vistas y muestra los resultados al volver al EDT; el tablero indica mientras tanto que está cargando, y los avisos de finalización no son modales. El ejecutor se cierra al cerrar la ventana.
+
+Los cambios están implementados en:
+
+- `src/servicios/ServicioPuntajes.java`: ejecución asíncrona y ciclo de vida del ejecutor.
+- `src/controlador/ControladorPuntajes.java`: coordinación de las operaciones y actualizaciones Swing en el EDT.
+- `src/vista/TableroPuntajes.java`: estado de carga, vacío y error del tablero.
+
+### Preparación de partida en segundo plano
+
+Al seleccionar una rata, `ControladorFlujoPartida` solicita mostrar una pantalla de carga y usa `SwingWorker` para ejecutar `CreadorPartida.crear` fuera del EDT. Esa inicialización carga los mapas, imágenes y enemigos de la partida; completada la tarea, el controlador instala y arranca la partida desde el EDT. Así, la preparación no congela la interfaz y los errores se muestran explícitamente.
+
+### Organización del audio (MVC)
+
+Los controladores de ajustes y partida dependen de las interfaces `ReproductorMusica` y `ReproductorEfectosSonido`, ubicadas en `src/servicios/audio`. Las implementaciones `ReproductorMusicaJavaFx` y `ReproductorEfectosSonidoJavaFx` encapsulan JavaFX, la resolución de archivos y la reproducción. El controlador de ajustes envía la selección de canción como un número, sin conocer rutas ni APIs multimedia; `App`, como punto de composición, crea las implementaciones y adapta los errores al hilo de Swing.
+
+### Responsabilidades y dependencias de los controladores (SOLID)
+
+`PrincipalControlador` coordina la navegación y conecta los controladores especializados. `ControladorFlujoPartida` administra el ciclo de vida de una partida y depende de `NavegacionPartida` para solicitar cambios de vista; `ControladorPuntajes` centraliza la interacción con el jugador y las operaciones de puntaje. Los contratos `OperacionesPuntaje`, `FabricaPartida` y `RepositorioAjustes` permiten depender de abstracciones, mientras que `App` crea e inyecta las implementaciones concretas.
+
+La interfaz `RepositorioAjustes` está en `src/servicios/`; `PreferenciasAjustesSistema`, que encapsula `java.util.prefs.Preferences`, está en `src/persistencia/`. De este modo, los controladores no conocen la tecnología concreta usada para almacenar preferencias.
+
 
 ## Tecnologías 
 ```

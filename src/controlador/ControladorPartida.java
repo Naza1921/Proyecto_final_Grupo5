@@ -13,6 +13,7 @@ import modelos.items.PowerUp;
 import modelos.partida.ConfiguracionPartida;
 import modelos.escenario.levels.level;
 import modelos.personajes.Personaje;
+import servicios.audio.ReproductorEfectosSonido;
 
 // Coordina el ciclo temporal de la partida y solicita el repintado de la vista.
 public final class ControladorPartida implements SeccionListener {
@@ -23,7 +24,7 @@ public final class ControladorPartida implements SeccionListener {
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
     private final GestorEfectosTemporales gestorEfectos;
-    private final GestorEfectosSonido efectosSonido;
+    private final ReproductorEfectosSonido efectosSonido;
     private final ControladorPuntaje controladorPuntaje;
     private final VistaPartida panelJuego;
     private final levelmanager niveles;
@@ -45,7 +46,7 @@ public final class ControladorPartida implements SeccionListener {
     public ControladorPartida(ControladorRata controladorRata,
                               GestorControlesRatas gestorControles,
                               GestorEfectosTemporales gestorEfectos,
-                              GestorEfectosSonido efectosSonido,
+                              ReproductorEfectosSonido efectosSonido,
                               ControladorPuntaje controladorPuntaje,
                               VistaPartida panelJuego,
                               levelmanager niveles,
@@ -142,7 +143,7 @@ public final class ControladorPartida implements SeccionListener {
         boolean activada = usarHabilidad(null, jugador.getX(), jugador.getY());
         if (activada) {
             panelJuego.mostrarAnimacionHabilidad();
-            efectosSonido.reproducir(GestorEfectosSonido.Efecto.HABILIDAD);
+            efectosSonido.reproducir(ReproductorEfectosSonido.Efecto.HABILIDAD);
         }
         return activada;
     }
@@ -262,7 +263,7 @@ private void actualizar() {
 private void reproducirSonidoMuerte() {
     if (!sonidoMuerteReproducido) {
         sonidoMuerteReproducido = true;
-        efectosSonido.reproducir(GestorEfectosSonido.Efecto.MUERTE);
+        efectosSonido.reproducir(ReproductorEfectosSonido.Efecto.MUERTE);
     }
 }
 
@@ -291,7 +292,7 @@ private void configurarEnemigosVisibles(int seccion) {
 @Override
 public void alTerminarNivel() {
     detener();
-    efectosSonido.reproducir(GestorEfectosSonido.Efecto.NIVEL_COMPLETADO);
+    efectosSonido.reproducir(ReproductorEfectosSonido.Efecto.NIVEL_COMPLETADO);
     if (niveles.hayPisoSiguiente()) {
         panelJuego.mostrarNivelCompletado(this::continuarConSiguientePiso);
     } else {

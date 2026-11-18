@@ -5,14 +5,14 @@
             "type": "java",
             "name": "app",
             "request": "launch",
-            "mainClass": "app",
+            "mainClass": "App",
             "projectName": "Proyecto_final_Grupo5principal_438568e0"
         },
         {
             "type": "java",
             "name": "app",
             "request": "launch",
-            "mainClass": "app",
+            "mainClass": "App",
             "vmArgs": "--module-path \"/home/ivo-leal/Escritorio/javafx-sdk-27/lib\" --add-modules javafx.controls,javafx.media,javafx.swing -Dghostsrats.db.path=\"${workspaceFolder}/Score.db\" --enable-native-access=javafx.graphics",
             "projectName": "Proyecto_final_Grupo5_f7d1ab82"
         },
@@ -20,7 +20,7 @@
             "type": "java",
             "name": "app",
             "request": "launch",
-            "mainClass": "app",
+            "mainClass": "App",
             "vmArgs": "--module-path \"/home/ivo-leal/Escritorio/javafx-sdk-27/lib\" --add-modules javafx.controls,javafx.media,javafx.swing -Dghostsrats.db.path=\"${workspaceFolder}/Score.db\" --enable-native-access=javafx.graphics",
             "projectName": "Proyecto_final_Grupo5_5e338171"
         },

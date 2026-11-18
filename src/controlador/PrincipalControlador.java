@@ -2,24 +2,23 @@ package controlador;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import javax.swing.*;
+import aplicacion.NavegacionPartida;
 import modelos.personajes.Personaje;
-import persistencia.ConexionSQLite;
-import persistencia.SQLitePuntajeDAO;
-import servicios.ServicioPuntajes;
-import vista.MenuPrincipal;
+import servicios.OperacionesPuntaje;
+import servicios.RepositorioAjustes;
+import servicios.audio.ReproductorEfectosSonido;
+import servicios.audio.ReproductorMusica;
 import vista.MenuAjustesVista;
+import vista.MenuGameOver;
+import vista.MenuPausa;
+import vista.MenuPrincipal;
 import vista.PanelJuego;
 import vista.PanelSeleccionPersonaje;
 import vista.PantallaIntro;
-import vista.MenuPausa;
-import vista.MenuGameOver;
 import vista.TableroPuntajes;
 
-public class PrincipalControlador {
-
+public final class PrincipalControlador implements NavegacionPartida {
     private static final String VISTA_INTRO = "intro";
     private static final String VISTA_MENU = "menu";
     private static final String VISTA_AJUSTES = "ajustes";
@@ -30,40 +29,38 @@ public class PrincipalControlador {
     private static final String VISTA_TABLERO = "tablero";
     private static final String VISTA_CARGA = "carga";
 
-    private Personaje jugador;
+    private final OperacionesPuntaje operacionesPuntaje;
+    private final ReproductorMusica reproductorMusica;
+    private final ReproductorEfectosSonido reproductorEfectosSonido;
+    private final FabricaPartida fabricaPartida;
+    private final RepositorioAjustes repositorioAjustes;
+
     private JFrame ventana;
-    private PanelJuego panelJuego;
-    private ControladorPartida controladorPartida;
-    private ControladorTecladoRata controladorTecladoRata;
-    private GestorEfectosTemporales gestorEfectos;
-    private MenuPrincipal menuPrincipal;
+    private CardLayout cardLayout;
+    private JPanel contenedor;
     private TableroPuntajes tableroPuntajes;
     private MenuPausa menuPausa;
     private MenuGameOver menuGameOver;
-    private PanelSeleccionPersonaje panelSeleccion; //para la seleccion del pesonaje
-    private PantallaIntro pantallaIntro;
-    private MenuAjustesVista panelAjustes;
     private ControladorMenuAjustes controladorMenuAjustes;
-    private ReproductorMusica reproductorMusica;
-    private final ServicioPuntajes servicioPuntajes;
-    private final GestorEfectosSonido efectosSonido;
-    private final CreadorPartida creadorPartida;
-    private CardLayout cardLayout;
-    private JPanel contenedor;
+    private ControladorPuntajes controladorPuntajes;
+    private ControladorFlujoPartida controladorFlujoPartida;
 
-    public PrincipalControlador() {
-        this(new ServicioPuntajes(
-            new SQLitePuntajeDAO(ConexionSQLite.obtenerInstancia())
-        ));
-    }
-
-    public PrincipalControlador(ServicioPuntajes servicioPuntajes) {
-        if (servicioPuntajes == null) {
-            throw new IllegalArgumentException("Se requiere el servicio de puntajes");
+    public PrincipalControlador(
+            OperacionesPuntaje operacionesPuntaje,
+            ReproductorMusica reproductorMusica,
+            ReproductorEfectosSonido reproductorEfectosSonido,
+            FabricaPartida fabricaPartida,
+            RepositorioAjustes repositorioAjustes) {
+        if (operacionesPuntaje == null || reproductorMusica == null
+                || reproductorEfectosSonido == null || fabricaPartida == null
+                || repositorioAjustes == null) {
+            throw new IllegalArgumentException("Se requieren dependencias válidas para la aplicación");
         }
-        this.servicioPuntajes = servicioPuntajes;
-        this.efectosSonido = new GestorEfectosSonido(this::mostrarErrorAjustes);
-        this.creadorPartida = new CreadorPartida(efectosSonido);
+        this.operacionesPuntaje = operacionesPuntaje;
+        this.reproductorMusica = reproductorMusica;
+        this.reproductorEfectosSonido = reproductorEfectosSonido;
+        this.fabricaPartida = fabricaPartida;
+        this.repositorioAjustes = repositorioAjustes;
         iniciarVentana();
     }
 
@@ -75,37 +72,44 @@ public class PrincipalControlador {
 
         cardLayout = new CardLayout();
         contenedor = new JPanel(cardLayout);
-
-        pantallaIntro = new PantallaIntro(this::mostrarMenu);
-        menuPrincipal = new MenuPrincipal();
+        MenuPrincipal menuPrincipal = new MenuPrincipal();
         tableroPuntajes = new TableroPuntajes(this::mostrarMenu);
         menuPausa = new MenuPausa();
         menuGameOver = new MenuGameOver();
-        panelAjustes = new MenuAjustesVista();
-        panelSeleccion = new PanelSeleccionPersonaje(this::iniciarJuego);
+        MenuAjustesVista panelAjustes = new MenuAjustesVista();
+        PanelSeleccionPersonaje panelSeleccion =
+            new PanelSeleccionPersonaje(this::iniciarJuego);
 
         contenedor.add(crearPanelCargaPartida(), VISTA_CARGA);
-        contenedor.add(pantallaIntro, VISTA_INTRO);
+        contenedor.add(new PantallaIntro(this::mostrarMenu), VISTA_INTRO);
         contenedor.add(menuPrincipal, VISTA_MENU);
         contenedor.add(tableroPuntajes, VISTA_TABLERO);
         contenedor.add(panelAjustes, VISTA_AJUSTES);
         contenedor.add(panelSeleccion, VISTA_SELECCION);
         contenedor.add(menuPausa, VISTA_PAUSA);
         contenedor.add(menuGameOver, VISTA_GAME_OVER);
-        reproductorMusica = new GestorMusica(this::mostrarErrorAjustes);
+
+        controladorPuntajes = new ControladorPuntajes(
+            ventana, operacionesPuntaje, tableroPuntajes
+        );
+        controladorFlujoPartida = new ControladorFlujoPartida(
+            fabricaPartida,
+            reproductorMusica,
+            this,
+            controladorPuntajes::solicitarGuardado
+        );
         controladorMenuAjustes = new ControladorMenuAjustes(
             ventana,
             panelAjustes,
             reproductorMusica,
-            new RepositorioAjustes(),
+            repositorioAjustes,
             this::mostrarErrorAjustes,
             this::mostrarConfirmacionAjustes,
             this::mostrarMenu
         );
-        configurarBotonesMenu();
+        configurarBotonesMenu(menuPrincipal);
 
         ventana.add(contenedor);
-
         cardLayout.show(contenedor, VISTA_INTRO);
         ventana.pack();
         ventana.setLocationRelativeTo(null);
@@ -113,16 +117,35 @@ public class PrincipalControlador {
         ventana.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent evento) {
-                efectosSonido.close();
-                servicioPuntajes.close();
+                controladorFlujoPartida.cerrar();
+                reproductorEfectosSonido.close();
+                reproductorMusica.close();
+                operacionesPuntaje.close();
             }
         });
         ventana.setVisible(true);
     }
 
+    private void configurarBotonesMenu(MenuPrincipal menuPrincipal) {
+        menuPrincipal.getBtnJugar().addActionListener(evento -> mostrarSeleccion());
+        menuPrincipal.getBtnOpciones().addActionListener(
+            evento -> cardLayout.show(contenedor, VISTA_AJUSTES)
+        );
+        menuPrincipal.getBtnRanking().addActionListener(evento -> mostrarTablero());
+        menuPrincipal.getBtnSalir().addActionListener(evento -> System.exit(0));
+        menuPausa.getBtnReanudar().addActionListener(
+            evento -> controladorFlujoPartida.reanudar()
+        );
+        menuPausa.getBtnVolverAlMenu().addActionListener(
+            evento -> controladorFlujoPartida.volverAlMenuDesdePausa()
+        );
+        menuPausa.getBtnSalir().addActionListener(evento -> System.exit(0));
+        menuGameOver.getBtnVolver().addActionListener(evento -> volverAlMenuDesdeGameOver());
+        menuGameOver.getBtnSalir().addActionListener(evento -> System.exit(0));
+    }
 
-
-    private void mostrarMenu() {
+    @Override
+    public void mostrarMenu() {
         cardLayout.show(contenedor, VISTA_MENU);
     }
 
@@ -131,92 +154,56 @@ public class PrincipalControlador {
     }
 
     private void mostrarTablero() {
-        tableroPuntajes.mostrarCargando();
         cardLayout.show(contenedor, VISTA_TABLERO);
-        servicioPuntajes.listarMejoresPuntajesAsync().whenComplete((resultados, error) ->
-            SwingUtilities.invokeLater(() -> {
-                if (error == null) {
-                    tableroPuntajes.mostrarResultados(resultados);
-                } else {
-                    tableroPuntajes.mostrarErrorCarga();
-                    mostrarAvisoNoModal(
-                        "No se pudo cargar el tablero de puntajes: "
-                            + obtenerCausa(error).getMessage(),
-                        "Error de base de datos",
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                }
-            })
-        );
+        controladorPuntajes.cargarTablero();
     }
 
-    private void configurarBotonesMenu() {
-        menuPrincipal.getBtnJugar().addActionListener(e -> mostrarSeleccion());
-
-        menuPrincipal.getBtnOpciones().addActionListener(e ->
-            cardLayout.show(contenedor, VISTA_AJUSTES));
-
-        menuPrincipal.getBtnRanking().addActionListener(e -> mostrarTablero());
-        menuPrincipal.getBtnSalir().addActionListener(e -> System.exit(0));
-        menuPausa.getBtnReanudar().addActionListener(e -> reanudarJuego());
-        menuPausa.getBtnVolverAlMenu().addActionListener(e -> volverAlMenuDesdePausa());
-        menuPausa.getBtnSalir().addActionListener(e -> System.exit(0));
-        menuGameOver.getBtnVolver().addActionListener(e -> volverAlMenuDesdeGameOver());
-        menuGameOver.getBtnSalir().addActionListener(e -> System.exit(0));
+    @Override
+    public void mostrarCargaPartida() {
+        cardLayout.show(contenedor, VISTA_CARGA);
     }
 
-    private void pausarJuego() {
-        if (controladorPartida == null) {
-            return;
-        }
-        if (!controladorPartida.pausar()) {
-            return;
-        }
-        controladorTecladoRata.limpiarEntradas();
-        gestorEfectos.pausar();
-        cardLayout.show(contenedor, VISTA_PAUSA);
-        menuPausa.getBtnReanudar().requestFocusInWindow();
+    private JPanel crearPanelCargaPartida() {
+        JPanel panel = new JPanel(new java.awt.GridBagLayout());
+        panel.setBackground(new java.awt.Color(15, 13, 25));
+        JLabel mensaje = new JLabel("Preparando la partida...");
+        mensaje.setForeground(new java.awt.Color(255, 214, 133));
+        mensaje.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 22));
+        panel.add(mensaje);
+        return panel;
     }
 
-    private void reanudarJuego() {
-        if (controladorPartida == null) {
-            return;
+    @Override
+    public void instalarVistaPartida(PanelJuego panelJuego) {
+        if (panelJuego.getParent() != contenedor) {
+            contenedor.add(panelJuego, VISTA_JUEGO);
         }
-        gestorEfectos.reanudar();
-        controladorPartida.reanudar();
         cardLayout.show(contenedor, VISTA_JUEGO);
         panelJuego.requestFocusInWindow();
     }
 
-    private void volverAlMenuDesdePausa() {
-        controladorPartida.detener();
-        gestorEfectos.limpiar();
-        cardLayout.show(contenedor, VISTA_MENU);
+    @Override
+    public void quitarVistaPartida(PanelJuego panelJuego) {
+        contenedor.remove(panelJuego);
     }
 
-    private void mostrarMenuGameOver() {
-        if (controladorTecladoRata != null) {
-            controladorTecladoRata.limpiarEntradas();
-        }
-        if (gestorEfectos != null) {
-            gestorEfectos.limpiar();
-        }
+    @Override
+    public void mostrarPausa() {
+        cardLayout.show(contenedor, VISTA_PAUSA);
+        menuPausa.getBtnReanudar().requestFocusInWindow();
+    }
+
+    @Override
+    public void mostrarMenuGameOver() {
         cardLayout.show(contenedor, VISTA_GAME_OVER);
         menuGameOver.getBtnVolver().requestFocusInWindow();
     }
 
     private void volverAlMenuDesdeGameOver() {
-        int respuesta = JOptionPane.showConfirmDialog(
-            ventana,
-            "Quisieras guardar tu progreso en la tabla de puntos?",
-            "Guardar progreso",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE
+        controladorPuntajes.confirmarGuardado(
+            controladorFlujoPartida.obtenerResultadoActual()
         );
-        if (respuesta == JOptionPane.YES_OPTION) {
-            guardarResultadoPartida();
-        }
-        mostrarMenu();
+        controladorFlujoPartida.volverAlMenuDesdeGameOver();
     }
 
     private void mostrarErrorAjustes(String mensaje) {
@@ -237,142 +224,18 @@ public class PrincipalControlador {
         );
     }
 
-    private void iniciarJuego(Personaje personajeElegido) {
-        if (controladorPartida != null) {
-            controladorPartida.detener();
-        }
-        if (gestorEfectos != null) {
-            gestorEfectos.limpiar();
-        }
-        if (panelJuego != null) {
-            contenedor.remove(panelJuego);
-        }
-
-        this.jugador = personajeElegido;
-        cardLayout.show(contenedor, VISTA_CARGA);
-
-        SwingWorker<CreadorPartida.PartidaCreada, Void> trabajador =
-            new SwingWorker<>() {
-                @Override
-                protected CreadorPartida.PartidaCreada doInBackground() {
-                    return creadorPartida.crear(
-                        personajeElegido,
-                        PrincipalControlador.this::mostrarMenuGameOver,
-                        PrincipalControlador.this::pausarJuego,
-                        PrincipalControlador.this::guardarResultadoPartida
-                    );
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        iniciarPartida(get());
-                    } catch (InterruptedException excepcion) {
-                        Thread.currentThread().interrupt();
-                        mostrarErrorCreacionPartida(excepcion);
-                    } catch (ExecutionException excepcion) {
-                        mostrarErrorCreacionPartida(excepcion.getCause());
-                    }
-                }
-            };
-        trabajador.execute();
-    }
-
-    private JPanel crearPanelCargaPartida() {
-        JPanel panel = new JPanel(new java.awt.GridBagLayout());
-        panel.setBackground(new java.awt.Color(15, 13, 25));
-        JLabel mensaje = new JLabel("Preparando la partida...");
-        mensaje.setForeground(new java.awt.Color(255, 214, 133));
-        mensaje.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 22));
-        panel.add(mensaje);
-        return panel;
-    }
-
-    private void iniciarPartida(CreadorPartida.PartidaCreada partida) {
-        panelJuego = partida.panelJuego();
-        gestorEfectos = partida.gestorEfectos();
-        controladorPartida = partida.controladorPartida();
-        controladorTecladoRata = partida.controladorTecladoRata();
-
-        contenedor.add(panelJuego, VISTA_JUEGO);
-        cardLayout.show(contenedor, VISTA_JUEGO);
-
-        panelJuego.requestFocusInWindow();
-        controladorPartida.iniciar();
-        reproductorMusica.habilitarReproduccion();
-    }
-
-    private void mostrarErrorCreacionPartida(Throwable error) {
+    @Override
+    public void mostrarErrorCreacionPartida(String mensaje) {
         JOptionPane.showMessageDialog(
             ventana,
-            "No se pudo preparar la partida: " + error.getMessage(),
+            mensaje,
             "Error al iniciar el juego",
             JOptionPane.ERROR_MESSAGE
         );
         cardLayout.show(contenedor, VISTA_SELECCION);
     }
 
-    private void guardarResultadoPartida() {
-        String nombre = JOptionPane.showInputDialog(
-            ventana,
-            "Ingresá tu nombre para guardar el puntaje:",
-            jugador.getNombre()
-        );
-        if (nombre == null) {
-            JOptionPane.showMessageDialog(
-                ventana,
-                "El resultado de esta partida no se guardó.",
-                "Puntaje no guardado",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            return;
-        }
-        if (nombre.isBlank()) {
-            JOptionPane.showMessageDialog(
-                ventana,
-                "El nombre no puede estar vacío; el resultado no se guardó.",
-                "Nombre inválido",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-
-        int puntuacion = controladorPartida.obtenerPuntaje();
-        long tiempoSegundos = controladorPartida.obtenerTiempoPartidaSegundos();
-        servicioPuntajes.guardarMejorPuntajeAsync(nombre, puntuacion, tiempoSegundos)
-            .whenComplete((nuevoMejorPuntaje, error) -> SwingUtilities.invokeLater(() -> {
-                if (error != null) {
-                    mostrarAvisoNoModal(
-                        "No se pudo guardar el puntaje en SQLite: "
-                            + obtenerCausa(error).getMessage(),
-                        "Error de base de datos",
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-                String mensaje = nuevoMejorPuntaje
-                    ? "Puntaje guardado correctamente."
-                    : "No superaste tu mejor puntaje anterior; se conservó el registro existente.";
-                mostrarAvisoNoModal(
-                    mensaje,
-                    "Resultado de la partida",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-            }));
-    }
-
-    private void mostrarAvisoNoModal(String mensaje, String titulo, int tipo) {
-        JOptionPane panelAviso = new JOptionPane(mensaje, tipo);
-        JDialog dialogo = panelAviso.createDialog(ventana, titulo);
-        dialogo.setModal(false);
-        dialogo.setVisible(true);
-    }
-
-    private Throwable obtenerCausa(Throwable error) {
-        Throwable causa = error;
-        while (causa instanceof CompletionException && causa.getCause() != null) {
-            causa = causa.getCause();
-        }
-        return causa;
+    private void iniciarJuego(Personaje personajeElegido) {
+        controladorFlujoPartida.iniciar(personajeElegido);
     }
 }
