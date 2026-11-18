@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import modelos.PreferenciasAjustes;
+import persistencia.PreferenciasAjustes;
 
 public final class RepositorioAjustes {
 

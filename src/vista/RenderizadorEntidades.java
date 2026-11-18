@@ -18,7 +18,6 @@ import aplicacion.JugadorVista;
 import aplicacion.ProyectilVista;
 import aplicacion.TipoRataVista;
 import controlador.GestorAnimacionSprite;
-import modelos.partida.ConfiguracionPartida;
 
 final class RenderizadorEntidades {
     private static final long DURACION_FRAME_NANOS = 160_000_000L;
@@ -325,8 +324,8 @@ final class RenderizadorEntidades {
         );
         boolean mostrandoHabilidad = accionAnimacionRata == SpritesRatas.Accion.HAB_ESPECIAL;
         double escala = Math.min(
-            (double) ConfiguracionPartida.ANCHO_JUGADOR / cuadro.getWidth(),
-            (double) ConfiguracionPartida.ALTO_JUGADOR / cuadro.getHeight()
+            (double) jugador.ancho() / cuadro.getWidth(),
+            (double) jugador.alto() / cuadro.getHeight()
         );
         if (mostrandoHabilidad) {
             escala *= 1.25;
@@ -340,13 +339,13 @@ final class RenderizadorEntidades {
         int xDibujo = (int) jugador.x();
         if (mostrandoHabilidad) {
             xDibujo = (int) Math.round(
-                jugador.x() - (anchoDibujo - ConfiguracionPartida.ANCHO_JUGADOR) / 2.0
+                jugador.x() - (anchoDibujo - jugador.ancho()) / 2.0
             );
         }
         double ajusteBase = jugador.tipo() == TipoRataVista.VERDE
             ? AJUSTE_BASE_RATA_VERDE : 0;
         int yDibujo = (int) Math.round(
-            jugador.y() + ConfiguracionPartida.ALTO_JUGADOR
+            jugador.y() + jugador.alto()
                 - (ultimaFilaVisibleRata + 1) * (double) altoDibujo / cuadro.getHeight()
                 + ajusteBase
         );

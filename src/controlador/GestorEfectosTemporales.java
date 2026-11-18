@@ -1,8 +1,5 @@
 package controlador;
 
-import java.util.EnumMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import modelos.items.CategoriaEfectoTemporal;
 import modelos.items.EfectoTemporal;
@@ -11,8 +8,7 @@ import modelos.personajes.Personaje;
 
 public final class GestorEfectosTemporales {
     private final Personaje personaje;
-    private final Map<CategoriaEfectoTemporal, EfectoActivo> efectosActivos =
-        new EnumMap<>(CategoriaEfectoTemporal.class);
+    private EfectoActivo efectoActivo;
     private long pausaIniciadaEnNanos;
     private boolean pausado;
 
@@ -56,30 +52,27 @@ public final class GestorEfectosTemporales {
 
         long ahora = System.nanoTime();
         long duracionNanos = TimeUnit.MILLISECONDS.toNanos(powerUp.getDuracion());
-        EfectoActivo anterior = efectosActivos.get(categoria);
 
-        if (anterior != null && anterior.efecto.getClass() != nuevoEfecto.getClass()) {
-            anterior.efecto.revertir(personaje);
-            efectosActivos.remove(categoria);
-            anterior = null;
-        }
-
-        if (anterior == null) {
+        if (efectoActivo == null
+                || efectoActivo.efecto.getClass() != nuevoEfecto.getClass()) {
+            if (efectoActivo != null) {
+                efectoActivo.efecto.revertir(personaje);
+            }
             nuevoEfecto.aplicar(personaje);
         }
-        efectosActivos.put(categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos));
+
+        efectoActivo = new EfectoActivo(nuevoEfecto, ahora, duracionNanos);
     }
 
     public void actualizar() {
+        if (efectoActivo == null) {
+            return;
+        }
+
         long ahora = System.nanoTime();
-        Iterator<Map.Entry<CategoriaEfectoTemporal, EfectoActivo>> iterador =
-            efectosActivos.entrySet().iterator();
-        while (iterador.hasNext()) {
-            EfectoActivo activo = iterador.next().getValue();
-            if (ahora - activo.iniciadoEnNanos >= activo.duracionNanos) {
-                activo.efecto.revertir(personaje);
-                iterador.remove();
-            }
+        if (ahora - efectoActivo.iniciadoEnNanos >= efectoActivo.duracionNanos) {
+            efectoActivo.efecto.revertir(personaje);
+            efectoActivo = null;
         }
     }
 
@@ -96,18 +89,18 @@ public final class GestorEfectosTemporales {
         }
 
         long duracionPausaNanos = System.nanoTime() - pausaIniciadaEnNanos;
-        for (EfectoActivo activo : efectosActivos.values()) {
-            activo.iniciadoEnNanos += duracionPausaNanos;
+        if (efectoActivo != null) {
+            efectoActivo.iniciadoEnNanos += duracionPausaNanos;
         }
         pausaIniciadaEnNanos = 0;
         pausado = false;
     }
 
     public void limpiar() {
-        for (EfectoActivo activo : efectosActivos.values()) {
-            activo.efecto.revertir(personaje);
+        if (efectoActivo != null) {
+            efectoActivo.efecto.revertir(personaje);
+            efectoActivo = null;
         }
-        efectosActivos.clear();
         pausaIniciadaEnNanos = 0;
         pausado = false;
     }
@@ -116,7 +109,7 @@ public final class GestorEfectosTemporales {
         if (categoria == null) {
             throw new IllegalArgumentException("Se requiere una categoría de efecto");
         }
-        return efectosActivos.containsKey(categoria);
+        return efectoActivo != null && efectoActivo.efecto.getCategoria() == categoria;
     }
 
     private static final class EfectoActivo {

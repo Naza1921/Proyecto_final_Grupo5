@@ -22,7 +22,7 @@ import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 
-import modelos.PreferenciasAjustes;
+import aplicacion.PreferenciasAjustesVista;
 
 public final class MenuAjustesVista extends JPanel {
 
@@ -138,9 +138,9 @@ public final class MenuAjustesVista extends JPanel {
         btnVolver.addActionListener(event -> listener.run());
     }
 
-    public PreferenciasAjustes obtenerPreferencias() {
+    public PreferenciasAjustesVista obtenerPreferencias() {
         int cancionSeleccionada = rdbCancion1.isSelected() ? 1 : rdbCancion2.isSelected() ? 2 : rdbCancion3.isSelected() ? 3 : rdbCancion4.isSelected() ? 4 : rdbCancion5.isSelected() ? 5 : 0;
-        return new PreferenciasAjustes(
+        return new PreferenciasAjustesVista(
                 chkMusica.isSelected(),
                 cancionSeleccionada,
                 volumen.getValue(),
@@ -148,7 +148,7 @@ public final class MenuAjustesVista extends JPanel {
                 chkPantallaCompleta.isSelected());
     }
 
-    public void aplicarPreferencias(PreferenciasAjustes preferencias) {
+    public void aplicarPreferencias(PreferenciasAjustesVista preferencias) {
         chkMusica.setSelected(preferencias.musicaActivada());
         volumen.setValue(preferencias.volumen());
         btnTema.setSelected(preferencias.temaOscuro());

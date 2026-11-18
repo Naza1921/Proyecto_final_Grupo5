@@ -3,7 +3,6 @@ package vista;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import aplicacion.NivelVista;
-import modelos.partida.ConfiguracionPartida;
 import recursos.CargadorRecursos;
 
 final class RenderizadorNivel {
@@ -47,7 +46,7 @@ final class RenderizadorNivel {
     }
 
     void dibujar(Graphics2D graphics, NivelVista nivel) {
-        int tamTile = ConfiguracionPartida.TAM_TILE;
+        int tamTile = nivel.getTamanoTile();
         for (int fila = 0; fila < nivel.getAlto(); fila++) {
             for (int columna = 0; columna < nivel.getAncho(); columna++) {
                 int indiceSprite = nivel.getSpriteIndex(columna, fila);
@@ -57,7 +56,8 @@ final class RenderizadorNivel {
                         columna * tamTile,
                         fila * tamTile,
                         indiceSprite,
-                        nivel.esUltimaSeccion()
+                        nivel.esUltimaSeccion(),
+                        tamTile
                     );
                     continue;
                 }
@@ -83,7 +83,8 @@ final class RenderizadorNivel {
             int x,
             int y,
             int tipo,
-            boolean esUltimaSeccion) {
+            boolean esUltimaSeccion,
+            int tamTile) {
         int indiceSprite = tipo == INDICE_AGUJERO_SIGUIENTE
             ? (esUltimaSeccion ? 2 : 0)
             : 1;
@@ -91,8 +92,8 @@ final class RenderizadorNivel {
             spritesAgujero[indiceSprite],
             x,
             y,
-            ConfiguracionPartida.TAM_TILE,
-            ConfiguracionPartida.TAM_TILE,
+            tamTile,
+            tamTile,
             null
         );
     }

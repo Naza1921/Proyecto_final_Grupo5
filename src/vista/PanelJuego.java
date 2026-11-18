@@ -14,19 +14,14 @@ import aplicacion.JugadorVista;
 import aplicacion.MonedaVista;
 import aplicacion.NivelVista;
 import aplicacion.PowerUpVista;
+import aplicacion.TutorialVista;
 import aplicacion.VistaPartida;
 import aplicacion.EstadoNivel;
-import modelos.partida.ConfiguracionPartida;
 
 public final class PanelJuego extends JPanel implements VistaPartida {
     private static final double ZOOM_CAMARA = 2.0;
     private static final double ZOOM_CAMARA_PANTALLA_COMPLETA = 2.5;
     private static final double SUAVIZADO_CAMARA_SEGUNDOS = 0.12;
-    private static final int ANCHO_TUTORIAL_CONTROLES = 225;
-    private static final int ALTO_TUTORIAL_CONTROLES = 127;
-    private static final int TUTORIAL_CONTROLES_X = ConfiguracionPartida.POSICION_INICIAL_X;
-    private static final int TUTORIAL_CONTROLES_Y =
-        ConfiguracionPartida.POSICION_INICIAL_Y + 125;
 
     private JugadorVista jugador;
     private final EstadoNivel estadoNivel;
@@ -44,14 +39,15 @@ public final class PanelJuego extends JPanel implements VistaPartida {
     private Runnable alCerrarNivelCompletado;
     private final BufferedImage[] fondosPorPiso;
     private final BufferedImage tutorialControles;
+    private final TutorialVista tutorialVista;
 
 public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> enemigos,
                   EstadoNivel estadoNivel,
                   Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
-                  BufferedImage tutorialControles) {
+                  BufferedImage tutorialControles, TutorialVista tutorialVista) {
     this(
         jugador, puntajeInicial, enemigos, estadoNivel, alTerminarAnimacionMuerte,
-        fondosPorPiso, tutorialControles,
+        fondosPorPiso, tutorialControles, tutorialVista,
         RecursosJuego.preparar(jugador, alTerminarAnimacionMuerte)
     );
 }
@@ -59,7 +55,8 @@ public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> e
 public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> enemigos,
                   EstadoNivel estadoNivel,
                   Runnable alTerminarAnimacionMuerte, BufferedImage[] fondosPorPiso,
-                  BufferedImage tutorialControles, RecursosJuego recursos) {
+                  BufferedImage tutorialControles, TutorialVista tutorialVista,
+                  RecursosJuego recursos) {
     if (jugador == null || puntajeInicial < 0 || enemigos == null
             || enemigos.size() > 6
             || enemigos.stream().anyMatch(enemigo -> enemigo == null)
@@ -69,8 +66,12 @@ public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> e
             || fondosPorPiso == null
             || fondosPorPiso.length == 0
             || java.util.Arrays.stream(fondosPorPiso).anyMatch(fondo -> fondo == null)
-            || tutorialControles == null) {
+            || tutorialControles == null || tutorialVista == null) {
         throw new IllegalArgumentException("Se requieren el estado de partida y el nivel");
+    }
+    NivelVista nivelInicial = estadoNivel.getNivelVista();
+    if (nivelInicial == null) {
+        throw new IllegalArgumentException("Se requieren los datos visuales del nivel");
     }
     this.jugador = jugador;
     this.estadoNivel = estadoNivel;
@@ -78,6 +79,7 @@ public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> e
     this.puntajePresentado = puntajeInicial;
     this.fondosPorPiso = fondosPorPiso.clone();
     this.tutorialControles = tutorialControles;
+    this.tutorialVista = tutorialVista;
     this.spriteMoneda = recursos.spriteMoneda();
     this.renderizadorEntidades = recursos.renderizadorEntidades();
     this.renderizadorEntidades.setSolicitarRepintado(this::repaint);
@@ -85,8 +87,8 @@ public PanelJuego(JugadorVista jugador, int puntajeInicial, List<EnemigoVista> e
     this.hud = recursos.hud();
 
     setPreferredSize(new Dimension(
-        ConfiguracionPartida.COLS_NIVEL * ConfiguracionPartida.TAM_TILE,
-        ConfiguracionPartida.FILAS_NIVEL * ConfiguracionPartida.TAM_TILE
+        nivelInicial.getAncho() * nivelInicial.getTamanoTile(),
+        nivelInicial.getAlto() * nivelInicial.getTamanoTile()
     ));
     setBackground(Color.DARK_GRAY);
     setFocusable(true);
@@ -199,12 +201,13 @@ Graphics2D g2 = (Graphics2D) g;
 
 AffineTransform transformacionPantalla = g2.getTransform();
 NivelVista nivelActual = estadoNivel.getNivelVista();
-double anchoMundo = nivelActual.getAncho() * ConfiguracionPartida.TAM_TILE;
-double altoMundo = nivelActual.getAlto() * ConfiguracionPartida.TAM_TILE;
+int tamanoTile = nivelActual.getTamanoTile();
+double anchoMundo = nivelActual.getAncho() * tamanoTile;
+double altoMundo = nivelActual.getAlto() * tamanoTile;
 camara.setZoom(pantallaCompleta ? ZOOM_CAMARA_PANTALLA_COMPLETA : ZOOM_CAMARA);
 g2.transform(camara.actualizar(
-    jugador.x() + ConfiguracionPartida.ANCHO_JUGADOR / 2.0,
-    jugador.y() + ConfiguracionPartida.ALTO_JUGADOR / 2.0,
+    jugador.x() + jugador.ancho() / 2.0,
+    jugador.y() + jugador.alto() / 2.0,
     getWidth(),
     getHeight(),
     anchoMundo,
@@ -219,10 +222,10 @@ renderizadorNivel.dibujar(g2, nivelActual);
 if (estadoNivel.esPrimeraSeccion()) {
     g2.drawImage(
         tutorialControles,
-        TUTORIAL_CONTROLES_X,
-        TUTORIAL_CONTROLES_Y,
-        ANCHO_TUTORIAL_CONTROLES,
-        ALTO_TUTORIAL_CONTROLES,
+        (int) tutorialVista.x(),
+        (int) tutorialVista.y(),
+        tutorialVista.ancho(),
+        tutorialVista.alto(),
         this
     );
 }

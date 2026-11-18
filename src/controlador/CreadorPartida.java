@@ -86,7 +86,8 @@ final class CreadorPartida {
         PanelJuego panelJuego = new PanelJuego(
             presentador.presentar(jugador), puntaje.getTotal(), List.of(), niveles,
             alTerminarAnimacionMuerte, preparacion.fondosJuego(),
-            preparacion.tutorialControles(), preparacion.recursosJuego()
+            preparacion.tutorialControles(), presentador.presentarTutorial(),
+            preparacion.recursosJuego()
         );
         Map<Integer, List<PowerUp>> powerUpsPorNivel =
             FabricaPowerUps.crearPorNivel(niveles.getNiveles());

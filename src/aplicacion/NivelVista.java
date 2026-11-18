@@ -3,11 +3,14 @@ package aplicacion;
 public final class NivelVista {
     private final int ancho;
     private final int alto;
+    private final int tamanoTile;
     private final int[][] tiles;
     private final boolean ultimaSeccion;
 
-    public NivelVista(int ancho, int alto, int[][] tiles, boolean ultimaSeccion) {
-        if (ancho <= 0 || alto <= 0 || tiles == null || tiles.length != ancho) {
+    public NivelVista(
+            int ancho, int alto, int tamanoTile, int[][] tiles, boolean ultimaSeccion) {
+        if (ancho <= 0 || alto <= 0 || tamanoTile <= 0
+                || tiles == null || tiles.length != ancho) {
             throw new IllegalArgumentException("Los datos del nivel deben ser válidos");
         }
         this.tiles = new int[ancho][alto];
@@ -19,6 +22,7 @@ public final class NivelVista {
         }
         this.ancho = ancho;
         this.alto = alto;
+        this.tamanoTile = tamanoTile;
         this.ultimaSeccion = ultimaSeccion;
     }
 
@@ -28,6 +32,10 @@ public final class NivelVista {
 
     public int getAlto() {
         return alto;
+    }
+
+    public int getTamanoTile() {
+        return tamanoTile;
     }
 
     public int getSpriteIndex(int columna, int fila) {

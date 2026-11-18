@@ -7,6 +7,8 @@ public record JugadorVista(
         TipoRataVista tipo,
         double x,
         double y,
+        int ancho,
+        int alto,
         int vida,
         int vidaMaxima,
         double estamina,
@@ -18,6 +20,7 @@ public record JugadorVista(
     public JugadorVista {
         if (nombre == null || nombre.isBlank() || tipo == null
                 || !Double.isFinite(x) || !Double.isFinite(y)
+                || ancho <= 0 || alto <= 0
                 || vida < 0 || vidaMaxima <= 0 || vida > vidaMaxima
                 || !Double.isFinite(estamina) || estamina < 0
                 || !Double.isFinite(estaminaMaxima) || estaminaMaxima <= 0

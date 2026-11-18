@@ -12,7 +12,8 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.swing.JFrame;
-import modelos.PreferenciasAjustes;
+import aplicacion.PreferenciasAjustesVista;
+import persistencia.PreferenciasAjustes;
 import recursos.CargadorRecursos;
 import servicios.ReproductorMusica;
 import vista.MenuAjustesVista;
@@ -104,7 +105,9 @@ public final class ControladorMenuAjustes {
 
     private void guardarPreferencias() {
         try {
-            repositorioAjustes.guardar(vista.obtenerPreferencias());
+            repositorioAjustes.guardar(
+                aPreferenciasPersistencia(vista.obtenerPreferencias())
+            );
             notificadorExito.accept("Los cambios se guardaron correctamente.");
         } catch (IOException error) {
             notificadorError.accept(error.getMessage());
@@ -123,12 +126,34 @@ public final class ControladorMenuAjustes {
     }
 
     private void aplicarPreferencias(PreferenciasAjustes preferencias) {
-        vista.aplicarPreferencias(preferencias);
+        vista.aplicarPreferencias(aPreferenciasVista(preferencias));
         if (preferencias.cancionSeleccionada() == 0) {
             reproductorMusica.detener();
         } else {
             seleccionarCancion(preferencias.cancionSeleccionada());
         }
+    }
+
+    private static PreferenciasAjustesVista aPreferenciasVista(
+            PreferenciasAjustes preferencias) {
+        return new PreferenciasAjustesVista(
+            preferencias.musicaActivada(),
+            preferencias.cancionSeleccionada(),
+            preferencias.volumen(),
+            preferencias.temaOscuro(),
+            preferencias.pantallaCompleta()
+        );
+    }
+
+    private static PreferenciasAjustes aPreferenciasPersistencia(
+            PreferenciasAjustesVista preferencias) {
+        return new PreferenciasAjustes(
+            preferencias.musicaActivada(),
+            preferencias.cancionSeleccionada(),
+            preferencias.volumen(),
+            preferencias.temaOscuro(),
+            preferencias.pantallaCompleta()
+        );
     }
 
     private void seleccionarCancion(int numeroCancion) {

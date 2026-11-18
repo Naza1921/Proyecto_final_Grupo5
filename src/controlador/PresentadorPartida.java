@@ -13,6 +13,7 @@ import aplicacion.PowerUpVista;
 import aplicacion.ProyectilVista;
 import aplicacion.TipoPowerUpVista;
 import aplicacion.TipoRataVista;
+import aplicacion.TutorialVista;
 import modelos.enemigos.ProyectilAcido;
 import modelos.enemigos.Fantasma;
 import modelos.enemigos.RataInfestada;
@@ -32,6 +33,10 @@ import modelos.personajes.RataNegra;
 import modelos.personajes.RataVerde;
 
 final class PresentadorPartida {
+    private static final int ANCHO_TUTORIAL_CONTROLES = 225;
+    private static final int ALTO_TUTORIAL_CONTROLES = 127;
+    private static final int DESPLAZAMIENTO_TUTORIAL_Y = 125;
+
     private final Map<Object, Long> identificadores = new IdentityHashMap<>();
     private long siguienteIdentificador;
 
@@ -48,6 +53,8 @@ final class PresentadorPartida {
             convertirTipoRata(jugador),
             jugador.getX(),
             jugador.getY(),
+            ConfiguracionPartida.ANCHO_JUGADOR,
+            ConfiguracionPartida.ALTO_JUGADOR,
             jugador.getVida(),
             jugador.getVidaMaxima(),
             jugador.getEstamina(),
@@ -143,7 +150,18 @@ final class PresentadorPartida {
                 tiles[columna][fila] = nivel.getspriteindex(columna, fila);
             }
         }
-        return new NivelVista(ancho, alto, tiles, ultimaSeccion);
+        return new NivelVista(
+            ancho, alto, ConfiguracionPartida.TAM_TILE, tiles, ultimaSeccion
+        );
+    }
+
+    TutorialVista presentarTutorial() {
+        return new TutorialVista(
+            ConfiguracionPartida.POSICION_INICIAL_X,
+            ConfiguracionPartida.POSICION_INICIAL_Y + DESPLAZAMIENTO_TUTORIAL_Y,
+            ANCHO_TUTORIAL_CONTROLES,
+            ALTO_TUTORIAL_CONTROLES
+        );
     }
 
     private List<HabilidadVista> presentarHabilidades(Personaje jugador) {
