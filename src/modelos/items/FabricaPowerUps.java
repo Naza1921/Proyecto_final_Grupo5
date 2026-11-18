@@ -24,7 +24,9 @@ public final class FabricaPowerUps {
         for (int indiceNivel = 0; indiceNivel < niveles.size(); indiceNivel++) {
             level nivel = niveles.get(indiceNivel);
             List<PowerUp> powerUps = crearDelMapa(nivel);
-            if (powerUps.stream().noneMatch(PowerUpPizza.class::isInstance)) {
+            boolean tienePizza = nivel.getMarcadoresPowerUps().stream()
+                .anyMatch(m -> m.tipo() == level.TipoPowerUpMapa.INVULNERABILIDAD);
+            if (!tienePizza) {
                 powerUps.add(crearPizzaEnUbicacionDisponible(nivel, powerUps));
             }
             if (indiceNivel == 1) {
