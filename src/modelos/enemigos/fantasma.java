@@ -2,7 +2,7 @@ package modelos.enemigos;
 
 import modelos.personajes.Personaje;
 
-public class fantasma extends enemigo {
+public class Fantasma extends Enemigo {
     private static final int VIDA_FANTASMA = 1; 
     private static final int VIDA_FANTASMA_MAXIMA = 1;
     private static final int DANIO_CONTACTO = 20;
@@ -14,7 +14,7 @@ public class fantasma extends enemigo {
     private boolean moviendoseDerecha = true;
     private boolean enContacto;
 
-    public fantasma(String nombre, double velocidad, int puntaje, double xMinimo,
+    public Fantasma(String nombre, double velocidad, int puntaje, double xMinimo,
                     double xMaximo, double ancho, double alto) {
         super(nombre, VIDA_FANTASMA, VIDA_FANTASMA_MAXIMA, velocidad, puntaje);
         if (nombre == null || nombre.isBlank() || !Double.isFinite(velocidad)

@@ -5,10 +5,10 @@ import java.util.List;
 
 import aplicacion.NivelVista;
 import aplicacion.EstadoNivel;
-import modelos.escenario.levels.level;
+import modelos.escenario.levels.Level;
 import recursos.CargadorRecursos;
 
-public class levelmanager implements EstadoNivel {
+public class LevelManager implements EstadoNivel {
 
     private static final String[][] RUTAS = {
         { "assets/escenarios/Secciones/Piso_1_1.png", "assets/escenarios/Secciones/Piso_1_2.png", "assets/escenarios/Secciones/Piso_1_3.png", "assets/escenarios/Secciones/Piso_1_4.png", "assets/escenarios/Secciones/Piso_1_5.png" },
@@ -25,23 +25,23 @@ public class levelmanager implements EstadoNivel {
 
     };
 
-    private level[][] niveles;
+    private Level[][] niveles;
     private int piso = 0, seccion = 0;
     private NivelVista nivelVistaActual;
 
-    public levelmanager() {
-        niveles = new level[RUTAS.length][];
+    public LevelManager() {
+        niveles = new Level[RUTAS.length][];
         for (int p = 0; p < RUTAS.length; p++) {
-            niveles[p] = new level[RUTAS[p].length];
+            niveles[p] = new Level[RUTAS[p].length];
             for (int s = 0; s < RUTAS[p].length; s++)
                 if (RUTAS[p][s] != null)
-                    niveles[p][s] = new level(
+                    niveles[p][s] = new Level(
                         CargadorRecursos.obtenerCanalesNivel(RUTAS[p][s])
                     );
         }
     }
 
-    public level getNivel() { return niveles[piso][seccion]; }
+    public Level getNivel() { return niveles[piso][seccion]; }
 
     @Override
     public NivelVista getNivelVista() {
@@ -66,10 +66,10 @@ public class levelmanager implements EstadoNivel {
         return indice;
     }
 
-    public List<level> getNiveles() {
-        List<level> resultado = new ArrayList<>();
-        for (level[] nivelesPiso : niveles) {
-            for (level nivel : nivelesPiso) {
+    public List<Level> getNiveles() {
+        List<Level> resultado = new ArrayList<>();
+        for (Level[] nivelesPiso : niveles) {
+            for (Level nivel : nivelesPiso) {
                 if (nivel != null) {
                     resultado.add(nivel);
                 }

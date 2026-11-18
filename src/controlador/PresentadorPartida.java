@@ -14,9 +14,9 @@ import aplicacion.ProyectilVista;
 import aplicacion.TipoPowerUpVista;
 import aplicacion.TipoRataVista;
 import modelos.enemigos.ProyectilAcido;
-import modelos.enemigos.fantasma;
-import modelos.enemigos.ratainfestada;
-import modelos.escenario.levels.level;
+import modelos.enemigos.Fantasma;
+import modelos.enemigos.RataInfestada;
+import modelos.escenario.levels.Level;
 import modelos.items.Moneda;
 import modelos.items.PowerUp;
 import modelos.items.PowerUpLento;
@@ -28,8 +28,8 @@ import modelos.personajes.CharcoAcido;
 import modelos.personajes.LamparaFuego;
 import modelos.personajes.Personaje;
 import modelos.personajes.ProyectilEspecial;
-import modelos.personajes.rata_negra;
-import modelos.personajes.rata_verde;
+import modelos.personajes.RataNegra;
+import modelos.personajes.RataVerde;
 
 final class PresentadorPartida {
     private final Map<Object, Long> identificadores = new IdentityHashMap<>();
@@ -60,7 +60,7 @@ final class PresentadorPartida {
     }
 
     List<EnemigoVista> presentarEnemigos(
-            List<fantasma> fantasmas, List<ratainfestada> ratasInfestadas) {
+            List<Fantasma> fantasmas, List<RataInfestada> ratasInfestadas) {
         if (fantasmas == null || ratasInfestadas == null
                 || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
                 || ratasInfestadas.stream().anyMatch(rata -> rata == null)) {
@@ -70,7 +70,7 @@ final class PresentadorPartida {
         List<EnemigoVista> presentados = new ArrayList<>(
             fantasmas.size() + ratasInfestadas.size()
         );
-        for (fantasma fantasma : fantasmas) {
+        for (Fantasma fantasma : fantasmas) {
             presentados.add(new EnemigoVista(
                 idDe(fantasma),
                 EnemigoVista.Tipo.FANTASMA,
@@ -83,7 +83,7 @@ final class PresentadorPartida {
                 List.of()
             ));
         }
-        for (ratainfestada rata : ratasInfestadas) {
+        for (RataInfestada rata : ratasInfestadas) {
             List<ProyectilVista> proyectiles = rata.getProyectilesAcido().stream()
                 .filter(ProyectilAcido::estaActivo)
                 .map(this::presentarProyectil)
@@ -103,11 +103,11 @@ final class PresentadorPartida {
         return List.copyOf(presentados);
     }
 
-    EnemigoVista presentarEnemigo(fantasma enemigo) {
+    EnemigoVista presentarEnemigo(Fantasma enemigo) {
         return presentarEnemigos(List.of(enemigo), List.of()).get(0);
     }
 
-    EnemigoVista presentarEnemigo(ratainfestada rata) {
+    EnemigoVista presentarEnemigo(RataInfestada rata) {
         return presentarEnemigos(List.of(), List.of(rata)).get(0);
     }
 
@@ -131,7 +131,7 @@ final class PresentadorPartida {
             .toList();
     }
 
-    static NivelVista presentarNivel(level nivel, boolean ultimaSeccion) {
+    static NivelVista presentarNivel(Level nivel, boolean ultimaSeccion) {
         if (nivel == null) {
             throw new IllegalArgumentException("Se requiere el nivel actual");
         }
@@ -148,7 +148,7 @@ final class PresentadorPartida {
 
     private List<HabilidadVista> presentarHabilidades(Personaje jugador) {
         return switch (jugador) {
-            case rata_verde rataVerde -> {
+            case RataVerde rataVerde -> {
                 CharcoAcido charco = rataVerde.getCharcoAcido();
                 if (charco == null) {
                     yield List.of();
@@ -163,7 +163,7 @@ final class PresentadorPartida {
                     CharcoAcido.ALTO
                 ));
             }
-            case rata_negra rataNegra -> {
+            case RataNegra rataNegra -> {
                 LamparaFuego lampara = rataNegra.getLamparaFuego();
                 if (lampara == null) {
                     yield List.of();

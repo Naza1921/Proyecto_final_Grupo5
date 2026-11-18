@@ -5,14 +5,15 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Timer;
 import aplicacion.VistaPartida;
-import modelos.enemigos.enemigo;
-import modelos.enemigos.fantasma;
-import modelos.enemigos.ratainfestada;
+import modelos.enemigos.Enemigo;
+import modelos.enemigos.Fantasma;
+import modelos.enemigos.RataInfestada;
 import modelos.items.Moneda;
 import modelos.items.PowerUp;
 import modelos.partida.ConfiguracionPartida;
-import modelos.escenario.levels.level;
+import modelos.escenario.levels.Level;
 import modelos.personajes.Personaje;
+import servicios.ServicioEfectosSonido;
 
 // Coordina el ciclo temporal de la partida y solicita el repintado de la vista.
 public final class ControladorPartida implements SeccionListener {
@@ -23,11 +24,11 @@ public final class ControladorPartida implements SeccionListener {
     private final ControladorRata controladorRata;
     private final GestorControlesRatas gestorControles;
     private final GestorEfectosTemporales gestorEfectos;
-    private final GestorEfectosSonido efectosSonido;
+    private final ServicioEfectosSonido efectosSonido;
     private final ControladorPuntaje controladorPuntaje;
     private final VistaPartida panelJuego;
     private final PresentadorPartida presentador;
-    private final levelmanager niveles;
+    private final LevelManager niveles;
     private final ColisionNivel colisionNivel;
     private final GestorSecciones gestorSecciones;
     private final GestorRecogidaPowerUps gestorRecogidaPowerUps;
@@ -46,16 +47,16 @@ public final class ControladorPartida implements SeccionListener {
     public ControladorPartida(ControladorRata controladorRata,
                               GestorControlesRatas gestorControles,
                               GestorEfectosTemporales gestorEfectos,
-                              GestorEfectosSonido efectosSonido,
+                              ServicioEfectosSonido efectosSonido,
                               ControladorPuntaje controladorPuntaje,
                               VistaPartida panelJuego,
                               PresentadorPartida presentador,
-                              levelmanager niveles,
+                              LevelManager niveles,
                               Map<Integer, List<PowerUp>> powerUpsPorNivel,
                               Map<Integer, List<Moneda>> monedasPorSeccion,
                               Personaje jugador,
-                              List<fantasma> fantasmas,
-                              List<ratainfestada> ratasInfestadas,
+                              List<Fantasma> fantasmas,
+                              List<RataInfestada> ratasInfestadas,
                               Runnable alCompletarNivel) {
         if (controladorRata == null || gestorControles == null
                 || gestorEfectos == null || efectosSonido == null
@@ -63,8 +64,8 @@ public final class ControladorPartida implements SeccionListener {
                 || niveles == null
                 || powerUpsPorNivel == null || monedasPorSeccion == null
                 || jugador == null || fantasmas == null || ratasInfestadas == null
-                || fantasmas.size() > level.MAX_ENEMIGOS_POR_TIPO
-                || ratasInfestadas.size() > level.MAX_ENEMIGOS_POR_TIPO
+                || fantasmas.size() > Level.MAX_ENEMIGOS_POR_TIPO
+                || ratasInfestadas.size() > Level.MAX_ENEMIGOS_POR_TIPO
                 || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
                 || ratasInfestadas.stream().anyMatch(rata -> rata == null)
                 || alCompletarNivel == null) {
@@ -145,7 +146,7 @@ public final class ControladorPartida implements SeccionListener {
         gestorRecogidaPowerUps.actualizar(niveles.getIndiceNivelActual());
     }
 
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+    public boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino) {
         return gestorControles.usarHabilidad(objetivo, xDestino, yDestino);
     }
 
@@ -156,7 +157,7 @@ public final class ControladorPartida implements SeccionListener {
         boolean activada = usarHabilidad(null, jugador.getX(), jugador.getY());
         if (activada) {
             panelJuego.mostrarAnimacionHabilidad();
-            efectosSonido.reproducir(GestorEfectosSonido.Efecto.HABILIDAD);
+            efectosSonido.reproducir(ServicioEfectosSonido.Efecto.HABILIDAD);
         }
         return activada;
     }
@@ -247,7 +248,7 @@ private void actualizar() {
     controladorRata.actualizar(Double.POSITIVE_INFINITY);
     colisionNivel.resolver(jugador);
     gestorSecciones.actualizar(jugador);
-    List<enemigo> enemigosActivos = gestorEnemigos.actualizar(
+    List<Enemigo> enemigosActivos = gestorEnemigos.actualizar(
         niveles.getNivel(),
         ConfiguracionPartida.TAM_TILE,
         ConfiguracionPartida.ANCHO_JUGADOR,
@@ -279,7 +280,7 @@ private void actualizar() {
 private void reproducirSonidoMuerte() {
     if (!sonidoMuerteReproducido) {
         sonidoMuerteReproducido = true;
-        efectosSonido.reproducir(GestorEfectosSonido.Efecto.MUERTE);
+        efectosSonido.reproducir(ServicioEfectosSonido.Efecto.MUERTE);
     }
 }
 
@@ -312,7 +313,7 @@ private void configurarEnemigosVisibles(int seccion) {
 @Override
 public void alTerminarNivel() {
     detener();
-    efectosSonido.reproducir(GestorEfectosSonido.Efecto.NIVEL_COMPLETADO);
+    efectosSonido.reproducir(ServicioEfectosSonido.Efecto.NIVEL_COMPLETADO);
     if (niveles.hayPisoSiguiente()) {
         panelJuego.mostrarNivelCompletado(this::continuarConSiguientePiso);
     } else {

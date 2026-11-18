@@ -3,7 +3,7 @@ package modelos.enemigos;
 import modelos.personajes.Personaje;
 import java.util.concurrent.TimeUnit;
 
-public abstract class enemigo {
+public abstract class Enemigo {
     private static final long DURACION_RALENTIZACION_MS = 5000;
     private static final long DURACION_ATURDIMIENTO_MS = 2000;
     protected  String nombre;
@@ -23,7 +23,7 @@ public abstract class enemigo {
     private double distraccionX;
     private double distraccionY;
 
-    public enemigo(String nombre, int vida, int vidaMaxima,double velocidad, int puntaje) {
+    public Enemigo(String nombre, int vida, int vidaMaxima,double velocidad, int puntaje) {
         this.nombre = nombre;
         this.vida = vida; 
         this.vidaMaxima = vidaMaxima;

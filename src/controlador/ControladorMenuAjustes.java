@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import javax.swing.JFrame;
 import modelos.PreferenciasAjustes;
 import recursos.CargadorRecursos;
+import servicios.ReproductorMusica;
 import vista.MenuAjustesVista;
 
 public final class ControladorMenuAjustes {

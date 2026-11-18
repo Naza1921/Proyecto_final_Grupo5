@@ -2,9 +2,9 @@ package controlador;
 
 import java.util.ArrayList;
 import java.util.List;
-import modelos.enemigos.fantasma;
-import modelos.enemigos.ratainfestada;
-import modelos.escenario.levels.level;
+import modelos.enemigos.Fantasma;
+import modelos.enemigos.RataInfestada;
+import modelos.escenario.levels.Level;
 import modelos.partida.ConfiguracionPartida;
 
 final class ConfiguradorEnemigosSeccion {
@@ -32,7 +32,7 @@ final class ConfiguradorEnemigosSeccion {
             )
         );
 
-    record EnemigosVisibles(List<fantasma> fantasmas, List<ratainfestada> ratasInfestadas) {
+    record EnemigosVisibles(List<Fantasma> fantasmas, List<RataInfestada> ratasInfestadas) {
         EnemigosVisibles {
             fantasmas = List.copyOf(fantasmas);
             ratasInfestadas = List.copyOf(ratasInfestadas);
@@ -46,14 +46,14 @@ final class ConfiguradorEnemigosSeccion {
         PosicionRataInfestada rataInfestada
     ) { }
 
-    private final List<fantasma> fantasmasDisponibles;
-    private final List<ratainfestada> ratasDisponibles;
+    private final List<Fantasma> fantasmasDisponibles;
+    private final List<RataInfestada> ratasDisponibles;
 
     ConfiguradorEnemigosSeccion(
-            List<fantasma> fantasmas, List<ratainfestada> ratasInfestadas) {
+            List<Fantasma> fantasmas, List<RataInfestada> ratasInfestadas) {
         if (fantasmas == null || ratasInfestadas == null
-                || fantasmas.size() > level.MAX_ENEMIGOS_POR_TIPO
-                || ratasInfestadas.size() > level.MAX_ENEMIGOS_POR_TIPO
+                || fantasmas.size() > Level.MAX_ENEMIGOS_POR_TIPO
+                || ratasInfestadas.size() > Level.MAX_ENEMIGOS_POR_TIPO
                 || fantasmas.stream().anyMatch(enemigo -> enemigo == null)
                 || ratasInfestadas.stream().anyMatch(rata -> rata == null)) {
             throw new IllegalArgumentException("Se requieren listas válidas de enemigos");
@@ -62,13 +62,13 @@ final class ConfiguradorEnemigosSeccion {
         ratasDisponibles = List.copyOf(ratasInfestadas);
     }
 
-    EnemigosVisibles configurar(level nivel, int indiceSeccion) {
+    EnemigosVisibles configurar(Level nivel, int indiceSeccion) {
         if (nivel == null || indiceSeccion < 0) {
             throw new IllegalArgumentException("Se requiere un nivel y sección válidos");
         }
-        List<level.PatrullaFantasma> patrullas = nivel.getPatrullasFantasma();
-        List<level.MarcadorEnemigo> marcadoresRatas = nivel.getMarcadoresEnemigos().stream()
-            .filter(marcador -> marcador.tipo() == level.TipoEnemigoMapa.RATA_INFESTADA)
+        List<Level.PatrullaFantasma> patrullas = nivel.getPatrullasFantasma();
+        List<Level.MarcadorEnemigo> marcadoresRatas = nivel.getMarcadoresEnemigos().stream()
+            .filter(marcador -> marcador.tipo() == Level.TipoEnemigoMapa.RATA_INFESTADA)
             .toList();
         boolean usarPosicionesPredeterminadas = patrullas.isEmpty() && marcadoresRatas.isEmpty();
         ConfiguracionPredeterminada configuracionPredeterminada =
@@ -78,17 +78,17 @@ final class ConfiguradorEnemigosSeccion {
                 )
                 : null;
 
-        List<fantasma> fantasmasActivos = configurarFantasmas(
+        List<Fantasma> fantasmasActivos = configurarFantasmas(
             patrullas, usarPosicionesPredeterminadas, configuracionPredeterminada
         );
-        List<ratainfestada> ratasActivas = configurarRatasInfestadas(
+        List<RataInfestada> ratasActivas = configurarRatasInfestadas(
             marcadoresRatas, usarPosicionesPredeterminadas, configuracionPredeterminada
         );
         return new EnemigosVisibles(fantasmasActivos, ratasActivas);
     }
 
-    private List<fantasma> configurarFantasmas(
-            List<level.PatrullaFantasma> patrullas,
+    private List<Fantasma> configurarFantasmas(
+            List<Level.PatrullaFantasma> patrullas,
             boolean usarPosicionesPredeterminadas,
             ConfiguracionPredeterminada configuracionPredeterminada) {
         if (patrullas.size() > fantasmasDisponibles.size()) {
@@ -96,9 +96,9 @@ final class ConfiguradorEnemigosSeccion {
                 "No hay suficientes instancias para las patrullas del nivel"
             );
         }
-        List<fantasma> activos = new ArrayList<>();
+        List<Fantasma> activos = new ArrayList<>();
         for (int indice = 0; indice < fantasmasDisponibles.size(); indice++) {
-            fantasma enemigo = fantasmasDisponibles.get(indice);
+            Fantasma enemigo = fantasmasDisponibles.get(indice);
             if (usarPosicionesPredeterminadas && indice == 0
                     && configuracionPredeterminada.fantasma() != null) {
                 PosicionFantasma posicion = configuracionPredeterminada.fantasma();
@@ -107,7 +107,7 @@ final class ConfiguradorEnemigosSeccion {
                 );
                 activos.add(enemigo);
             } else if (!usarPosicionesPredeterminadas && indice < patrullas.size()) {
-                level.PatrullaFantasma patrulla = patrullas.get(indice);
+                Level.PatrullaFantasma patrulla = patrullas.get(indice);
                 enemigo.reiniciarPatrulla(
                     patrulla.inicio().columna() * (double) ConfiguracionPartida.TAM_TILE,
                     patrulla.fin().columna() * (double) ConfiguracionPartida.TAM_TILE,
@@ -121,8 +121,8 @@ final class ConfiguradorEnemigosSeccion {
         return activos;
     }
 
-    private List<ratainfestada> configurarRatasInfestadas(
-            List<level.MarcadorEnemigo> marcadoresRatas,
+    private List<RataInfestada> configurarRatasInfestadas(
+            List<Level.MarcadorEnemigo> marcadoresRatas,
             boolean usarPosicionesPredeterminadas,
             ConfiguracionPredeterminada configuracionPredeterminada) {
         if (marcadoresRatas.size() > ratasDisponibles.size()) {
@@ -130,16 +130,16 @@ final class ConfiguradorEnemigosSeccion {
                 "No hay suficientes instancias para las ratas del nivel"
             );
         }
-        List<ratainfestada> activas = new ArrayList<>();
+        List<RataInfestada> activas = new ArrayList<>();
         for (int indice = 0; indice < ratasDisponibles.size(); indice++) {
-            ratainfestada rata = ratasDisponibles.get(indice);
+            RataInfestada rata = ratasDisponibles.get(indice);
             if (usarPosicionesPredeterminadas && indice == 0
                     && configuracionPredeterminada.rataInfestada() != null) {
                 PosicionRataInfestada posicion = configuracionPredeterminada.rataInfestada();
                 rata.reiniciar(posicion.x(), posicion.y());
                 activas.add(rata);
             } else if (!usarPosicionesPredeterminadas && indice < marcadoresRatas.size()) {
-                level.MarcadorEnemigo marcador = marcadoresRatas.get(indice);
+                Level.MarcadorEnemigo marcador = marcadoresRatas.get(indice);
                 rata.reiniciar(
                     marcador.columna() * (double) ConfiguracionPartida.TAM_TILE,
                     marcador.fila() * (double) ConfiguracionPartida.TAM_TILE

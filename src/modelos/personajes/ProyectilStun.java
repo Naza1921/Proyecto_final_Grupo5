@@ -1,6 +1,6 @@
 package modelos.personajes;
 
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 
 public final class ProyectilStun implements ProyectilEspecial {
     private static final double VELOCIDAD = 10.0;
@@ -37,7 +37,7 @@ public final class ProyectilStun implements ProyectilEspecial {
         }
     }
 
-    public boolean impactarSiColisiona(enemigo objetivo) {
+    public boolean impactarSiColisiona(Enemigo objetivo) {
         if (objetivo == null) {
             throw new IllegalArgumentException("Se requiere un enemigo objetivo");
         }

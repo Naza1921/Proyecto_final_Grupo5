@@ -1,6 +1,6 @@
 package controlador;
 
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 
 public interface ControladorRata {
     void moverIzquierda();
@@ -11,5 +11,5 @@ public interface ControladorRata {
     void limitarPosicionHorizontal(double xMinimo, double xMaximo);
     void actualizar(double yPiso);
     void recargarEstamina();
-    boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino);
+    boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino);
 }

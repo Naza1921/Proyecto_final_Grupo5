@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class level {
+public class Level {
     public static final int COLUMNAS_ATLAS = 7;
     public static final int COLUMNA_AIRE = 6;
     public static final int AGUJERO_SIGUIENTE = 28;
@@ -75,11 +75,11 @@ public class level {
     private final List<MarcadorPowerUp> marcadoresPowerUps;
     private final List<PatrullaFantasma> patrullasFantasma;
 
-    public level(int[][] nivelDato) {
+    public Level(int[][] nivelDato) {
         this(canalesDeEscenario(nivelDato));
     }
 
-    public level(int[][][] canales) {
+    public Level(int[][][] canales) {
         validarCanales(canales);
         int ancho = canales[CANAL_ROJO].length;
         int alto = canales[CANAL_ROJO][0].length;

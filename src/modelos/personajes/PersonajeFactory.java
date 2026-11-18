@@ -17,16 +17,16 @@ public class PersonajeFactory {
 
         switch (tipoRata) {
             case GRIS -> {
-                return new rata_gris(nombre);
+                return new RataGris(nombre);
             }
             case BLANCA -> {
-                return new rata_blanca(nombre);
+                return new RataBlanca(nombre);
             }
             case NEGRA -> {
-                return new rata_negra(nombre);
+                return new RataNegra(nombre);
             }
             case VERDE -> {
-                return new rata_verde(nombre);
+                return new RataVerde(nombre);
             }
             default -> 
                 throw new IllegalArgumentException("Tipo de rata no reconocido: " + tipoRata);

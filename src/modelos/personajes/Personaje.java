@@ -1,6 +1,6 @@
 package modelos.personajes;
 
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 import java.util.List;
 
 public abstract class Personaje {
@@ -146,13 +146,13 @@ public abstract class Personaje {
 
     public void detenerMovimiento() { velocidad = 0; }
 
-    public abstract boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino);
+    public abstract boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino);
 
-    public abstract void actualizarHabilidad(List<enemigo> objetivos);
+    public abstract void actualizarHabilidad(List<Enemigo> objetivos);
 
     public abstract void prepararCambioDeSeccion();
 
-    protected final void validarObjetivosHabilidad(List<enemigo> objetivos) {
+    protected final void validarObjetivosHabilidad(List<Enemigo> objetivos) {
         if (objetivos == null || objetivos.stream().anyMatch(objetivo -> objetivo == null)) {
             throw new IllegalArgumentException("Los objetivos de la habilidad deben ser válidos");
         }
@@ -162,7 +162,7 @@ public abstract class Personaje {
         return List.of();
     }
 
-    protected final boolean objetivoEnRango(enemigo objetivo, double rango) {
+    protected final boolean objetivoEnRango(Enemigo objetivo, double rango) {
         return objetivo != null && objetivo.estavivo()
             && Math.hypot(objetivo.getX() - x, objetivo.getY() - y) <= rango;
     }

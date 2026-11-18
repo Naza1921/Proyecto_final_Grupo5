@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import modelos.escenario.levels.level;
+import modelos.escenario.levels.Level;
 import modelos.partida.ConfiguracionPartida;
 
 public final class FabricaPowerUps {
@@ -15,14 +15,14 @@ public final class FabricaPowerUps {
     private FabricaPowerUps() {
     }
 
-    public static Map<Integer, List<PowerUp>> crearPorNivel(List<level> niveles) {
+    public static Map<Integer, List<PowerUp>> crearPorNivel(List<Level> niveles) {
         if (niveles == null || niveles.isEmpty() || niveles.stream().anyMatch(nivel -> nivel == null)) {
             throw new IllegalArgumentException("Se requieren niveles válidos para crear power-ups");
         }
 
         Map<Integer, List<PowerUp>> resultado = new HashMap<>();
         for (int indiceNivel = 0; indiceNivel < niveles.size(); indiceNivel++) {
-            level nivel = niveles.get(indiceNivel);
+            Level nivel = niveles.get(indiceNivel);
             List<PowerUp> powerUps = crearDelMapa(nivel);
             if (powerUps.stream().noneMatch(PowerUpPizza.class::isInstance)) {
                 powerUps.add(crearPizzaEnUbicacionDisponible(nivel, powerUps));
@@ -38,9 +38,9 @@ public final class FabricaPowerUps {
         return Map.copyOf(resultado);
     }
 
-    private static List<PowerUp> crearDelMapa(level nivel) {
+    private static List<PowerUp> crearDelMapa(Level nivel) {
         List<PowerUp> powerUps = new ArrayList<>();
-        for (level.MarcadorPowerUp marcador : nivel.getMarcadoresPowerUps()) {
+        for (Level.MarcadorPowerUp marcador : nivel.getMarcadoresPowerUps()) {
             double x = marcador.columna() * (double) ConfiguracionPartida.TAM_TILE;
             double y = marcador.fila() * (double) ConfiguracionPartida.TAM_TILE;
             powerUps.add(switch (marcador.tipo()) {
@@ -54,7 +54,7 @@ public final class FabricaPowerUps {
     }
 
     private static PowerUpPizza crearPizzaEnUbicacionDisponible(
-            level nivel, List<PowerUp> powerUps) {
+            Level nivel, List<PowerUp> powerUps) {
         int centro = nivel.getAncho() / 2;
         int tile = ConfiguracionPartida.TAM_TILE;
         for (int fila = nivel.getAlto() - 2; fila > 0; fila--) {
@@ -84,7 +84,7 @@ public final class FabricaPowerUps {
         );
     }
 
-    private static boolean esUbicacionTransitable(level nivel, int columna, int fila) {
+    private static boolean esUbicacionTransitable(Level nivel, int columna, int fila) {
         return !nivel.esSolido(columna, fila)
             && !nivel.esSolido(columna, fila - 1)
             && nivel.esSolido(columna, fila + 1);

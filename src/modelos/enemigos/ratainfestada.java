@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import modelos.partida.ConfiguracionPartida;
-import modelos.escenario.levels.level;
+import modelos.escenario.levels.Level;
 import modelos.personajes.Personaje;
 
-public class ratainfestada  extends enemigo{
+public class RataInfestada  extends Enemigo{
     private static final int VIDA_RATA = 2;
     private static final int VIDA_RATA_MAXIMA = 2;
     private static final double RANGO_ESCUPITAJO = 200.0;
@@ -28,7 +28,7 @@ public class ratainfestada  extends enemigo{
     private boolean yaSalto;
     private boolean yaDanoFisicoEnEsteSalto;
 
-    public ratainfestada(String nombre, double velocidad, int puntaje) {
+    public RataInfestada(String nombre, double velocidad, int puntaje) {
         super(nombre, VIDA_RATA, VIDA_RATA_MAXIMA, velocidad, puntaje);
     }
 
@@ -86,7 +86,7 @@ public class ratainfestada  extends enemigo{
         return List.copyOf(proyectilesAcido);
     }
 
-    public void actualizar(Personaje objetivo, level nivel, int tile) {
+    public void actualizar(Personaje objetivo, Level nivel, int tile) {
         if (objetivo == null || nivel == null || tile <= 0) {
             throw new IllegalArgumentException("Se requieren el objetivo y un nivel válido");
         }

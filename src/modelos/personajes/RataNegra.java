@@ -1,20 +1,20 @@
 package modelos.personajes;
 
 import java.util.List;
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 import modelos.partida.ConfiguracionPartida;
 
-public class rata_negra extends Personaje {
+public class RataNegra extends Personaje {
 
     private static final double COSTO_ESTAMINA_LAMPARA = 15;
     private LamparaFuego lamparaFuego;
 
-    public rata_negra(String nombre) {
+    public RataNegra(String nombre) {
         super(nombre, TipoRata.NEGRA, 50, 7, 9.5, 90);
     }
 
     @Override
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+    public boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino) {
         return tirarLampara();
     }
 
@@ -29,7 +29,7 @@ public class rata_negra extends Personaje {
     }
 
     @Override
-    public void actualizarHabilidad(List<enemigo> objetivos) {
+    public void actualizarHabilidad(List<Enemigo> objetivos) {
         validarObjetivosHabilidad(objetivos);
         if (lamparaFuego != null && !lamparaFuego.actualizar(objetivos)) {
             lamparaFuego = null;

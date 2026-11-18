@@ -1,19 +1,19 @@
 package controlador;
 
-import modelos.escenario.levels.level;
+import modelos.escenario.levels.Level;
 import modelos.personajes.Personaje;
 
 public class ColisionNivel {
-    private level nivel;                      
+    private Level nivel;
     private final int tile, ancho, alto;
     private double xSeguro, ySeguro;
     private boolean iniciado;
 
-    public ColisionNivel(level nivel, int tile, int ancho, int alto) {
+    public ColisionNivel(Level nivel, int tile, int ancho, int alto) {
         this.nivel = nivel; this.tile = tile; this.ancho = ancho; this.alto = alto;
     }
 
-    public void setNivel(level nivel) {
+    public void setNivel(Level nivel) {
         this.nivel = nivel;
         iniciado = false;
     }

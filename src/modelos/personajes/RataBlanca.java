@@ -3,20 +3,20 @@ package modelos.personajes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 import modelos.partida.ConfiguracionPartida;
 
-public class rata_blanca extends Personaje {
+public class RataBlanca extends Personaje {
 
     private static final double COSTO_ESTAMINA_STUN = 15;
     private final List<ProyectilStun> proyectilesStun = new ArrayList<>();
 
-    public rata_blanca(String nombre) {
+    public RataBlanca(String nombre) {
         super(nombre, TipoRata.BLANCA, 100, 7, 7.5, 100);
     }
 
     @Override
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+    public boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino) {
         return tirarStun();
     }
 
@@ -31,13 +31,13 @@ public class rata_blanca extends Personaje {
     }
 
     @Override
-    public void actualizarHabilidad(List<enemigo> objetivos) {
+    public void actualizarHabilidad(List<Enemigo> objetivos) {
         validarObjetivosHabilidad(objetivos);
         Iterator<ProyectilStun> iterador = proyectilesStun.iterator();
         while (iterador.hasNext()) {
             ProyectilStun proyectil = iterador.next();
             proyectil.actualizar();
-            for (enemigo objetivo : objetivos) {
+            for (Enemigo objetivo : objetivos) {
                 if (proyectil.impactarSiColisiona(objetivo)) {
                     break;
                 }

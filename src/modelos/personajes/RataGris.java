@@ -1,22 +1,22 @@
 package modelos.personajes;
 
 import java.util.List;
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 
-public class rata_gris extends Personaje {
+public class RataGris extends Personaje {
     private boolean segundoSaltoDisponible = true;
 
-    public rata_gris(String nombre) {
+    public RataGris(String nombre) {
         super(nombre, TipoRata.GRIS, 120, 5, 8, 100);
     }
 
     @Override
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+    public boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino) {
         return false;
     }
 
     @Override
-    public void actualizarHabilidad(List<enemigo> objetivos) {
+    public void actualizarHabilidad(List<Enemigo> objetivos) {
         validarObjetivosHabilidad(objetivos);
     }
 

@@ -1,6 +1,6 @@
 package controlador;
 
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 
 public class GestorControlesRatas {
     private final ControladorRata controladorRata;
@@ -82,7 +82,7 @@ public class GestorControlesRatas {
         controladorRata.limitarPosicionHorizontal(xMinimo, xMaximo);
     }
 
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+    public boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino) {
         return controladorRata.usarHabilidad(objetivo, xDestino, yDestino);
     }
 }

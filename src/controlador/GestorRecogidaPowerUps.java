@@ -9,13 +9,14 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import modelos.items.PowerUp;
 import modelos.items.RecompensaPowerUp;
+import servicios.ServicioEfectosSonido;
 
 final class GestorRecogidaPowerUps {
     private final Map<Integer, List<PowerUp>> powerUpsPorNivel;
     private final GestorEfectosTemporales gestorEfectos;
     private final IntConsumer agregarPuntos;
     private final IntConsumer penalizarPuntos;
-    private final Consumer<GestorEfectosSonido.Efecto> reproducirSonido;
+    private final Consumer<ServicioEfectosSonido.Efecto> reproducirSonido;
     private final Consumer<List<PowerUp>> actualizarVista;
     private final Runnable actualizarPuntaje;
     private int nivelPresentado = -1;
@@ -25,7 +26,7 @@ final class GestorRecogidaPowerUps {
             GestorEfectosTemporales gestorEfectos,
             IntConsumer agregarPuntos,
             IntConsumer penalizarPuntos,
-            Consumer<GestorEfectosSonido.Efecto> reproducirSonido,
+            Consumer<ServicioEfectosSonido.Efecto> reproducirSonido,
             Consumer<List<PowerUp>> actualizarVista,
             Runnable actualizarPuntaje) {
         if (powerUpsPorNivel == null || gestorEfectos == null
@@ -91,8 +92,8 @@ final class GestorRecogidaPowerUps {
         }
         reproducirSonido.accept(
             recompensa.penalizacion()
-                ? GestorEfectosSonido.Efecto.POWER_DOWN
-                : GestorEfectosSonido.Efecto.POWER_UP
+                ? ServicioEfectosSonido.Efecto.POWER_DOWN
+                : ServicioEfectosSonido.Efecto.POWER_UP
         );
         if (recompensa.penalizacion()) {
             penalizarPuntos.accept(recompensa.puntos());

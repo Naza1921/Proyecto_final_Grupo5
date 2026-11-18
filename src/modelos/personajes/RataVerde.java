@@ -1,20 +1,20 @@
 package modelos.personajes;
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 import java.util.List;
 import modelos.partida.ConfiguracionPartida;
 
-public class rata_verde extends Personaje {
+public class RataVerde extends Personaje {
 
     // Costo de estamina de la habilidad de ácido.
     private static final double COSTO_ESTAMINA_ACIDO = 15;
     private CharcoAcido charcoAcido;
     
-    public rata_verde(String nombre) {
+    public RataVerde(String nombre) {
         super(nombre, TipoRata.VERDE, 80, 5, 11, 130);
     }
 
     @Override
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+    public boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino) {
         return tirarAcido();
     }
 
@@ -32,7 +32,7 @@ public class rata_verde extends Personaje {
     }
 
     @Override
-    public void actualizarHabilidad(List<enemigo> objetivos) {
+    public void actualizarHabilidad(List<Enemigo> objetivos) {
         validarObjetivosHabilidad(objetivos);
         if (charcoAcido != null && !charcoAcido.actualizar(objetivos)) {
             charcoAcido = null;

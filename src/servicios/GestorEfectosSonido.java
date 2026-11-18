@@ -1,4 +1,4 @@
-package controlador;
+package servicios;
 
 import java.net.URL;
 import java.util.HashSet;
@@ -11,28 +11,7 @@ import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
-public final class GestorEfectosSonido implements AutoCloseable {
-    public enum Efecto {
-        MUERTE("assets/audio/death_retro.mp3"),
-        HABILIDAD("assets/audio/hadoken.mp3"),
-        POWER_UP("assets/audio/POWER_UP.mp3"),
-        POWER_DOWN("assets/audio/power_down.mp3"),
-        SALTO("assets/audio/salto.mp3", 0.5),
-        MONEDA("assets/audio/sonido_moneda.wav"),
-        NIVEL_COMPLETADO("assets/audio/win_level.mp3");
-
-        private final String ruta;
-        private final double volumen;
-
-        Efecto(String ruta) {
-            this(ruta, 1.0);
-        }
-
-        Efecto(String ruta, double volumen) {
-            this.ruta = ruta;
-            this.volumen = volumen;
-        }
-    }
+public final class GestorEfectosSonido implements ServicioEfectosSonido {
 
     private final JFXPanel inicializadorJavaFx = new JFXPanel();
     private final Consumer<String> notificadorError;
@@ -47,22 +26,23 @@ public final class GestorEfectosSonido implements AutoCloseable {
         Platform.runLater(() -> Platform.setImplicitExit(false));
     }
 
-    public void reproducir(Efecto efecto) {
+    public void reproducir(ServicioEfectosSonido.Efecto efecto) {
         if (efecto == null) {
             throw new IllegalArgumentException("Se requiere un efecto de sonido");
         }
         Platform.runLater(() -> reproducirEnJavaFx(efecto));
     }
 
-    private void reproducirEnJavaFx(Efecto efecto) {
+    private void reproducirEnJavaFx(ServicioEfectosSonido.Efecto efecto) {
         if (cerrado) {
             return;
         }
         try {
-            URL recurso = CargadorRecursos.obtenerUrlRecurso(efecto.ruta);
+            ConfiguracionEfecto configuracion = configuracionDe(efecto);
+            URL recurso = CargadorRecursos.obtenerUrlRecurso(configuracion.ruta());
             Media media = new Media(recurso.toExternalForm());
             MediaPlayer reproductor = new MediaPlayer(media);
-            reproductor.setVolume(efecto.volumen);
+            reproductor.setVolume(configuracion.volumen());
             reproductoresActivos.add(reproductor);
             media.setOnError(() -> notificarError(efecto, media.getError()));
             reproductor.setOnError(() -> notificarError(efecto, reproductor.getError()));
@@ -78,13 +58,27 @@ public final class GestorEfectosSonido implements AutoCloseable {
         reproductor.dispose();
     }
 
-    private void notificarError(Efecto efecto, Throwable error) {
+    private void notificarError(ServicioEfectosSonido.Efecto efecto, Throwable error) {
         String mensaje = "No se pudo reproducir el efecto " + efecto + ": "
             + (error == null || error.getMessage() == null
                 ? "error multimedia desconocido" : error.getMessage());
         System.err.println(mensaje);
         SwingUtilities.invokeLater(() -> notificadorError.accept(mensaje));
     }
+
+    private static ConfiguracionEfecto configuracionDe(ServicioEfectosSonido.Efecto efecto) {
+        return switch (efecto) {
+            case MUERTE -> new ConfiguracionEfecto("assets/audio/death_retro.mp3", 1.0);
+            case HABILIDAD -> new ConfiguracionEfecto("assets/audio/hadoken.mp3", 1.0);
+            case POWER_UP -> new ConfiguracionEfecto("assets/audio/POWER_UP.mp3", 1.0);
+            case POWER_DOWN -> new ConfiguracionEfecto("assets/audio/power_down.mp3", 1.0);
+            case SALTO -> new ConfiguracionEfecto("assets/audio/salto.mp3", 0.5);
+            case MONEDA -> new ConfiguracionEfecto("assets/audio/sonido_moneda.wav", 1.0);
+            case NIVEL_COMPLETADO -> new ConfiguracionEfecto("assets/audio/win_level.mp3", 1.0);
+        };
+    }
+
+    private record ConfiguracionEfecto(String ruta, double volumen) { }
 
     @Override
     public void close() {

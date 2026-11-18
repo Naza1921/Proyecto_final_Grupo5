@@ -3,7 +3,7 @@ package modelos.personajes;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 
 public final class CharcoAcido {
     public static final double ANCHO = 70;
@@ -18,7 +18,7 @@ public final class CharcoAcido {
     private final double y;
     private final long apareceEnNanos = System.nanoTime() + DEMORA_APARICION_NANOS;
     private long expiraEnNanos;
-    private final Map<enemigo, Long> proximoDanioPorEnemigo = new IdentityHashMap<>();
+    private final Map<Enemigo, Long> proximoDanioPorEnemigo = new IdentityHashMap<>();
 
     public CharcoAcido(double x, double y) {
         if (!Double.isFinite(x) || !Double.isFinite(y) || x < 0 || y < 0) {
@@ -28,7 +28,7 @@ public final class CharcoAcido {
         this.y = y;
     }
 
-    public boolean actualizar(List<enemigo> enemigos) {
+    public boolean actualizar(List<Enemigo> enemigos) {
         if (enemigos == null || enemigos.stream().anyMatch(enemigo -> enemigo == null)) {
             throw new IllegalArgumentException("La lista de enemigos debe ser válida");
         }
@@ -43,13 +43,13 @@ public final class CharcoAcido {
         }
 
         long ahora = System.nanoTime();
-        for (enemigo objetivo : enemigos) {
+        for (Enemigo objetivo : enemigos) {
             if (!objetivo.estavivo() || !colisionaCon(objetivo)) {
                 continue;
             }
             long proximoDanio = proximoDanioPorEnemigo.getOrDefault(objetivo, 0L);
             if (ahora >= proximoDanio) {
-                objetivo.recibirDanio(DANIO, enemigo.TipoDanio.ACIDO);
+                objetivo.recibirDanio(DANIO, Enemigo.TipoDanio.ACIDO);
                 proximoDanioPorEnemigo.put(objetivo, ahora + INTERVALO_DANIO_NANOS);
             }
         }
@@ -65,7 +65,7 @@ public final class CharcoAcido {
         return System.nanoTime() >= apareceEnNanos && estaActivo();
     }
 
-    private boolean colisionaCon(enemigo objetivo) {
+    private boolean colisionaCon(Enemigo objetivo) {
         return objetivo.getX() < x + ANCHO
             && objetivo.getX() + objetivo.getAnchoColision() > x
             && objetivo.getY() < y + ALTO

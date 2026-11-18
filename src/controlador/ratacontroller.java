@@ -1,15 +1,15 @@
 package controlador;
 
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 import modelos.personajes.Personaje;
 
-public class ratacontroller implements ControladorRata {
+public class RataController implements ControladorRata {
 
     // Referencia al modelo Rata que este controlador se encarga de controlar
     private final Personaje rata;
 
     // Constructor encargado de recibir la Rata que será controlada
-    public ratacontroller(Personaje rata) {
+    public RataController(Personaje rata) {
         if (rata == null) {
             throw new IllegalArgumentException("Se requiere un personaje");
         }
@@ -72,7 +72,7 @@ public class ratacontroller implements ControladorRata {
     }
 
     @Override
-    public boolean usarHabilidad(enemigo objetivo, double xDestino, double yDestino) {
+    public boolean usarHabilidad(Enemigo objetivo, double xDestino, double yDestino) {
         return rata.usarHabilidad(objetivo, xDestino, yDestino);
     }
 }

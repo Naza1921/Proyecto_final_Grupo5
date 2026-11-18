@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import modelos.enemigos.enemigo;
+import modelos.enemigos.Enemigo;
 
 public final class LamparaFuego {
     public enum Estado {
@@ -25,7 +25,7 @@ public final class LamparaFuego {
     private final double ySuelo;
     private final double direccion;
     private final long creadoEnNanos = System.nanoTime();
-    private final Set<enemigo> enemigosEnFuego =
+    private final Set<Enemigo> enemigosEnFuego =
         Collections.newSetFromMap(new IdentityHashMap<>());
     private Estado estado = Estado.PREPARANDO;
     private double progresoVuelo;
@@ -42,7 +42,7 @@ public final class LamparaFuego {
         this.direccion = mirandoIzquierda ? -1 : 1;
     }
 
-    public boolean actualizar(List<enemigo> enemigos) {
+    public boolean actualizar(List<Enemigo> enemigos) {
         if (enemigos == null || enemigos.stream().anyMatch(enemigo -> enemigo == null)) {
             throw new IllegalArgumentException("La lista de enemigos debe ser válida");
         }
@@ -72,13 +72,13 @@ public final class LamparaFuego {
             return false;
         }
 
-        Set<enemigo> enemigosActuales =
+        Set<Enemigo> enemigosActuales =
             Collections.newSetFromMap(new IdentityHashMap<>());
-        for (enemigo objetivo : enemigos) {
+        for (Enemigo objetivo : enemigos) {
             if (objetivo.estavivo() && colisionaConFuego(objetivo)) {
                 enemigosActuales.add(objetivo);
                 if (!enemigosEnFuego.contains(objetivo)) {
-                    objetivo.recibirDanio(DANIO_FUEGO, enemigo.TipoDanio.FUEGO);
+                    objetivo.recibirDanio(DANIO_FUEGO, Enemigo.TipoDanio.FUEGO);
                 }
             }
         }
@@ -87,7 +87,7 @@ public final class LamparaFuego {
         return true;
     }
 
-    private boolean colisionaConFuego(enemigo objetivo) {
+    private boolean colisionaConFuego(Enemigo objetivo) {
         return objetivo.getX() < xFuego + ANCHO_FUEGO
             && objetivo.getX() + objetivo.getAnchoColision() > xFuego
             && objetivo.getY() < ySuelo
