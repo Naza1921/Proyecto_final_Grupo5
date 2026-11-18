@@ -151,75 +151,27 @@ public class PersonajeFactory {
 
 
 
-#### Strategy: efectos temporales de power-ups
-![Diagrama del Juego](docs/diagrama_del_patron_strategy.png)
+#### Decorator: power-ups temporales
 
-`EfectoTemporal` define el contrato de una estrategia: cada efecto declara su categoría y cómo aplicarse y revertirse sobre un `Personaje`. Las clases `EfectoVelocidad`, `EfectoLento` y `EfectoInvulnerabilidad` implementan ese contrato.
-```java
-public interface EfectoTemporal {
-    CategoriaEfectoTemporal getCategoria();
-    void aplicar(Personaje personaje);
-    void revertir(Personaje personaje);
-}
-```
-Cada objeto `PowerUp` contiene una estrategia y una duración en milisegundos. Por ejemplo, `PowerUpVelocidad` se construye con un `EfectoVelocidad`:
+El patrón Decorator modifica el comportamiento del personaje sin crear subclases distintas por cada combinación de mejoras. `PersonajeDecorable` es el contrato, `Personaje` aporta el comportamiento base y `DecoradorBase` envuelve otro componente. `DecoradorVelocidad`, `DecoradorLentitud` y `DecoradorInmortal` agregan cambios concretos a la velocidad o al daño.
 
+Los power-ups aplican directamente su decorador. `PowerUpVelocidad`, `PowerUpLento` y `PowerUpPizza` declaran su recompensa y el constructor del decorador; `PowerUpBase` agrega o quita esa capa del personaje. `PowerUpVida` es instantáneo: recupera vida y no crea una capa temporal.
 
-```java
-public final class EfectoVelocidad implements EfectoTemporal {
-    private static final double MULTIPLICADOR = 1.5;
-
-    @Override
-    public CategoriaEfectoTemporal getCategoria() {
-        return CategoriaEfectoTemporal.VELOCIDAD;
-    }
-
-    @Override
-    public void aplicar(Personaje personaje) {
-        personaje.setMultiplicadorVelocidadTemporal(MULTIPLICADOR);
-    }
-
-    @Override
-    public void revertir(Personaje personaje) {
-        personaje.setMultiplicadorVelocidadTemporal(1.0);
-    }
-}
+```text
+PowerUpVelocidad -> DecoradorVelocidad -> Personaje
+PowerUpLento     -> DecoradorLentitud  -> Personaje
+PowerUpPizza     -> DecoradorInmortal  -> Personaje
 ```
 
-`GestorEfectosTemporales` activa la estrategia, guarda cuándo comenzó y la revierte cuando termina su duración:
-La partida mantiene el gestor y actualiza sus temporizadores durante el ciclo de juego. Los efectos de velocidad comparten categoría: si se activa `EfectoLento` mientras está activo `EfectoVelocidad`, el primero se revierte y el nuevo lo reemplaza. Si se vuelve a activar el mismo efecto, se renueva su duración. La invulnerabilidad pertenece a otra categoría, por lo que puede coexistir con cualquiera de los efectos de velocidad.
+`GestorEfectosTemporales` conserva un único power-up activo. Recoger el mismo tipo suma su duración al tiempo restante. Recoger un tipo distinto revierte el decorador actual y aplica el nuevo. Al vencer o limpiar el efecto, `Personaje` vuelve a su componente base.
 
-```java
-public void activar(PowerUp powerUp) {
-    if (powerUp == null || powerUp.getEfecto() == null || powerUp.getDuracion() <= 0) {
-        throw new IllegalArgumentException("El power-up debe tener efecto y duración válidos");
-    }
-    EfectoTemporal nuevoEfecto = powerUp.getEfecto();
-    CategoriaEfectoTemporal categoria = nuevoEfecto.getCategoria();
+El gestor se crea en `CreadorPartida`, se actualiza en cada ciclo de `ControladorPartida` y se pausa, reanuda o limpia desde `PrincipalControlador`. La explicación detallada de los cambios y su flujo está en [la documentación del patrón Decorator](docs/gestor-efectos-temporales.md).
 
-    long ahora = System.nanoTime();
-    long duracionNanos = TimeUnit.MILLISECONDS.toNanos(powerUp.getDuracion());
-    EfectoActivo anterior = efectosActivos.get(categoria);
-
-    if (anterior != null && anterior.efecto.getClass() != nuevoEfecto.getClass()) {
-        anterior.efecto.revertir(personaje);
-        efectosActivos.remove(categoria);
-        anterior = null;
-    }
-    if (anterior == null) {
-        nuevoEfecto.aplicar(personaje);
-    }
-    efectosActivos.put(categoria, new EfectoActivo(nuevoEfecto, ahora, duracionNanos));
-}
-```
 **Por qué es útil para el juego:**
 
-- Cada efecto tiene su propia implementación y puede cambiarse sin añadir una cadena de condiciones a `Personaje` o al controlador de partida.
-- Permite incorporar efectos nuevos implementando `EfectoTemporal`, por ejemplo salto triple o controles invertidos, cuando se implementen esas mecánicas.
-- Centraliza la activación, renovación, reemplazo y vencimiento de los efectos temporales.
+- Cada power-up aplica un decorador específico sin añadir condiciones a `Personaje` ni al controlador de partida.
+- Centraliza la activación, extensión, reemplazo y vencimiento de los efectos temporales.
 
-
-[Patrones de diseño STRATEGY](https://refactoring.guru/es/design-patterns/strategy)
 
 ### Persistencia SQLite: DAO y Singleton
 Persistencia de puntajes: Singleton y DAO

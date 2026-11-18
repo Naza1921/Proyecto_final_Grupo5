@@ -1,8 +1,6 @@
 package modelos.personajes;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import modelos.enemigos.enemigo;
 
@@ -19,8 +17,6 @@ public abstract class Personaje implements PersonajeDecorable {
             vida = Math.max(0, vida - cantidad);
         }
     };
-    private final Map<Object, Function<PersonajeDecorable, PersonajeDecorable>> decoradores =
-        new LinkedHashMap<>();
     private PersonajeDecorable componenteActual = componenteBase;
     private final String nombre;
     private final TipoRata tipoRata;
@@ -139,35 +135,20 @@ public abstract class Personaje implements PersonajeDecorable {
     public double getFuerzaSalto() { return fuerzaSalto; }
     public double getVelocidadY(){return velocidadY;}
 
-    public final void agregarDecorador(
-            Object identificador,
+    public final void aplicarDecorador(
             Function<PersonajeDecorable, PersonajeDecorable> crearDecorador) {
-        if (identificador == null || crearDecorador == null) {
-            throw new IllegalArgumentException("Se requiere identificar el decorador y su constructor");
+        if (crearDecorador == null) {
+            throw new IllegalArgumentException("Se requiere el constructor del decorador");
         }
-        decoradores.put(identificador, crearDecorador);
-        reconstruirComponenteActual();
+        PersonajeDecorable decorador = crearDecorador.apply(componenteBase);
+        if (decorador == null) {
+            throw new IllegalStateException("El constructor del decorador devolvió null");
+        }
+        componenteActual = decorador;
     }
 
-    public final void quitarDecorador(Object identificador) {
-        if (identificador == null) {
-            throw new IllegalArgumentException("Se requiere identificar el decorador");
-        }
-        if (decoradores.remove(identificador) != null) {
-            reconstruirComponenteActual();
-        }
-    }
-
-    private void reconstruirComponenteActual() {
-        PersonajeDecorable componente = componenteBase;
-        for (Function<PersonajeDecorable, PersonajeDecorable> crearDecorador
-                : decoradores.values()) {
-            componente = crearDecorador.apply(componente);
-            if (componente == null) {
-                throw new IllegalStateException("El constructor de un decorador devolvió null");
-            }
-        }
-        componenteActual = componente;
+    public final void quitarDecorador() {
+        componenteActual = componenteBase;
     }
 
     public void setEstamina(double estamina) {

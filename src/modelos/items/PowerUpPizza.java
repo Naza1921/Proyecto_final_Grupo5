@@ -8,7 +8,6 @@ public final class PowerUpPizza extends PowerUpBase {
             duracionMs,
             x,
             y,
-            CategoriaEfectoTemporal.DEFENSA,
             RECOMPENSA,
             DecoradorInmortal::new
         );

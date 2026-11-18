@@ -8,7 +8,6 @@ public final class PowerUpVelocidad extends PowerUpBase {
             duracionMs,
             x,
             y,
-            CategoriaEfectoTemporal.VELOCIDAD,
             RECOMPENSA,
             DecoradorVelocidad::new
         );

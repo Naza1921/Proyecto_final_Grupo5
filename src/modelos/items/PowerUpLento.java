@@ -8,7 +8,6 @@ public final class PowerUpLento extends PowerUpBase {
             duracionMs,
             x,
             y,
-            CategoriaEfectoTemporal.VELOCIDAD,
             RECOMPENSA,
             DecoradorLentitud::new
         );

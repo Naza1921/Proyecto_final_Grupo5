@@ -8,7 +8,6 @@ public abstract class PowerUpBase implements PowerUp {
     private final long duracion;
     private final double x;
     private final double y;
-    private final CategoriaEfectoTemporal categoria;
     private final RecompensaPowerUp recompensa;
     private final Function<PersonajeDecorable, PersonajeDecorable> crearDecorador;
     private final boolean instantaneo;
@@ -18,34 +17,31 @@ public abstract class PowerUpBase implements PowerUp {
             long duracion,
             double x,
             double y,
-            CategoriaEfectoTemporal categoria,
             RecompensaPowerUp recompensa,
             Function<PersonajeDecorable, PersonajeDecorable> crearDecorador) {
-        this(duracion, x, y, categoria, recompensa, crearDecorador, false, 0);
+        this(duracion, x, y, recompensa, crearDecorador, false, 0);
     }
 
     protected PowerUpBase(
             double x,
             double y,
-            CategoriaEfectoTemporal categoria,
             RecompensaPowerUp recompensa,
             int cantidadCuracion) {
-        this(0, x, y, categoria, recompensa, null, true, cantidadCuracion);
+        this(0, x, y, recompensa, null, true, cantidadCuracion);
     }
 
     private PowerUpBase(
             long duracion,
             double x,
             double y,
-            CategoriaEfectoTemporal categoria,
             RecompensaPowerUp recompensa,
             Function<PersonajeDecorable, PersonajeDecorable> crearDecorador,
             boolean instantaneo,
             int cantidadCuracion) {
         if (duracion < 0 || !Double.isFinite(x) || !Double.isFinite(y)
-                || categoria == null || recompensa == null
+                || recompensa == null
                 || (instantaneo && (duracion != 0 || crearDecorador != null
-                    || cantidadCuracion <= 0 || categoria != CategoriaEfectoTemporal.SALUD))
+                    || cantidadCuracion <= 0))
                 || (!instantaneo && (duracion == 0 || crearDecorador == null
                     || cantidadCuracion != 0))) {
             throw new IllegalArgumentException("El power-up requiere categoría, recompensa y datos válidos");
@@ -53,16 +49,10 @@ public abstract class PowerUpBase implements PowerUp {
         this.duracion = duracion;
         this.x = x;
         this.y = y;
-        this.categoria = categoria;
         this.recompensa = recompensa;
         this.crearDecorador = crearDecorador;
         this.instantaneo = instantaneo;
         this.cantidadCuracion = cantidadCuracion;
-    }
-
-    @Override
-    public CategoriaEfectoTemporal getCategoria() {
-        return categoria;
     }
 
     @Override
@@ -96,7 +86,7 @@ public abstract class PowerUpBase implements PowerUp {
         if (instantaneo) {
             personaje.recuperarVida(cantidadCuracion);
         } else {
-            personaje.agregarDecorador(categoria, crearDecorador);
+            personaje.aplicarDecorador(crearDecorador);
         }
     }
 
@@ -104,7 +94,7 @@ public abstract class PowerUpBase implements PowerUp {
     public void revertirEfecto(Personaje personaje) {
         validarPersonaje(personaje);
         if (!instantaneo) {
-            personaje.quitarDecorador(categoria);
+            personaje.quitarDecorador();
         }
     }
 

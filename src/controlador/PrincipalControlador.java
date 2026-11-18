@@ -11,14 +11,14 @@ import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
 import persistencia.SQLitePuntajeDAO;
 import servicios.ServicioPuntajes;
-import vista.MenuPrincipal;
 import vista.MenuAjustesVista;
-import vista.PanelJuego;
+import vista.MenuGameOver;
+import vista.MenuPausa;
+import vista.MenuPrincipal;
 import vista.PanelCargaPartida;
+import vista.PanelJuego;
 import vista.PanelSeleccionPersonaje;
 import vista.PantallaIntro;
-import vista.MenuPausa;
-import vista.MenuGameOver;
 import vista.TableroPuntajes;
 
 public class PrincipalControlador {
@@ -54,8 +54,7 @@ public class PrincipalControlador {
     private final CreadorPartida creadorPartida;
     private CardLayout cardLayout;
     private JPanel contenedor;
-    private SwingWorker<CreadorPartida.PreparacionPartida, CreadorPartida.ProgresoCarga>
-        trabajadorCarga;
+    private SwingWorker<CreadorPartida.PreparacionPartida, CreadorPartida.ProgresoCarga> trabajadorCarga;
 
     public PrincipalControlador() {
         this(new ServicioPuntajes(
