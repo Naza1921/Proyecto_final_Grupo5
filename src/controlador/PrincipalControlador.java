@@ -2,7 +2,8 @@ package controlador;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
-import java.sql.SQLException;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import modelos.personajes.Personaje;
 import persistencia.ConexionSQLite;
@@ -27,6 +28,7 @@ public class PrincipalControlador {
     private static final String VISTA_PAUSA = "pausa";
     private static final String VISTA_GAME_OVER = "gameOver";
     private static final String VISTA_TABLERO = "tablero";
+    private static final String VISTA_CARGA = "carga";
 
     private Personaje jugador;
     private JFrame ventana;
@@ -82,6 +84,7 @@ public class PrincipalControlador {
         panelAjustes = new MenuAjustesVista();
         panelSeleccion = new PanelSeleccionPersonaje(this::iniciarJuego);
 
+        contenedor.add(crearPanelCargaPartida(), VISTA_CARGA);
         contenedor.add(pantallaIntro, VISTA_INTRO);
         contenedor.add(menuPrincipal, VISTA_MENU);
         contenedor.add(tableroPuntajes, VISTA_TABLERO);
@@ -111,6 +114,7 @@ public class PrincipalControlador {
             @Override
             public void windowClosing(java.awt.event.WindowEvent evento) {
                 efectosSonido.close();
+                servicioPuntajes.close();
             }
         });
         ventana.setVisible(true);
@@ -127,17 +131,23 @@ public class PrincipalControlador {
     }
 
     private void mostrarTablero() {
-        try {
-            tableroPuntajes.mostrarResultados(servicioPuntajes.listarMejoresPuntajes());
-            cardLayout.show(contenedor, VISTA_TABLERO);
-        } catch (SQLException excepcion) {
-            JOptionPane.showMessageDialog(
-                ventana,
-                "No se pudo cargar el tablero de puntajes: " + excepcion.getMessage(),
-                "Error de base de datos",
-                JOptionPane.ERROR_MESSAGE
-            );
-        }
+        tableroPuntajes.mostrarCargando();
+        cardLayout.show(contenedor, VISTA_TABLERO);
+        servicioPuntajes.listarMejoresPuntajesAsync().whenComplete((resultados, error) ->
+            SwingUtilities.invokeLater(() -> {
+                if (error == null) {
+                    tableroPuntajes.mostrarResultados(resultados);
+                } else {
+                    tableroPuntajes.mostrarErrorCarga();
+                    mostrarAvisoNoModal(
+                        "No se pudo cargar el tablero de puntajes: "
+                            + obtenerCausa(error).getMessage(),
+                        "Error de base de datos",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            })
+        );
     }
 
     private void configurarBotonesMenu() {
@@ -239,12 +249,46 @@ public class PrincipalControlador {
         }
 
         this.jugador = personajeElegido;
-        CreadorPartida.PartidaCreada partida = creadorPartida.crear(
-            jugador,
-            this::mostrarMenuGameOver,
-            this::pausarJuego,
-            this::guardarResultadoPartida
-        );
+        cardLayout.show(contenedor, VISTA_CARGA);
+
+        SwingWorker<CreadorPartida.PartidaCreada, Void> trabajador =
+            new SwingWorker<>() {
+                @Override
+                protected CreadorPartida.PartidaCreada doInBackground() {
+                    return creadorPartida.crear(
+                        personajeElegido,
+                        PrincipalControlador.this::mostrarMenuGameOver,
+                        PrincipalControlador.this::pausarJuego,
+                        PrincipalControlador.this::guardarResultadoPartida
+                    );
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        iniciarPartida(get());
+                    } catch (InterruptedException excepcion) {
+                        Thread.currentThread().interrupt();
+                        mostrarErrorCreacionPartida(excepcion);
+                    } catch (ExecutionException excepcion) {
+                        mostrarErrorCreacionPartida(excepcion.getCause());
+                    }
+                }
+            };
+        trabajador.execute();
+    }
+
+    private JPanel crearPanelCargaPartida() {
+        JPanel panel = new JPanel(new java.awt.GridBagLayout());
+        panel.setBackground(new java.awt.Color(15, 13, 25));
+        JLabel mensaje = new JLabel("Preparando la partida...");
+        mensaje.setForeground(new java.awt.Color(255, 214, 133));
+        mensaje.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 22));
+        panel.add(mensaje);
+        return panel;
+    }
+
+    private void iniciarPartida(CreadorPartida.PartidaCreada partida) {
         panelJuego = partida.panelJuego();
         gestorEfectos = partida.gestorEfectos();
         controladorPartida = partida.controladorPartida();
@@ -256,6 +300,16 @@ public class PrincipalControlador {
         panelJuego.requestFocusInWindow();
         controladorPartida.iniciar();
         reproductorMusica.habilitarReproduccion();
+    }
+
+    private void mostrarErrorCreacionPartida(Throwable error) {
+        JOptionPane.showMessageDialog(
+            ventana,
+            "No se pudo preparar la partida: " + error.getMessage(),
+            "Error al iniciar el juego",
+            JOptionPane.ERROR_MESSAGE
+        );
+        cardLayout.show(contenedor, VISTA_SELECCION);
     }
 
     private void guardarResultadoPartida() {
@@ -283,28 +337,42 @@ public class PrincipalControlador {
             return;
         }
 
-        try {
-            boolean nuevoMejorPuntaje = servicioPuntajes.guardarMejorPuntaje(
-                nombre,
-                controladorPartida.obtenerPuntaje(),
-                controladorPartida.obtenerTiempoPartidaSegundos()
-            );
-            String mensaje = nuevoMejorPuntaje
-                ? "Puntaje guardado correctamente."
-                : "No superaste tu mejor puntaje anterior; se conservó el registro existente.";
-            JOptionPane.showMessageDialog(
-                ventana,
-                mensaje,
-                "Resultado de la partida",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-        } catch (SQLException excepcion) {
-            JOptionPane.showMessageDialog(
-                ventana,
-                "No se pudo guardar el puntaje en SQLite: " + excepcion.getMessage(),
-                "Error de base de datos",
-                JOptionPane.ERROR_MESSAGE
-            );
+        int puntuacion = controladorPartida.obtenerPuntaje();
+        long tiempoSegundos = controladorPartida.obtenerTiempoPartidaSegundos();
+        servicioPuntajes.guardarMejorPuntajeAsync(nombre, puntuacion, tiempoSegundos)
+            .whenComplete((nuevoMejorPuntaje, error) -> SwingUtilities.invokeLater(() -> {
+                if (error != null) {
+                    mostrarAvisoNoModal(
+                        "No se pudo guardar el puntaje en SQLite: "
+                            + obtenerCausa(error).getMessage(),
+                        "Error de base de datos",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                String mensaje = nuevoMejorPuntaje
+                    ? "Puntaje guardado correctamente."
+                    : "No superaste tu mejor puntaje anterior; se conservó el registro existente.";
+                mostrarAvisoNoModal(
+                    mensaje,
+                    "Resultado de la partida",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            }));
+    }
+
+    private void mostrarAvisoNoModal(String mensaje, String titulo, int tipo) {
+        JOptionPane panelAviso = new JOptionPane(mensaje, tipo);
+        JDialog dialogo = panelAviso.createDialog(ventana, titulo);
+        dialogo.setModal(false);
+        dialogo.setVisible(true);
+    }
+
+    private Throwable obtenerCausa(Throwable error) {
+        Throwable causa = error;
+        while (causa instanceof CompletionException && causa.getCause() != null) {
+            causa = causa.getCause();
         }
+        return causa;
     }
 }

@@ -2,13 +2,21 @@ package servicios;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import persistencia.PuntajeDAO;
 import persistencia.ResultadoPuntaje;
 
-public final class ServicioPuntajes {
+public final class ServicioPuntajes implements AutoCloseable {
     private static final int CANTIDAD_PUNTAJES_TABLERO = 10;
 
     private final PuntajeDAO puntajeDAO;
+    private final ExecutorService ejecutor = Executors.newSingleThreadExecutor(tarea -> {
+        Thread hilo = new Thread(tarea, "persistencia-puntajes");
+        hilo.setDaemon(true);
+        return hilo;
+    });
 
     public ServicioPuntajes(PuntajeDAO puntajeDAO) {
         if (puntajeDAO == null) {
@@ -27,5 +35,31 @@ public final class ServicioPuntajes {
         return puntajeDAO.listarMejoresPuntajes().stream()
             .limit(CANTIDAD_PUNTAJES_TABLERO)
             .toList();
+    }
+
+    public CompletableFuture<Boolean> guardarMejorPuntajeAsync(
+            String nombre, int puntuacion, long tiempoSegundos) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return guardarMejorPuntaje(nombre, puntuacion, tiempoSegundos);
+            } catch (SQLException excepcion) {
+                throw new java.util.concurrent.CompletionException(excepcion);
+            }
+        }, ejecutor);
+    }
+
+    public CompletableFuture<List<ResultadoPuntaje>> listarMejoresPuntajesAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return listarMejoresPuntajes();
+            } catch (SQLException excepcion) {
+                throw new java.util.concurrent.CompletionException(excepcion);
+            }
+        }, ejecutor);
+    }
+
+    @Override
+    public void close() {
+        ejecutor.shutdown();
     }
 }

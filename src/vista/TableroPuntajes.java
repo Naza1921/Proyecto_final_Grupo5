@@ -32,6 +32,7 @@ public final class TableroPuntajes extends JPanel {
     private final Font fuentePuntajes;
     private final JButton botonVolver;
     private List<ResultadoPuntaje> resultados = List.of();
+    private String estado;
 
     public TableroPuntajes(Runnable alVolver) {
         if (alVolver == null) {
@@ -70,6 +71,19 @@ public final class TableroPuntajes extends JPanel {
             throw new IllegalArgumentException("La lista de puntajes no es válida");
         }
         this.resultados = List.copyOf(resultados);
+        estado = resultados.isEmpty() ? "Todavía no hay puntajes guardados." : null;
+        repaint();
+    }
+
+    public void mostrarCargando() {
+        resultados = List.of();
+        estado = "Cargando puntajes...";
+        repaint();
+    }
+
+    public void mostrarErrorCarga() {
+        resultados = List.of();
+        estado = "No se pudieron cargar los puntajes.";
         repaint();
     }
 
@@ -144,6 +158,14 @@ public final class TableroPuntajes extends JPanel {
             encabezado, metricasEncabezado);
         dibujarCentrado(g, "TIEMPO", desplazamientoX + (int) (652 * escala),
             encabezado, metricasEncabezado);
+
+        if (estado != null) {
+            g.setColor(COLOR_TEXTO);
+            g.setFont(fuentePuntajes.deriveFont((float) (14 * escala)));
+            dibujarCentrado(g, estado, desplazamientoX + (int) (450 * escala),
+                desplazamientoY + (int) (280 * escala), g.getFontMetrics());
+            return;
+        }
 
         int inicioFilas = desplazamientoY + (int) (230 * escala);
         int separacionFila = (int) (23 * escala);

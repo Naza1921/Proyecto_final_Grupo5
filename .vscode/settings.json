@@ -2,16 +2,17 @@
     "java.project.sourcePaths": [
         "src"
     ],
-    "java.project.outputPath": "build/classes",
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar",
-        "C:\\Program Files\\Java\\javafx-27_windows-x64_bin-sdk\\javafx-sdk-27\\lib\\*.jar"
-    ],
+    "java.project.outputPath": "bin",
+    "java.jdt.ls.java.home": "/home/ivo-leal/Escritorio/jdk-27",
     "java.configuration.runtimes": [
         {
             "name": "JavaSE-27",
-            "path": "C:\\Program Files\\Java\\jdk-27",
+            "path": "/home/ivo-leal/Escritorio/jdk-27",
             "default": true
         }
+    ],
+    "java.project.referencedLibraries": [
+        "/home/ivo-leal/Escritorio/javafx-sdk-27/lib/*.jar",
+        "/home/ivo-leal/Escritorio/javafx-sdk-27/sqlite-jdbc-3.53.4.0.jar"
     ]
 }
